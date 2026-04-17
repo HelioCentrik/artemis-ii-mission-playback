@@ -7,7 +7,7 @@ import duckdb
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import DATA_DIR, DB_PATH, TABLE_TRAJECTORY
+from app.config import DATA_DIR, DB_PATH, TABLE_TRAJECTORY
 from scripts.fetch_horizons import fetch_trajectory
 
 

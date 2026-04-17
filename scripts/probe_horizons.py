@@ -5,7 +5,7 @@ from pathlib import Path
 import requests
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from config import HORIZONS_URL, SPACECRAFT_ID, CENTER, REF_SYSTEM, REF_PLANE, OUT_UNITS
+from app.config import HORIZONS_URL, SPACECRAFT_ID, CENTER, REF_SYSTEM, REF_PLANE, OUT_UNITS
 
 BASE_PARAMS = {
     "format":     "json",

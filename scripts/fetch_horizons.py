@@ -9,7 +9,7 @@ from dateutil import parser as dateutil_parser
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import (
+from app.config import (
     HORIZONS_URL,
     SPACECRAFT_ID,
     MISSION_START,

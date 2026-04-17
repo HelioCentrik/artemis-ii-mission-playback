@@ -5,7 +5,7 @@ from pathlib import Path
 import duckdb
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from config import DB_PATH, TABLE_TRAJECTORY
+from app.config import DB_PATH, TABLE_TRAJECTORY
 
 con = duckdb.connect(str(DB_PATH))
 
