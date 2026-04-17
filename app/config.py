@@ -9,14 +9,15 @@ DB_PATH    = DATA_DIR / "artemis2.duckdb"
 
 # --- Horizons API ---
 HORIZONS_URL = "https://ssd.jpl.nasa.gov/api/horizons.api"
-VEC_TABLE = "3"
 
-# --- Spacecraft ---
+# --- Spacecraft & Bodies ---
 SPACECRAFT_ID = "-1024"          # Orion capsule (Artemis II)
+MOON_ID       = "301"            # Moon
+SUN_ID        = "10"             # Sun
 
 # --- Query Window ---
 MISSION_START = "2026-Apr-02 01:59"
-MISSION_STOP = "2026-Apr-10 23:54"
+MISSION_STOP  = "2026-Apr-10 23:54"
 STEP_SIZE     = "1m"             # 1-minute intervals
 
 # --- Reference Frame ---
@@ -27,5 +28,9 @@ REF_PLANE     = "FRAME"
 # --- Output Units ---
 OUT_UNITS     = "KM-S"           # km and km/s
 
-# --- Database ---
-TABLE_TRAJECTORY = "orion_trajectory"
+# --- Database Tables & Sets ---
+TABLE_TRAJECTORY     = "orion_trajectory"
+TABLE_TRAJECTORY_VEC = "3"
+TABLE_ELEMENTS       = "orion_elements"
+TABLE_MOON           = "moon_trajectory"
+TABLE_SUN            = "sun_trajectory"

@@ -19,10 +19,10 @@ from app.config import (
     REF_SYSTEM,
     REF_PLANE,
     OUT_UNITS,
-    VEC_TABLE,
+    TABLE_TRAJECTORY_VEC,
 )
 
-# Column order matches VEC_TABLE=2 CSV output exactly
+# Column order matches TABLE_TRAJECTORY_VEC=2 CSV output exactly
 COLUMNS = [
     "jd_tdb",
     "datetime_str",
@@ -49,7 +49,7 @@ def build_params() -> dict:
         "START_TIME": f"'{MISSION_START}'",
         "STOP_TIME":  f"'{MISSION_STOP}'",
         "STEP_SIZE":  f"'{STEP_SIZE}'",
-        "VEC_TABLE":  VEC_TABLE,
+        "TABLE_TRAJECTORY_VEC":  TABLE_TRAJECTORY_VEC,
         "VEC_LABELS": "NO",
         "OUT_UNITS":  OUT_UNITS,
         "CSV_FORMAT": "YES",
