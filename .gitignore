@@ -7,8 +7,7 @@ env/
 
 # --- Data & Database ---
 data/
-*.duckdb
-*.duckdb.wal
+source/
 
 # --- Python ---
 __pycache__/
