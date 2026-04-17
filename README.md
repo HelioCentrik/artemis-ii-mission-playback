@@ -32,6 +32,19 @@ An interactive dashboard that animates the Artemis II Orion capsule's 9-day traj
 
 ---
 
+## Scope
+
+**Mission window:** `2026-Apr-02 01:59 UTC` → `2026-Apr-10 23:54 UTC`
+
+The dataset does not begin at launch. JPL Horizons only has trajectory data for Orion
+once DSN ground stations acquired the signal after orbital insertion — approximately
+T+3.5 hours after SLS liftoff. The final ~13 minutes of the mission (reentry through
+splashdown) are also absent: the plasma sheath surrounding the capsule during atmospheric
+reentry blocks all radio communication, cutting off tracking data before the vehicle
+reaches Earth's surface.
+
+---
+
 ## Stack
 
 | Layer | Technology                      |
