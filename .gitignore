@@ -1,0 +1,43 @@
+# .gitignore
+
+# --- Virtual Environment ---
+.venv/
+venv/
+env/
+
+# --- Data & Database ---
+data/
+*.duckdb
+*.duckdb.wal
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# --- PyCharm / JetBrains ---
+.idea/
+
+# --- Jupyter (if ever used) ---
+.ipynb_checkpoints/
+*.ipynb
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs & temp ---
+*.log
+*.tmp
+*.bak
+
+# --- Environment variables ---
+.env
+.env.*
