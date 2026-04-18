@@ -14,6 +14,8 @@ from app.config import (
     TABLE_SUN,
 )
 
+
+
 NUMERIC_COLS = {
     TABLE_TRAJECTORY: ["x_km", "y_km", "z_km", "vx_kms", "vy_kms", "vz_kms",
                        "lt_sec", "rg_km", "rr_kms"],

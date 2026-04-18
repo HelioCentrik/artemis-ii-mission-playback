@@ -20,6 +20,7 @@ from app.config import DATA_DIR, DB_PATH, EXPECTED_ROW_COUNT
 from scripts.fetch_horizons import QUERY_CONFIGS, fetch
 
 
+
 def table_row_count(con: duckdb.DuckDBPyConnection, table: str) -> int:
     """Returns row count for table, or 0 if table doesn't exist."""
     exists = con.execute("""
