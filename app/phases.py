@@ -25,8 +25,18 @@ def _detect(con: duckdb.DuckDBPyConnection) -> list[dict]:
     ).fetchone()[0]
 
     # ── 2. TLI Burn — peak speed ─────────────────────────────────────────
+    # TLI fires very early (dataset starts at T+3.5h); constraining to 12h
+    # prevents the faster end-of-mission return approach from winning the
+    # global max.
     tli_time = con.execute(
-        "SELECT datetime_utc FROM v_kinematics ORDER BY speed_kms DESC LIMIT 1"
+        """
+        SELECT datetime_utc
+        FROM   v_kinematics
+        WHERE  datetime_utc <= ? + INTERVAL 12 HOURS
+        ORDER  BY speed_kms DESC
+        LIMIT  1
+        """,
+        [mission_start],
     ).fetchone()[0]
 
     # ── 3. Trans-Lunar Coast — first row where C3 crosses zero ───────────
@@ -47,29 +57,24 @@ def _detect(con: duckdb.DuckDBPyConnection) -> list[dict]:
     ).fetchone()
     ca_time, ca_r_moon = ca_row
 
-    # ── 4. Lunar Approach — last local r_moon maximum before closest approach
-    # Walk backward from closest approach, find the final inflection point
-    # where r_moon was still increasing before the sustained descent began.
+    # ── 4. Lunar Approach — first row inside 100,000 km of the Moon ──────
+    # r_moon decreases monotonically from ~406k km to closest approach, so
+    # a local-max approach just finds the start of the outbound leg. A
+    # threshold at 100k km (inside lunar sphere of influence) is a much
+    # cleaner "final approach" marker.
     la_result = con.execute(
         """
-        WITH ordered AS (
-            SELECT
-                datetime_utc,
-                r_moon_km,
-                LAG(r_moon_km)  OVER (ORDER BY datetime_utc) AS prev_r,
-                LEAD(r_moon_km) OVER (ORDER BY datetime_utc) AS next_r
-            FROM v_earth_moon
-            WHERE datetime_utc < ?
-        )
         SELECT datetime_utc
-        FROM   ordered
-        WHERE  r_moon_km > prev_r
-          AND  r_moon_km > next_r
-        ORDER  BY datetime_utc DESC
+        FROM   v_earth_moon
+        WHERE  r_moon_km   < 100000.0
+          AND  datetime_utc < ?
+        ORDER  BY datetime_utc ASC
         LIMIT  1
         """,
         [ca_time],
     ).fetchone()
+
+    la_time = la_result[0] if la_result else tlc_time
 
     # Fallback: if no clean local max detected, use TLC timestamp
     la_time = la_result[0] if la_result else tlc_time
@@ -99,12 +104,11 @@ def _detect(con: duckdb.DuckDBPyConnection) -> list[dict]:
 
     # ── Assemble results ─────────────────────────────────────────────────
     phase_timestamps = [
-        mission_start,
-        tli_time,
-        tlc_time,
-        la_time,
-        ca_time,
-        rc_time,
+        mission_start,   # Early Coast
+        tlc_time,        # Trans-Lunar Coast
+        la_time,         # Lunar Approach
+        ca_time,         # Closest Approach
+        rc_time,         # Return Coast
     ]
 
     return [

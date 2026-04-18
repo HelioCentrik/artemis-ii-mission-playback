@@ -84,12 +84,13 @@ R_MOON  = 1_737.4
 
 PHASES = (
     {"key": "early_coast",       "label": "Early Coast",       "short": "EC"},
-    {"key": "tli_burn",          "label": "TLI Burn",          "short": "TLI"},
     {"key": "translunar_coast",  "label": "Trans-Lunar Coast", "short": "TLC"},
     {"key": "lunar_approach",    "label": "Lunar Approach",    "short": "LA"},
     {"key": "closest_approach",  "label": "Closest Approach",  "short": "CA"},
     {"key": "return_coast",      "label": "Return Coast",      "short": "RC"},
 )
+
+PHASE_COUNT = len(PHASES)
 
 PHASE_COUNT = len(PHASES)
 
