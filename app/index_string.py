@@ -38,8 +38,6 @@ INDEX_STRING = f"""<!DOCTYPE html>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="{GOOGLE_FONTS_URL}" rel="stylesheet">
 
-    {{%css%}}
-
     <style>
         :root {{
             /* ── Surfaces ── */
@@ -85,6 +83,9 @@ INDEX_STRING = f"""<!DOCTYPE html>
             --dashboard-max-w:    1400px;
         }}
     </style>
+
+    {{%css%}}
+    
 </head>
 <body>
     {{%app_entry%}}
