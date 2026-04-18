@@ -1,0 +1,374 @@
+/* assets/style.css
+ *
+ * All visual styling for the Artemis II dashboard. Layout is CSS Grid.
+ * Every value that might change lives in a CSS custom property (injected
+ * from config.py via index_string.py). No hardcoded colors or dimensions.
+ */
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg-base);
+    color: var(--font-primary);
+    font-family: var(--font-family);
+    font-size: var(--font-size-label);
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DASHBOARD SHELL
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.dashboard {
+    max-width: var(--dashboard-max-w);
+    margin: 0 auto;
+    padding: var(--panel-gap);
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-columns: 1fr;
+    gap: var(--panel-gap);
+    min-height: 100vh;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.header-brand {
+    height: var(--header-brand-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+}
+
+.header-brand-left,
+.header-brand-right {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.header-brand-right {
+    text-align: right;
+}
+
+.header-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--font-primary);
+    letter-spacing: 1px;
+}
+
+.header-subtitle {
+    font-size: var(--font-size-label);
+    color: var(--font-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.header-status {
+    height: var(--header-status-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+    color: var(--font-dim);
+    font-size: var(--font-size-status);
+    letter-spacing: 1px;
+}
+
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--status-live);
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PANEL CARD (shared)
+
+   Base styling for all panels — trajectory and telemetry. The inset
+   box-shadow simulates a beveled bezel edge like hardware displays.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--panel-radius);
+    box-shadow:
+        inset 0  1px 0 rgba(255, 255, 255, 0.03),
+        0 1px 3px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TRAJECTORY PANEL
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.panel-trajectory {
+    min-height: var(--traj-min-h);
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-trajectory-header {
+    padding: 8px 12px;
+    font-size: var(--font-size-label);
+    color: var(--font-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.panel-trajectory-viz {
+    flex: 1;
+    min-height: 0;          /* allow flex child to shrink for the plotly div */
+}
+
+/* Ensure the Plotly graph fills its container */
+.panel-trajectory-viz .js-plotly-plot,
+.panel-trajectory-viz .plot-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PHASE SCRUBBER
+
+   Horizontal track with phase marker dots, embedded at the bottom
+   of the trajectory panel. Dots are positioned via percentage, driven
+   by the phase timestamp fraction of total mission duration.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.scrubber {
+    height: var(--scrubber-h);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    border-top: 1px solid var(--panel-border);
+}
+
+.scrubber-track {
+    flex: 1;
+    height: 2px;
+    background: var(--panel-border);
+    position: relative;
+}
+
+.scrubber-dot {
+    width: var(--scrubber-dot);
+    height: var(--scrubber-dot);
+    border-radius: 50%;
+    border: 2px solid var(--font-dim);
+    background: transparent;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    z-index: 2;
+}
+
+.scrubber-dot:hover {
+    border-color: var(--font-primary);
+    background: var(--font-dim);
+}
+
+.scrubber-dot.active {
+    width: var(--scrubber-dot-active);
+    height: var(--scrubber-dot-active);
+    border-color: var(--accent-trajectory);
+    background: var(--accent-trajectory);
+}
+
+/* Vertical tick at the active phase */
+.scrubber-tick {
+    width: 2px;
+    height: 16px;
+    background: var(--font-dim);
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TELEMETRY GRID
+
+   2×2 layout below the trajectory. Uses minmax() so panels flex
+   between ~480px and 1fr across the 1200–1400px range without
+   breakpoints. Below 960px it stacks to single column.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--panel-gap);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TELEMETRY PANEL
+
+   Each panel group has a colored left accent border, a header bar,
+   and a grid of KPI tiles inside.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.telemetry-panel {
+    border-left: 3px solid var(--panel-accent, var(--panel-border));
+}
+
+/* Panel header — accent dot, label, short code */
+.telemetry-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px var(--panel-padding);
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.telemetry-panel-label {
+    font-size: var(--font-size-header);
+    font-weight: 700;
+    color: var(--panel-accent, var(--font-primary));
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.telemetry-panel-label .accent-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--panel-accent, var(--font-dim));
+    flex-shrink: 0;
+}
+
+.telemetry-panel-code {
+    font-size: var(--font-size-label);
+    color: var(--font-dim);
+    letter-spacing: 2px;
+}
+
+/* Accent overrides — set via inline style or per-group class */
+.telemetry-panel--vectors    { --panel-accent: var(--accent-vectors); }
+.telemetry-panel--trajectory { --panel-accent: var(--accent-trajectory); }
+.telemetry-panel--gravity    { --panel-accent: var(--accent-gravity); }
+.telemetry-panel--range      { --panel-accent: var(--accent-range); }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KPI TILES
+
+   Individual metric tiles inside telemetry panels. Each tile shows
+   a label, unit, current value, and optional sparkline.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.tile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;                 /* hairline gap — panel-bg shows through */
+    background: var(--panel-border);    /* the "gap" color */
+}
+
+.tile {
+    background: var(--panel-bg);
+    padding: var(--panel-padding);
+    display: flex;
+    flex-direction: column;
+    min-height: 120px;
+}
+
+.tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+
+.tile-label {
+    font-size: var(--font-size-label);
+    color: var(--panel-accent, var(--font-dim));
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.tile-unit {
+    font-size: var(--font-size-label);
+    color: var(--font-dim);
+    text-transform: uppercase;
+}
+
+.tile-value {
+    font-size: var(--font-size-kpi);
+    font-weight: 700;
+    color: var(--panel-accent, var(--font-primary));
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+
+.tile-delta {
+    font-size: var(--font-size-label);
+    color: var(--font-dim);
+    margin-bottom: 8px;
+}
+
+.tile-sparkline {
+    flex: 1;
+    min-height: var(--sparkline-h);
+}
+
+/* Ensure sparkline Plotly chart fills the tile */
+.tile-sparkline .js-plotly-plot,
+.tile-sparkline .plot-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DASH OVERRIDES
+
+   Dash injects its own elements and styles. Override the ones that
+   conflict with the mission-control aesthetic.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Kill the default Dash error overlay styling */
+._dash-error {
+    display: none !important;
+}
+
+/* Remove default margins/padding on the Dash app container */
+#react-entry-point {
+    padding: 0;
+    margin: 0;
+}
+
+/* Dash loading spinners — match theme */
+._dash-loading {
+    color: var(--font-dim) !important;
+}
