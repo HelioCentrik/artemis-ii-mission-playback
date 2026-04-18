@@ -5,9 +5,11 @@
 venv/
 env/
 
-# --- Data & Database ---
+# --- Data & Tests ---
 data/
 source/
+test/
+scripts/probe_horizons.py
 
 # --- Python ---
 __pycache__/
@@ -40,3 +42,4 @@ desktop.ini
 # --- Environment variables ---
 .env
 .env.*
+/test/test_phase2.py
