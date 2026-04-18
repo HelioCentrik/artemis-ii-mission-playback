@@ -27,6 +27,7 @@ from app.config import (
 )
 
 
+
 INDEX_STRING = f"""<!DOCTYPE html>
 <html>
 <head>
