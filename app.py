@@ -9,7 +9,7 @@ from dash.dependencies import ALL
 
 from app.config import PANEL_GROUPS, PHASES, PHASE_COUNT
 from app.index_string import INDEX_STRING
-from app.trajectory import build_trajectory_fig
+from app.trajectory import build_trajectory_fig, build_starfield_svg
 
 # Register the artemis2 Plotly template as a side effect of import
 import app.plotly_template  # noqa: F401
@@ -177,13 +177,35 @@ def update_phase(n_clicks):
     Input("phase-store", "data"),
 )
 def update_trajectory(phase_idx):
-    """phase-store change → rebuild trajectory figure."""
+    """phase-store change → rebuild trajectory figure.
+
+    Returns a position:relative wrapper containing two absolute layers:
+      1. Static SVG starfield (z=0) — always fills panel edge to edge.
+      2. Plotly figure (z=1) — transparent background, trajectory on top.
+    """
     fig = build_trajectory_fig(phase_idx or 0)
-    return dcc.Graph(
-        figure=fig,
-        config=dict(displayModeBar=False),
-        style={"height": "100%"},
-    )
+    return html.Div([
+        dcc.Markdown(
+            build_starfield_svg(),
+            dangerously_allow_html=True,
+            style={
+                "position": "absolute",
+                "inset": "0",
+                "zIndex": "0",
+                "lineHeight": "0",
+            },
+        ),
+        dcc.Graph(
+            figure=fig,
+            config=dict(displayModeBar=False),
+            style={
+                "position": "absolute",
+                "inset": "0",
+                "height": "100%",
+                "zIndex": "1",
+            },
+        ),
+    ], style={"position": "relative", "height": "100%"})
 
 
 # ═══════════════════════════════════════════════════════════════════════════

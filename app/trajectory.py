@@ -22,16 +22,18 @@ import plotly.graph_objects as go
 
 from app.config import (
     PLOTLY_BG,
-    COLOR_TRAJECTORY,
-    COLOR_TRAJECTORY_DIM,
-    COLOR_SPACECRAFT,
+    COLOR_TRAJECTORY, COLOR_TRAJECTORY_DIM, COLOR_SPACECRAFT,
     FONT_SIZE_LABEL,
-    VIEW_ROTATION_DEG,
-    VIEW_ZOOM,
-    VIEW_X_OFFSET_KM,
-    VIEW_Y_OFFSET_KM,
-    STAR_SEED,
-    STAR_COUNT,
+    VIEW_ROTATION_DEG, VIEW_ZOOM, VIEW_X_OFFSET_KM, VIEW_Y_OFFSET_KM,
+    STAR_SEED, STAR_COUNT,
+    STAR_DIM_FRACTION,
+    STAR_SIZE_DIM_MIN, STAR_SIZE_DIM_MAX,
+    STAR_SIZE_FG_MIN,  STAR_SIZE_FG_MAX,
+    STAR_ALPHA_DIM_MIN, STAR_ALPHA_DIM_MAX,
+    STAR_ALPHA_FG_MIN,  STAR_ALPHA_FG_MAX,
+    SPACE_BG_COLOR,
+    EARTH_LABEL_Y_MULT, MOON_LABEL_Y_MULT,
+    ORION_LABEL_SHOW, ORION_LABEL_BG_ALPHA, ORION_LABEL_XSHIFT, ORION_LABEL_YSHIFT, ORION_MARKER_SIZE,
 )
 from app.themes import THEME_DARK
 from app.utils import rotate_2d, circle_xy, fmt_met, in_range
@@ -42,6 +44,55 @@ from app.phases import get_phases
 # ── Module-level caches ───────────────────────────────────────────────────
 _BODY_RADII:   dict | None = None
 _FIXED_RANGES: dict | None = None
+
+_STARFIELD_SVG: str | None = None
+
+
+def build_starfield_svg() -> str:
+    """
+    Build a static SVG string of the starfield background. Cached after
+    first call — seed is fixed so output is always identical.
+
+    SVG uses a 0–100 viewBox with preserveAspectRatio="none" so it always
+    fills its container exactly, regardless of panel aspect ratio.
+    A black rect is the first element, replacing plot_bgcolor on the figure.
+    """
+    global _STARFIELD_SVG
+    if _STARFIELD_SVG is not None:
+        return _STARFIELD_SVG
+
+    rng   = np.random.default_rng(STAR_SEED)
+    n_dim = int(STAR_COUNT * STAR_DIM_FRACTION)
+    n_fg  = STAR_COUNT - n_dim
+
+    cx = rng.uniform(0, 100, STAR_COUNT)
+    cy = rng.uniform(0, 100, STAR_COUNT)
+
+    radii = np.concatenate([
+        rng.uniform(STAR_SIZE_DIM_MIN, STAR_SIZE_DIM_MAX, n_dim),
+        rng.uniform(STAR_SIZE_FG_MIN,  STAR_SIZE_FG_MAX,  n_fg),
+    ])
+    alphas = np.concatenate([
+        rng.uniform(STAR_ALPHA_DIM_MIN, STAR_ALPHA_DIM_MAX, n_dim),
+        rng.uniform(STAR_ALPHA_FG_MIN,  STAR_ALPHA_FG_MAX,  n_fg),
+    ])
+
+    circles = "\n  ".join(
+        f'<circle cx="{cx[i]:.2f}" cy="{cy[i]:.2f}" r="{radii[i]:.3f}" '
+        f'fill="rgba(255,255,255,{alphas[i]:.2f})"/>'
+        for i in range(STAR_COUNT)
+    )
+
+    _STARFIELD_SVG = (
+        '<svg xmlns="http://www.w3.org/2000/svg" '
+        'width="100%" height="100%" '
+        'viewBox="0 0 100 100" '
+        'preserveAspectRatio="xMidYMid slice" '
+        'style="display:block;position:absolute;inset:0;width:100%;height:100%">'
+        f'\n  <rect width="100" height="100" fill="{SPACE_BG_COLOR}"/>'
+        f'\n  {circles}\n</svg>'
+    )
+    return _STARFIELD_SVG
 
 # How far the anchor trace extends in x, expressed as a multiple of y_half.
 # 2.8 comfortably covers a 2.5:1 panel at any window width.
@@ -137,24 +188,12 @@ def _get_fixed_ranges() -> dict:
     # Anchor x bounds — stars fill this same span
     anchor_half = y_half * _X_ANCHOR_RATIO
 
-    rng    = np.random.default_rng(STAR_SEED)
-    star_x = rng.uniform(xc - anchor_half, xc + anchor_half, STAR_COUNT)
-    star_y = rng.uniform(y_range[0], y_range[1], STAR_COUNT)
-
-    n_dim = int(STAR_COUNT * 0.79)
-    n_fg  = STAR_COUNT - n_dim
-    sz = np.concatenate([rng.uniform(0.5, 1.2, n_dim), rng.uniform(1.2, 2.0, n_fg)])
-    sa = np.concatenate([rng.uniform(0.12, 0.35, n_dim), rng.uniform(0.45, 0.75, n_fg)])
-
     _FIXED_RANGES = dict(
         y_range=y_range,
         y_half=y_half,
         x_center=xc,
         x_half=anchor_half,
-        star_x=star_x,
-        star_y=star_y,
-        star_sz=sz,
-        star_colors=[f"rgba(255,255,255,{v:.2f})" for v in sa],
+        # star_colors=[f"rgba(255,255,255,{v:.2f})" for v in sa],
     )
     return _FIXED_RANGES
 
@@ -233,14 +272,6 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
         hoverinfo="skip", showlegend=False,
     ))
 
-    # Starfield (fixed — scattered across anchor x bounds)
-    T.append(go.Scatter(
-        x=fr["star_x"], y=fr["star_y"], mode="markers",
-        marker=dict(size=fr["star_sz"], color=fr["star_colors"],
-                    symbol="circle", line=dict(width=0)),
-        hoverinfo="skip", showlegend=False,
-    ))
-
     # Earth: glow layers + fill + specular highlight
     T.append(_filled(0, 0, EG5, "rgba(20,80,200,0.025)"))
     T.append(_filled(0, 0, EG4, "rgba(25,100,220,0.05)"))
@@ -280,18 +311,18 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
     # Spacecraft marker
     T.append(go.Scatter(
         x=[fsx], y=[fsy], mode="markers",
-        marker=dict(size=8, color="#ffffff", symbol="circle",
+        marker=dict(size=ORION_MARKER_SIZE, color="#ffffff", symbol="circle",
                     line=dict(color="rgba(200,232,255,0.35)", width=1.5)),
         hoverinfo="skip", showlegend=False,
     ))
 
     # Body labels
     label_x = [0.0]
-    label_y = [-ER * 3.5]
+    label_y = [-ER * EARTH_LABEL_Y_MULT]
     label_t = ["EARTH"]
     if moon_visible:
         label_x.append(fmx)
-        label_y.append(fmy - MR * 7.0)
+        label_y.append(fmy - MR * MOON_LABEL_Y_MULT)
         label_t.append("MOON")
 
     T.append(go.Scatter(
@@ -304,22 +335,23 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
     # ── Figure ────────────────────────────────────────────────────────────
     fig = go.Figure(data=T)
 
-    fig.add_annotation(
-        x=fsx, y=fsy, text=callout,
-        showarrow=True, arrowhead=0,
-        arrowcolor=THEME_DARK["text_dim"], arrowwidth=1,
-        ax=72, ay=-44,
-        font=dict(color=THEME_DARK["text"], size=FONT_SIZE_LABEL,
-                  family=THEME_DARK["font_family"]),
-        align="left",
-        bgcolor="rgba(5,10,20,0.85)",
-        bordercolor=THEME_DARK["panel_border"],
-        borderwidth=1, borderpad=6,
-    )
+    if ORION_LABEL_SHOW:
+        fig.add_annotation(
+            x=fsx, y=fsy, text=callout,
+            showarrow=False,
+            xshift=ORION_LABEL_XSHIFT, yshift=ORION_LABEL_YSHIFT,
+            xanchor="left",
+            font=dict(color=THEME_DARK["text"], size=FONT_SIZE_LABEL,
+                      family=THEME_DARK["font_family"]),
+            align="left",
+            bgcolor=f"rgba(5,10,20,{ORION_LABEL_BG_ALPHA})",
+            bordercolor=THEME_DARK["panel_border"],
+            borderwidth=1, borderpad=6,
+        )
 
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="#000000",
+        plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(
             visible=False,

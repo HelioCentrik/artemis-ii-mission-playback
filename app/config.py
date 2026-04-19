@@ -100,17 +100,47 @@ PHASE_COUNT = len(PHASES)
 #  Adjust these to frame the arc in the panel without touching figure logic.
 # ═══════════════════════════════════════════════════════════════════════════
 
-# Starfield
+# ── Starfield ─────────────────────────────────────────────────────────────
+# Dim population: faint background stars (fraction = STAR_DIM_FRACTION of total)
+# Bright population: remainder
 STAR_SEED  = 42
-STAR_COUNT = 240
+STAR_COUNT = 360
+STAR_DIM_FRACTION  = 0.79
+STAR_SIZE_DIM_MIN  = 0.04    # SVG viewBox units (0–100 coordinate space)
+STAR_SIZE_DIM_MAX  = 0.07
+STAR_SIZE_FG_MIN   = 0.06
+STAR_SIZE_FG_MAX   = 0.08
+STAR_ALPHA_DIM_MIN = 0.12
+STAR_ALPHA_DIM_MAX = 0.35
+STAR_ALPHA_FG_MIN  = 0.45
+STAR_ALPHA_FG_MAX  = 0.75
 
-# Camera
-VIEW_ROTATION_DEG  =  125.0      # Scene rotation CCW (degrees). Turn until
-                                 # the arc sits nicely across the wide panel.
-VIEW_ZOOM          =   0.2325     # Fraction of full mission bounding box shown.
-                                 # < 1.0 zooms in, > 1.0 zooms out.
-VIEW_X_OFFSET_KM   = -10_000   # Shift view center left(−) / right(+) in km.
-VIEW_Y_OFFSET_KM   =   8_000   # Shift view center down(−) / up(+) in km.
+# ── Camera ────────────────────────────────────────────────────────────────
+VIEW_ROTATION_DEG  = 125.0      # Scene rotation CCW (degrees). Turn until the arc sits nicely across the wide panel.
+VIEW_ZOOM          =   0.2325   # Fraction of full mission bounding box shown. < 1.0 zooms in, > 1.0 zooms out.
+VIEW_X_OFFSET_KM   = -10_000    # Shift view center left(−) / right(+) in km.
+VIEW_Y_OFFSET_KM   =   8_000    # Shift view center down(−) / up(+) in km.
+
+# ── Body label positions ──────────────────────────────────────────────────
+# Vertical offset multipliers.
+EARTH_LABEL_Y_MULT = 2.5
+MOON_LABEL_Y_MULT  = 7.0
+
+# ── Orion callout label ───────────────────────────────────────────────────
+ORION_LABEL_SHOW     = True    # False hides the annotation entirely
+ORION_LABEL_BG_ALPHA = 0.33    # Background box opacity (0.0 = invisible, 1.0 = solid)
+ORION_LABEL_XSHIFT   = -40     # Arrow / offset x (px) — still controls box position
+ORION_LABEL_YSHIFT   = 40      # Arrow / offset y (px)
+
+# ── Orion spacecraft marker ───────────────────────────────────────────────
+ORION_MARKER_SIZE = 6          # Diameter of the position dot (px)
+
+# ── Space background ──────────────────────────────────────────────────────
+# Fill color for the SVG starfield layer behind the Plotly figure.
+SPACE_BG_COLOR = "#000000"
+
+# ── Starfield ─────────────────────────────────────────────────────────────
+# STAR_SEED and STAR_COUNT already defined above.
 
 
 # ═══════════════════════════════════════════════════════════════════════════
