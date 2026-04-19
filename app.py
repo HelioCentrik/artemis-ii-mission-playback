@@ -4,10 +4,12 @@
 # Business logic lives in dedicated modules under app/.
 
 import dash
-from dash import html, dcc
+from dash import html, dcc, Input, Output, ctx
+from dash.dependencies import ALL
 
 from app.config import PANEL_GROUPS, PHASES, PHASE_COUNT
 from app.index_string import INDEX_STRING
+from app.trajectory import build_trajectory_fig
 
 # Register the artemis2 Plotly template as a side effect of import
 import app.plotly_template  # noqa: F401
@@ -39,14 +41,8 @@ def _build_header():
         # ── Branding bar ──
         html.Div([
             html.Div([
-                html.Div("V04  NASA MCC", className="header-subtitle"),
                 html.Div("ARTEMIS II : MISSION PLAYBACK", className="header-title"),
             ], className="header-brand-left"),
-
-            html.Div([
-                html.Div("HI-FI · NASA MISSION CONTROL", className="header-subtitle"),
-                html.Div("MCC · FLIGHT · CONSOLE 04", className="header-subtitle"),
-            ], className="header-brand-right"),
         ], className="header-brand"),
 
         # ── Status bar ──
@@ -160,10 +156,34 @@ app.layout = html.Div([
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  CALLBACKS (Phase 4+)
+#  CALLBACKS
 # ═══════════════════════════════════════════════════════════════════════════
 
-# Scrubber → phase-store → trajectory + telemetry updates go here.
+@app.callback(
+    Output("phase-store", "data"),
+    Input({"type": "scrubber-dot", "index": ALL}, "n_clicks"),
+    prevent_initial_call=True,
+)
+def update_phase(n_clicks):
+    """Scrubber dot click → write selected phase index to phase-store."""
+    triggered = ctx.triggered_id
+    if triggered is None:
+        return 0
+    return triggered["index"]
+
+
+@app.callback(
+    Output("trajectory-viz", "children"),
+    Input("phase-store", "data"),
+)
+def update_trajectory(phase_idx):
+    """phase-store change → rebuild trajectory figure."""
+    fig = build_trajectory_fig(phase_idx or 0)
+    return dcc.Graph(
+        figure=fig,
+        config=dict(displayModeBar=False),
+        style={"height": "100%"},
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════

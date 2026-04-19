@@ -20,7 +20,7 @@ from app.config import (
     HEADER_BRAND_HEIGHT, HEADER_STATUS_HEIGHT,
     TRAJECTORY_MIN_HEIGHT, SCRUBBER_HEIGHT,
     SCRUBBER_DOT_SIZE, SCRUBBER_DOT_ACTIVE,
-    PANEL_BORDER_RADIUS, PANEL_GAP, PANEL_PADDING,
+    TELEMETRY_MIN_HEIGHT, PANEL_BORDER_RADIUS, PANEL_GAP, PANEL_PADDING,
     SPARKLINE_HEIGHT,
     # Trajectory viz
     COLOR_TRAJECTORY, COLOR_TRAJECTORY_DIM,
@@ -65,16 +65,17 @@ INDEX_STRING = f"""<!DOCTYPE html>
             --accent-range:       {ACCENT_RANGE};
 
             /* ── Layout ── */
-            --header-brand-h:     {HEADER_BRAND_HEIGHT}px;
-            --header-status-h:    {HEADER_STATUS_HEIGHT}px;
-            --traj-min-h:         {TRAJECTORY_MIN_HEIGHT}px;
-            --scrubber-h:         {SCRUBBER_HEIGHT}px;
-            --scrubber-dot:       {SCRUBBER_DOT_SIZE}px;
-            --scrubber-dot-active:{SCRUBBER_DOT_ACTIVE}px;
-            --panel-radius:       {PANEL_BORDER_RADIUS}px;
-            --panel-gap:          {PANEL_GAP}px;
-            --panel-padding:      {PANEL_PADDING}px;
-            --sparkline-h:        {SPARKLINE_HEIGHT}px;
+            --header-brand-h:      {HEADER_BRAND_HEIGHT}px;
+            --header-status-h:     {HEADER_STATUS_HEIGHT}px;
+            --traj-min-h:          {TRAJECTORY_MIN_HEIGHT}px;
+            --scrubber-h:          {SCRUBBER_HEIGHT}px;
+            --scrubber-dot:        {SCRUBBER_DOT_SIZE}px;
+            --scrubber-dot-active: {SCRUBBER_DOT_ACTIVE}px;
+            --telem-min-h:         {TELEMETRY_MIN_HEIGHT}px;
+            --panel-radius:        {PANEL_BORDER_RADIUS}px;
+            --panel-gap:           {PANEL_GAP}px;
+            --panel-padding:       {PANEL_PADDING}px;
+            --sparkline-h:         {SPARKLINE_HEIGHT}px;
 
             /* ── Trajectory colors (for CSS-side use) ── */
             --color-trajectory:     {COLOR_TRAJECTORY};

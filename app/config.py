@@ -92,7 +92,55 @@ PHASES = (
 
 PHASE_COUNT = len(PHASES)
 
-PHASE_COUNT = len(PHASES)
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  TRAJECTORY VIZ — STARFIELD + CAMERA
+#
+#  Controls the fixed viewport for the 2D Earth–Moon trajectory panel.
+#  Adjust these to frame the arc in the panel without touching figure logic.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Starfield
+STAR_SEED  = 42
+STAR_COUNT = 240
+
+# Camera
+VIEW_ROTATION_DEG  =  125.0      # Scene rotation CCW (degrees). Turn until
+                                 # the arc sits nicely across the wide panel.
+VIEW_ZOOM          =   0.2325     # Fraction of full mission bounding box shown.
+                                 # < 1.0 zooms in, > 1.0 zooms out.
+VIEW_X_OFFSET_KM   = -10_000   # Shift view center left(−) / right(+) in km.
+VIEW_Y_OFFSET_KM   =   8_000   # Shift view center down(−) / up(+) in km.
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  LAYOUT DIMENSIONS
+#
+#  All values in px unless noted. Injected as CSS custom properties.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Header
+HEADER_BRAND_HEIGHT  = 44      # Top branding bar
+HEADER_STATUS_HEIGHT = 32      # Status bar (GMT, MET, DOY)
+
+# Trajectory panel
+TRAJECTORY_MIN_HEIGHT = 540    # Main viz area (excluding scrubber)
+
+# Scrubber
+SCRUBBER_HEIGHT     = 48       # Phase scrubber track
+SCRUBBER_DOT_SIZE   = 12       # Phase marker dot diameter
+SCRUBBER_DOT_ACTIVE = 14       # Active phase marker diameter
+
+# Telemetry
+TELEMETRY_MIN_HEIGHT = 360     # Telemetry grid minimum height
+
+# Panels
+PANEL_BORDER_RADIUS = 4        # Hard-edge utilitarian feel
+PANEL_GAP           = 10       # Grid gap between telemetry panels
+PANEL_PADDING       = 16       # Interior padding
+
+# Sparklines
+SPARKLINE_HEIGHT = 80          # Mini-chart height inside KPI tiles
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -180,33 +228,6 @@ FONT_SIZE_KPI    = 28          # Large KPI readout value
 FONT_SIZE_LABEL  = 11          # Tile labels, axis ticks
 FONT_SIZE_HEADER = 14          # Panel group headers
 FONT_SIZE_STATUS = 12          # Status bar text
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  LAYOUT DIMENSIONS
-#
-#  All values in px unless noted. Injected as CSS custom properties.
-# ═══════════════════════════════════════════════════════════════════════════
-
-# Header
-HEADER_BRAND_HEIGHT = 44       # Top branding bar
-HEADER_STATUS_HEIGHT = 32      # Status bar (GMT, MET, DOY)
-
-# Trajectory panel
-TRAJECTORY_MIN_HEIGHT = 520    # Main viz area (excluding scrubber)
-
-# Scrubber
-SCRUBBER_HEIGHT    = 48        # Phase scrubber track
-SCRUBBER_DOT_SIZE  = 12        # Phase marker dot diameter
-SCRUBBER_DOT_ACTIVE = 14       # Active phase marker diameter
-
-# Panels
-PANEL_BORDER_RADIUS = 4        # Hard-edge utilitarian feel
-PANEL_GAP           = 12       # Grid gap between telemetry panels
-PANEL_PADDING       = 16       # Interior padding
-
-# Sparklines
-SPARKLINE_HEIGHT = 80          # Mini-chart height inside KPI tiles
 
 
 # ═══════════════════════════════════════════════════════════════════════════

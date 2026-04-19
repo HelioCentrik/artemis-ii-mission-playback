@@ -224,6 +224,7 @@ body {
 
 .telemetry-grid {
     display: grid;
+    min-height: var(--telem-min-h);
     grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
     gap: var(--panel-gap);
 }
