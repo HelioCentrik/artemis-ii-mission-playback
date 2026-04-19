@@ -103,13 +103,18 @@ PHASE_COUNT = len(PHASES)
 # ── Starfield ─────────────────────────────────────────────────────────────
 # Dim population: faint background stars (fraction = STAR_DIM_FRACTION of total)
 # Bright population: remainder
+
+SPACE_BG_COLOR = "#000000"
+
 STAR_SEED  = 42
 STAR_COUNT = 360
 STAR_DIM_FRACTION  = 0.79
+
 STAR_SIZE_DIM_MIN  = 0.04    # SVG viewBox units (0–100 coordinate space)
 STAR_SIZE_DIM_MAX  = 0.07
 STAR_SIZE_FG_MIN   = 0.06
 STAR_SIZE_FG_MAX   = 0.08
+
 STAR_ALPHA_DIM_MIN = 0.12
 STAR_ALPHA_DIM_MAX = 0.35
 STAR_ALPHA_FG_MIN  = 0.45
@@ -120,6 +125,35 @@ VIEW_ROTATION_DEG  = 125.0      # Scene rotation CCW (degrees). Turn until the a
 VIEW_ZOOM          =   0.2325   # Fraction of full mission bounding box shown. < 1.0 zooms in, > 1.0 zooms out.
 VIEW_X_OFFSET_KM   = -10_000    # Shift view center left(−) / right(+) in km.
 VIEW_Y_OFFSET_KM   =   8_000    # Shift view center down(−) / up(+) in km.
+
+# ── Dim context arc (full mission ghost path) ─────────────────────────────
+TRAJ_DIM_GLOW_RGB          = "255,255,255"
+TRAJ_DIM_GLOW_WIDE         = 8
+TRAJ_DIM_GLOW_WIDE_ALPHA   = 0.15
+TRAJ_DIM_GLOW_NARROW       = 3
+TRAJ_DIM_GLOW_NARROW_ALPHA = 0.20
+TRAJ_DIM_CORE_RGB          = "255,255,255"
+TRAJ_DIM_CORE_WIDTH        = 1
+TRAJ_DIM_CORE_ALPHA        = 0.33
+TRAJ_DIM_CORE_DASH         = "dot"
+
+# ── Future arc ────────────────────────────────────────────────────────────
+FUTURE_ARC_HOURS     = 24     # Total lookahead window (hours)
+FUTURE_FADE_HOURS    = 6      # Hours at end of window that fade to transparent
+FUTURE_FADE_SEGMENTS = 8      # Opacity steps across the fade window
+
+# Glow layers (wide + narrow pass behind the core)
+FUTURE_GLOW_RGB          = "80,130,180"   # R,G,B shared by both glow passes
+FUTURE_GLOW_WIDE         = 6              # Wide glow pass width (px)
+FUTURE_GLOW_WIDE_ALPHA   = 0.12           # Wide glow base opacity
+FUTURE_GLOW_NARROW       = 3              # Narrow glow pass width (px)
+FUTURE_GLOW_NARROW_ALPHA = 0.20           # Narrow glow base opacity
+
+# Dotted core
+FUTURE_CORE_RGB   = "52, 115, 232"    # #2a3f5f as R,G,B
+FUTURE_CORE_WIDTH = 1              # Core line width (px)
+FUTURE_CORE_ALPHA = 1.0            # Core base opacity
+FUTURE_CORE_DASH  = "dashdot"      # "dot", "dash", "dashdot", "longdashdot"
 
 # ── Body label positions ──────────────────────────────────────────────────
 # Vertical offset multipliers.
@@ -133,14 +167,7 @@ ORION_LABEL_XSHIFT   = -40     # Arrow / offset x (px) — still controls box po
 ORION_LABEL_YSHIFT   = 40      # Arrow / offset y (px)
 
 # ── Orion spacecraft marker ───────────────────────────────────────────────
-ORION_MARKER_SIZE = 6          # Diameter of the position dot (px)
-
-# ── Space background ──────────────────────────────────────────────────────
-# Fill color for the SVG starfield layer behind the Plotly figure.
-SPACE_BG_COLOR = "#000000"
-
-# ── Starfield ─────────────────────────────────────────────────────────────
-# STAR_SEED and STAR_COUNT already defined above.
+ORION_MARKER_SIZE = 5          # Diameter of the position dot (px)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

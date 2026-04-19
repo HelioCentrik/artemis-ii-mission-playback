@@ -18,6 +18,8 @@
 #   fill whatever width Plotly computes for the panel.
 
 import numpy as np
+from datetime import timedelta
+
 import plotly.graph_objects as go
 
 from app.config import (
@@ -34,6 +36,12 @@ from app.config import (
     SPACE_BG_COLOR,
     EARTH_LABEL_Y_MULT, MOON_LABEL_Y_MULT,
     ORION_LABEL_SHOW, ORION_LABEL_BG_ALPHA, ORION_LABEL_XSHIFT, ORION_LABEL_YSHIFT, ORION_MARKER_SIZE,
+    TRAJ_DIM_GLOW_RGB, TRAJ_DIM_GLOW_WIDE, TRAJ_DIM_GLOW_WIDE_ALPHA,
+    TRAJ_DIM_GLOW_NARROW, TRAJ_DIM_GLOW_NARROW_ALPHA,
+    TRAJ_DIM_CORE_RGB, TRAJ_DIM_CORE_WIDTH, TRAJ_DIM_CORE_ALPHA, TRAJ_DIM_CORE_DASH,
+    FUTURE_ARC_HOURS, FUTURE_FADE_HOURS, FUTURE_FADE_SEGMENTS,
+    FUTURE_GLOW_RGB, FUTURE_GLOW_WIDE, FUTURE_GLOW_WIDE_ALPHA, FUTURE_GLOW_NARROW, FUTURE_GLOW_NARROW_ALPHA,
+    FUTURE_CORE_RGB, FUTURE_CORE_WIDTH, FUTURE_CORE_ALPHA, FUTURE_CORE_DASH,
 )
 from app.themes import THEME_DARK
 from app.utils import rotate_2d, circle_xy, fmt_met, in_range
@@ -226,10 +234,16 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
     ).df()
     tx, ty = rotate_2d(full["x_km"].values, full["y_km"].values, a)
 
-    pm = (full["datetime_utc"] <= pt).values
-    fm = (full["datetime_utc"] >= pt).values
-    px_, py_ = tx[pm], ty[pm]
-    fx_, fy_ = tx[fm], ty[fm]
+    future_end = pt + timedelta(hours=FUTURE_ARC_HOURS)
+    fade_start = pt + timedelta(hours=FUTURE_ARC_HOURS - FUTURE_FADE_HOURS)
+
+    pm  = (full["datetime_utc"] <= pt).values
+    sfm = ((full["datetime_utc"] >= pt) & (full["datetime_utc"] <= fade_start)).values
+    ffm = ((full["datetime_utc"] >= fade_start) & (full["datetime_utc"] <= future_end)).values
+
+    px_, py_ = tx[pm],  ty[pm]
+    sfx, sfy = tx[sfm], ty[sfm]   # solid future portion (0 → 18h)
+    ffx, ffy = tx[ffm], ty[ffm]   # fading future portion (18h → 24h)
 
     # ── Moon ──────────────────────────────────────────────────────────────
     mr = con.execute(
@@ -293,20 +307,38 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
         T.append(_filled(fmx, fmy, MG2, "rgba(185,185,185,0.12)"))
         T.append(_filled(fmx, fmy, MR,  "rgba(155,155,165,0.92)"))
 
-    # Full trajectory dim context
-    T.append(_line(tx, ty, "rgba(80,130,180,0.08)", 6))
-    T.append(_line(tx, ty, "rgba(80,130,180,0.12)", 2))
-    T.append(_line(tx, ty, COLOR_TRAJECTORY_DIM,    1, dash="dot"))
-
     # Past arc: glow passes + solid core
     if len(px_) > 1:
-        T.append(_line(px_, py_, "rgba(255,255,255,0.06)", 8))
-        T.append(_line(px_, py_, "rgba(255,255,255,0.12)", 4))
-        T.append(_line(px_, py_, COLOR_TRAJECTORY,         1.5))
+        T.append(_line(px_, py_, "rgba(255,255,255,0.20)", 6))
+        T.append(_line(px_, py_, COLOR_TRAJECTORY,         1))
 
-    # Future arc
-    if len(fx_) > 1:
-        T.append(_line(fx_, fy_, "rgba(90,140,190,0.50)", 1, dash="dash"))
+    # Full mission dim context arc (ghost path — always visible)
+    if False:
+        T.append(_line(tx, ty, f"rgba({TRAJ_DIM_GLOW_RGB},{TRAJ_DIM_GLOW_WIDE_ALPHA:.3f})", TRAJ_DIM_GLOW_WIDE))
+        T.append(_line(tx, ty, f"rgba({TRAJ_DIM_GLOW_RGB},{TRAJ_DIM_GLOW_NARROW_ALPHA:.3f})", TRAJ_DIM_GLOW_NARROW))
+        T.append(_line(tx, ty, f"rgba({TRAJ_DIM_CORE_RGB},{TRAJ_DIM_CORE_ALPHA:.3f})", TRAJ_DIM_CORE_WIDTH, dash=TRAJ_DIM_CORE_DASH))
+
+    # Future arc — solid portion (three layers: wide glow + narrow glow + core)
+    if len(sfx) > 1:
+        T.append(_line(sfx, sfy, f"rgba({FUTURE_GLOW_RGB},{FUTURE_GLOW_WIDE_ALPHA:.3f})",   FUTURE_GLOW_WIDE))
+        T.append(_line(sfx, sfy, f"rgba({FUTURE_GLOW_RGB},{FUTURE_GLOW_NARROW_ALPHA:.3f})", FUTURE_GLOW_NARROW))
+        T.append(_line(sfx, sfy, f"rgba({FUTURE_CORE_RGB},{FUTURE_CORE_ALPHA:.3f})",         FUTURE_CORE_WIDTH, dash=FUTURE_CORE_DASH))
+
+    # Future arc — fading tail (same three layers, all alpha stepping to 0 together)
+    if len(ffx) > 1:
+        pts = len(ffx)
+        for i in range(FUTURE_FADE_SEGMENTS):
+            i0 = int(i / FUTURE_FADE_SEGMENTS * pts)
+            i1 = min(int((i + 1) / FUTURE_FADE_SEGMENTS * pts) + 1, pts)
+            if i1 <= i0 + 1:
+                continue
+            fade = 1.0 - i / max(1, FUTURE_FADE_SEGMENTS - 1)
+            T.append(_line(ffx[i0:i1], ffy[i0:i1], f"rgba({FUTURE_GLOW_RGB},{FUTURE_GLOW_WIDE_ALPHA * fade:.3f})",
+                           FUTURE_GLOW_WIDE))
+            T.append(_line(ffx[i0:i1], ffy[i0:i1], f"rgba({FUTURE_GLOW_RGB},{FUTURE_GLOW_NARROW_ALPHA * fade:.3f})",
+                           FUTURE_GLOW_NARROW))
+            T.append(_line(ffx[i0:i1], ffy[i0:i1], f"rgba({FUTURE_CORE_RGB},{FUTURE_CORE_ALPHA * fade:.3f})",
+                           FUTURE_CORE_WIDTH, dash=FUTURE_CORE_DASH))
 
     # Spacecraft marker
     T.append(go.Scatter(
