@@ -7,9 +7,10 @@ import dash
 from dash import html, dcc, Input, Output, ctx
 from dash.dependencies import ALL
 
-from app.config import PANEL_GROUPS, PHASES, PHASE_COUNT
+from app.config import PANEL_GROUPS
 from app.index_string import INDEX_STRING
 from app.trajectory import build_trajectory_fig, build_starfield_svg
+from app.phases import get_scrubber_phases, get_phases
 
 # Register the artemis2 Plotly template as a side effect of import
 import app.plotly_template  # noqa: F401
@@ -61,14 +62,23 @@ def _build_header():
 
 
 def _build_scrubber():
-    """Phase scrubber — horizontal track with clickable phase marker dots."""
+    """
+    Phase scrubber — horizontal track with clickable phase marker dots.
+
+    Dots are sourced from get_scrubber_phases() and positioned using
+    scrubber_pct (0–100, proportional to dataset MET span) rather than
+    even spacing. This means the dot positions reflect the real time gaps
+    between mission events.
+    """
+    scrubber_phases = get_scrubber_phases()
     dots = []
-    for i, phase in enumerate(PHASES):
-        pct = (i / (PHASE_COUNT - 1)) * 100
+    for i, phase in enumerate(scrubber_phases):
         dots.append(
             html.Div(
+                # Active class is set dynamically by update_scrubber_dots callback.
+                # Index 0 starts active on first load.
                 className=f"scrubber-dot{' active' if i == 0 else ''}",
-                style={"left": f"{pct}%"},
+                style={"left": f"{phase['scrubber_pct']:.2f}%"},
                 id={"type": "scrubber-dot", "index": i},
                 title=phase["label"],
             )
@@ -129,7 +139,7 @@ def _build_telemetry_grid():
 
 app.layout = html.Div([
 
-    # Phase state — the single source of truth for which phase is selected.
+    # Phase state — scrubber dot index (0-based into get_scrubber_phases()).
     # Scrubber clicks write here; trajectory + telemetry callbacks read it.
     dcc.Store(id="phase-store", data=0),
 
@@ -165,7 +175,7 @@ app.layout = html.Div([
     prevent_initial_call=True,
 )
 def update_phase(n_clicks):
-    """Scrubber dot click → write selected phase index to phase-store."""
+    """Scrubber dot click → write selected scrubber index to phase-store."""
     triggered = ctx.triggered_id
     if triggered is None:
         return 0
@@ -173,17 +183,47 @@ def update_phase(n_clicks):
 
 
 @app.callback(
+    Output({"type": "scrubber-dot", "index": ALL}, "className"),
+    Input("phase-store", "data"),
+)
+def update_scrubber_dots(phase_idx):
+    """
+    Highlight the active scrubber dot and dim the rest.
+    Runs on initial load (sets dot 0 active) and on every phase-store change.
+    """
+    n = len(get_scrubber_phases())
+    active = phase_idx or 0
+    return [
+        "scrubber-dot active" if i == active else "scrubber-dot"
+        for i in range(n)
+    ]
+
+
+@app.callback(
     Output("trajectory-viz", "children"),
     Input("phase-store", "data"),
 )
 def update_trajectory(phase_idx):
-    """phase-store change → rebuild trajectory figure.
+    """
+    phase-store change → rebuild trajectory figure.
+
+    phase_idx is a scrubber-relative index (0-based into get_scrubber_phases()).
+    build_trajectory_fig expects a global index into get_phases(), so we
+    resolve via phase key before calling.
 
     Returns a position:relative wrapper containing two absolute layers:
       1. Static SVG starfield (z=0) — always fills panel edge to edge.
       2. Plotly figure (z=1) — transparent background, trajectory on top.
     """
-    fig = build_trajectory_fig(phase_idx or 0)
+    scrubber_phases = get_scrubber_phases()
+    all_phases      = get_phases()
+
+    scrubber_idx  = phase_idx or 0
+    phase_key     = scrubber_phases[scrubber_idx]["key"]
+    global_idx    = next(i for i, p in enumerate(all_phases) if p["key"] == phase_key)
+
+    fig = build_trajectory_fig(global_idx)
+
     return html.Div([
         dcc.Markdown(
             build_starfield_svg(),

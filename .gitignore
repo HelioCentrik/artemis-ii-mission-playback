@@ -10,6 +10,7 @@ data/
 source/
 test/
 scripts/probe_horizons.py
+scripts/check_phases*.py
 
 # --- Python ---
 __pycache__/

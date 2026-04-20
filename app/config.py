@@ -37,9 +37,10 @@ MOON_ID       = "301"          # Moon
 SUN_ID        = "10"           # Sun
 
 # Query window
-MISSION_START = "2026-Apr-02 01:59"   # First DSN tracking point (~T+3.5 h)
-MISSION_STOP  = "2026-Apr-10 23:54"   # Last point before reentry blackout
-STEP_SIZE     = "1m"                  # 1-minute intervals
+LAUNCH_TIME = "2026-04-01 22:35:00"   # UTC — SLS liftoff, LC-39B
+EPHEM_START = "2026-Apr-02 01:59"     # First DSN tracking point (~T+3.5 h)
+EPHEM_STOP  = "2026-Apr-10 23:54"     # Last point before reentry blackout
+STEP_SIZE   = "1m"                    # 1-minute intervals
 
 # Reference frame
 CENTER     = "500@399"         # Geocenter (Earth-centered)
@@ -83,19 +84,36 @@ R_MOON   = 1_737.4
 # ═══════════════════════════════════════════════════════════════════════════
 #  MISSION PHASES
 #
-#  Display labels only — detection logic lives in app/phases.py.
-#  Index position = phase number (0-based). Tuple so it can't be
-#  accidentally mutated at runtime.
+#  Each entry declares what a phase IS and where it APPEARS.
+#  No timestamps or detection logic here — that lives in app/phases.py.
+#
+#  scrubber   : True  → appears as a clickable dot on the phase scrubber
+#  arc_marker : True  → appears as a labeled marker on the trajectory arc
+#
+#  Adding a phase   = one new dict.
+#  Changing display = flip scrubber / arc_marker.
+#  Nothing else needs to change.
 # ═══════════════════════════════════════════════════════════════════════════
 
-PHASES = (
-    {"key": "early_coast",       "label": "Early Coast",       "short": "EC"},
-    {"key": "translunar_coast",  "label": "Trans-Lunar Coast", "short": "TLC"},
-    {"key": "lunar_approach",    "label": "Lunar Approach",    "short": "LA"},
-    {"key": "closest_approach",  "label": "Closest Approach",  "short": "CA"},
-    {"key": "return_coast",      "label": "Return Coast",      "short": "RC"},
+PHASE_REGISTRY = (
+    {"key": "parking_orbit",    "label": "Parking Orbit",    "short": "PO",  "scrubber": True,  "arc_marker": False},
+    {"key": "tli_burn",         "label": "TLI Burn",         "short": "TLI", "scrubber": True,  "arc_marker": True },
+    {"key": "apogee",           "label": "Parking Apogee",   "short": "APG", "scrubber": False, "arc_marker": True },
+    {"key": "outbound_coast",   "label": "Outbound Coast",   "short": "OC",  "scrubber": True,  "arc_marker": False},
+    {"key": "mid_course",       "label": "Mid-Course Burn",  "short": "MCC", "scrubber": False, "arc_marker": True },
+    {"key": "grav_crossover",   "label": "Grav. Crossover",  "short": "GXO", "scrubber": False, "arc_marker": True },
+    {"key": "lunar_soi_entry",  "label": "Lunar SOI Entry",  "short": "SOI", "scrubber": False, "arc_marker": True },
+    {"key": "closest_approach", "label": "Closest Approach", "short": "CA",  "scrubber": True,  "arc_marker": True },
+    {"key": "lunar_soi_exit",   "label": "Lunar SOI Exit",   "short": "SOX", "scrubber": False, "arc_marker": True },
+    {"key": "transearth_coast", "label": "Transearth Coast", "short": "TC",  "scrubber": True,  "arc_marker": False},
+    {"key": "distance_record",  "label": "Distance Record",  "short": "REC", "scrubber": False, "arc_marker": True },
+    {"key": "earth_approach",   "label": "Earth Approach",   "short": "EA",  "scrubber": True,  "arc_marker": True },
+    {"key": "dataset_close",    "label": "Last Known Pos.",  "short": "LKP", "scrubber": False, "arc_marker": True },
 )
 
+# Backward-compat aliases used by app.py until the scrubber is rebuilt.
+# Remove these once app.py is updated to read PHASE_REGISTRY directly.
+PHASES      = tuple(p for p in PHASE_REGISTRY if p["scrubber"])
 PHASE_COUNT = len(PHASES)
 
 
