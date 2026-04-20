@@ -71,16 +71,3 @@ scripts/init_db.py          ← parses and writes to DuckDB
       ▼
 data/artemis2.duckdb        ← orion_trajectory table (12,836 rows)
 ```
-
----
-
-## Project Structure *(in progress)*
-
-```
-Artemis-II-Mission-Tracker/
-├── app.py                  # Dash application entry point
-├── app/
-│   └── config.py           # All constants and paths
-├── data/                   # .gitignored / replicable via included scripts.
-├── scripts/
-```
