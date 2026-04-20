@@ -38,12 +38,14 @@ def _build_dark_theme() -> dict:
     }
 
     accent = {
-        "teal":        "#00e5cc",   # accent_a
-        "cyan":        "#00aaff",   # accent_b
-        "purple":      "#a855f7",   # accent_c
-        "amber":       "#f59e0b",   # accent_d
-        "blue_mid":    "#5082b4",   # accent_e — future arc glow base
-        "blue_bright": "#3473e8",   # accent_f — future arc core base
+        "teal":         "#00e5cc",   # accent_a
+        "cyan":         "#00aaff",   # accent_b
+        "violet":       "#7f5af7",   # accent_c
+        "amber":        "#f5af0b",   # accent_d
+        "blue_mid":     "#5082b4",   # accent_e — future arc glow base
+        "blue_bright":  "#3473e8",   # accent_f — future arc core base
+        "blood_orange": "#e8420a",   # accent_g
+        "blue_silver":  "#82a0bc",   # accent_h
     }
 
     viz = {
@@ -86,10 +88,12 @@ def _build_dark_theme() -> dict:
         # A future dashboard reuses this theme and remaps the slots freely.
         "accent_a": accent["teal"],
         "accent_b": accent["cyan"],
-        "accent_c": accent["purple"],
+        "accent_c": accent["violet"],
         "accent_d": accent["amber"],
         "accent_e": accent["blue_mid"],
         "accent_f": accent["blue_bright"],
+        "accent_g": accent["blood_orange"],
+        "accent_h": accent["blue_silver"],
 
         # Viz — space environment & trajectory rendering
         "space_bg":       viz["space_bg"],

@@ -23,10 +23,8 @@ from datetime import timedelta
 import plotly.graph_objects as go
 
 from app.config import (
-    PLOTLY_BG,
-    COLOR_TRAJECTORY, COLOR_TRAJECTORY_DIM, COLOR_SPACECRAFT,
     FONT_SIZE_LABEL,
-    FONT_FAMILY, FONT_PRIMARY, FONT_DIM, PANEL_BORDER,   # ← added
+    FONT_FAMILY, FONT_PRIMARY, FONT_DIM, PANEL_BORDER,
     VIEW_ROTATION_DEG, VIEW_ZOOM, VIEW_X_OFFSET_KM, VIEW_Y_OFFSET_KM,
     STAR_SEED, STAR_COUNT,
     STAR_DIM_FRACTION,
@@ -44,10 +42,13 @@ from app.config import (
     FUTURE_ARC_HOURS, FUTURE_FADE_HOURS, FUTURE_FADE_SEGMENTS,
     FUTURE_GLOW_RGB, FUTURE_GLOW_WIDE, FUTURE_GLOW_WIDE_ALPHA, FUTURE_GLOW_NARROW, FUTURE_GLOW_NARROW_ALPHA,
     FUTURE_CORE_RGB, FUTURE_CORE_WIDTH, FUTURE_CORE_ALPHA, FUTURE_CORE_DASH,
+    ARC_DOT_BURN, ARC_DOT_COAST, ARC_DOT_OTHER,
+    ARC_MARKER_CATEGORY,
+    ARC_DOT_SIZE, ARC_LABEL_SIZE,
 )
 from app.utils import rotate_2d, circle_xy, fmt_met, in_range
 from app.db import get_con
-from app.phases import get_phases
+from app.phases import get_phases, get_arc_marker_phases
 
 
 # ── Module-level caches ───────────────────────────────────────────────────
@@ -208,6 +209,85 @@ def _get_fixed_ranges() -> dict:
 
 
 # ═════════════════════════════════════════════════════════════════════════
+#  Trajectory Arc Points of Interest
+# ═════════════════════════════════════════════════════════════════════════
+
+def _build_arc_marker_traces(
+    arc_phases: list[dict],
+    rotation_rad: float,
+    current_dt,
+) -> list:
+    """
+    Dot markers for arc_marker phases that have already been passed
+    (datetime_utc <= current_dt). No permanent labels — short code and
+    full label surface on hover only.
+    """
+    # Filter to past events only
+    past_phases = [p for p in arc_phases if p["datetime_utc"] <= current_dt]
+    if not past_phases:
+        return []
+
+    con = get_con()
+
+    timestamps   = [p["datetime_utc"] for p in past_phases]
+    placeholders = ", ".join(["?" for _ in timestamps])
+    rows = con.execute(
+        f"SELECT datetime_utc, x_km, y_km FROM orion_trajectory "
+        f"WHERE datetime_utc IN ({placeholders})",
+        timestamps,
+    ).fetchall()
+
+    coord_map: dict = {}
+    for dt, x, y in rows:
+        rx, ry = rotate_2d(float(x), float(y), rotation_rad)
+        coord_map[dt] = (float(rx), float(ry))
+
+    _PALETTE = {
+        "burn":  ARC_DOT_BURN,
+        "coast": ARC_DOT_COAST,
+        "other": ARC_DOT_OTHER,
+    }
+
+    groups: dict[str, list[dict]] = {"burn": [], "coast": [], "other": []}
+    for phase in past_phases:
+        coords = coord_map.get(phase["datetime_utc"])
+        if coords is None:
+            continue
+        cat = ARC_MARKER_CATEGORY.get(phase["key"], "other")
+        groups[cat].append({"phase": phase, "x": coords[0], "y": coords[1]})
+
+    traces = []
+
+    for cat, items in groups.items():
+        if not items:
+            continue
+        color = _PALETTE[cat]
+        traces.append(go.Scatter(
+            x=[it["x"] for it in items],
+            y=[it["y"] for it in items],
+            mode="markers",
+            marker=dict(
+                size=ARC_DOT_SIZE,
+                color=color,
+                line=dict(color="rgba(0,0,0,0)", width=0),
+            ),
+            customdata=[
+                [it["phase"]["short"], it["phase"]["label"]]
+                for it in items
+            ],
+            hovertemplate="<b>%{customdata[0]}</b> · %{customdata[1]}<extra></extra>",
+            hoverlabel=dict(
+                bgcolor="#0a1628",
+                bordercolor="#1a2f4a",
+                font=dict(family=FONT_FAMILY, color="#c8e8ff", size=FONT_SIZE_LABEL),
+            ),
+            showlegend=False,
+        ))
+
+    return traces
+
+
+# ═════════════════════════════════════════════════════════════════════════
 #  Main builder
 # ═════════════════════════════════════════════════════════════════════════
 
@@ -340,6 +420,9 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
                            FUTURE_GLOW_NARROW))
             T.append(_line(ffx[i0:i1], ffy[i0:i1], f"rgba({FUTURE_CORE_RGB},{FUTURE_CORE_ALPHA * fade:.3f})",
                            FUTURE_CORE_WIDTH, dash=FUTURE_CORE_DASH))
+
+    # Arc marker dots — past events only, hover labels
+    T.extend(_build_arc_marker_traces(get_arc_marker_phases(), a, pt))
 
     # Spacecraft marker
     T.append(go.Scatter(

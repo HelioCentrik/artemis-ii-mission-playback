@@ -165,6 +165,26 @@ TRAJ_DIM_CORE_RGB = _hex_to_rgb(_T["viz_path"])          # "255,255,255"
 FUTURE_GLOW_RGB   = _hex_to_rgb(_T["arc_future_glow"])   # "80,130,180"
 FUTURE_CORE_RGB   = _hex_to_rgb(_T["arc_future_core"])   # "52,115,232"
 
+# ── Arc marker dot colors ──
+ARC_DOT_BURN  = _T["accent_g"]   # blood orange
+ARC_DOT_COAST = _T["accent_a"]   # teal
+ARC_DOT_OTHER = _T["accent_h"]   # steel silver
+
+# Maps each phase key to its dot color category.
+# Keys not listed fall back to "other".
+ARC_MARKER_CATEGORY: dict[str, str] = {
+    "tli_burn":         "burn",
+    "mid_course":       "burn",
+    "outbound_coast":   "coast",
+    "transearth_coast": "coast",
+    "parking_orbit":    "coast",
+}
+
+# ── Arc marker dot sizing + label offset ──
+ARC_DOT_SIZE      = 7     # px — dot diameter
+ARC_LABEL_SIZE    = 9     # px — short-code label font size
+ARC_LABEL_YSHIFT  = 14    # px upward — label offset above dot center
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  TRAJECTORY VIZ — STARFIELD + CAMERA
