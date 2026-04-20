@@ -137,23 +137,30 @@ TRAJ_DIM_CORE_WIDTH        = 1
 TRAJ_DIM_CORE_ALPHA        = 0.33
 TRAJ_DIM_CORE_DASH         = "dot"
 
+# ── Dim context arc (full mission ghost path) ─────────────────────────────
+PAST_ARC_RGB        = "255,255,255"
+PAST_ARC_GLOW_WIDTH = 6
+PAST_ARC_GLOW_ALPHA = 0.20
+PAST_ARC_CORE_WIDTH = 1
+PAST_ARC_CORE_ALPHA = 0.85
+
 # ── Future arc ────────────────────────────────────────────────────────────
-FUTURE_ARC_HOURS     = 24     # Total lookahead window (hours)
-FUTURE_FADE_HOURS    = 6      # Hours at end of window that fade to transparent
-FUTURE_FADE_SEGMENTS = 8      # Opacity steps across the fade window
+FUTURE_ARC_HOURS     = 36     # Total lookahead window (hours)
+FUTURE_FADE_HOURS    = 9      # Hours at end of window that fade to transparent
+FUTURE_FADE_SEGMENTS = 12     # Opacity steps across the fade window
 
 # Glow layers (wide + narrow pass behind the core)
-FUTURE_GLOW_RGB          = "80,130,180"   # R,G,B shared by both glow passes
+FUTURE_GLOW_RGB          = "80,130,180"
 FUTURE_GLOW_WIDE         = 6              # Wide glow pass width (px)
-FUTURE_GLOW_WIDE_ALPHA   = 0.12           # Wide glow base opacity
+FUTURE_GLOW_WIDE_ALPHA   = 0.20           # Wide glow base opacity
 FUTURE_GLOW_NARROW       = 3              # Narrow glow pass width (px)
-FUTURE_GLOW_NARROW_ALPHA = 0.20           # Narrow glow base opacity
+FUTURE_GLOW_NARROW_ALPHA = 0.30           # Narrow glow base opacity
 
 # Dotted core
-FUTURE_CORE_RGB   = "52, 115, 232"    # #2a3f5f as R,G,B
-FUTURE_CORE_WIDTH = 1              # Core line width (px)
-FUTURE_CORE_ALPHA = 1.0            # Core base opacity
-FUTURE_CORE_DASH  = "dashdot"      # "dot", "dash", "dashdot", "longdashdot"
+FUTURE_CORE_RGB   = "52, 115, 232"
+FUTURE_CORE_WIDTH = 0.8              # Core line width (px)
+FUTURE_CORE_ALPHA = 1.0              # Core base opacity
+FUTURE_CORE_DASH  = "dot"            # "dot", "dash", "dashdot", "longdashdot"
 
 # ── Body label positions ──────────────────────────────────────────────────
 # Vertical offset multipliers.
