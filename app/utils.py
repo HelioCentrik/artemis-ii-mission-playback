@@ -6,6 +6,7 @@
 import numpy as np
 
 
+
 # ═════════════════════════════════════════════════════════════════════════
 #  Geometry
 # ═════════════════════════════════════════════════════════════════════════
@@ -61,3 +62,18 @@ def fmt_met_long(total_seconds: int) -> str:
 def in_range(value: float, lo: float, hi: float, margin: float = 0.0) -> bool:
     """Return True if value falls within [lo − margin, hi + margin]."""
     return (lo - margin) <= value <= (hi + margin)
+
+
+# ═════════════════════════════════════════════════════════════════════════
+#  Color helpers
+# ═════════════════════════════════════════════════════════════════════════
+
+def hex_to_rgb(hex_color: str) -> str:
+    """
+    Convert a '#rrggbb' hex string to an 'R,G,B' string.
+    Used by config.py to derive rgba() component strings from theme hex values.
+
+    Example: hex_to_rgb('#5082b4') → '80,130,180'
+    """
+    h = hex_color.lstrip("#")
+    return f"{int(h[0:2], 16)},{int(h[2:4], 16)},{int(h[4:6], 16)}"

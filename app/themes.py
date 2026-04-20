@@ -1,59 +1,118 @@
 # app/themes.py
 #
-# Theme dictionaries that map semantic roles to color values from config.
-# The Plotly template and component builders import from here — not from
-# config directly — so the theming layer is swappable in one place.
-
-from app.config import (
-    BG_BASE, PANEL_BG, PANEL_BORDER,
-    FONT_PRIMARY, FONT_DIM,
-    STATUS_LIVE,
-    ACCENT_VECTORS, ACCENT_TRAJECTORY, ACCENT_GRAVITY, ACCENT_RANGE,
-    COLOR_TRAJECTORY, COLOR_TRAJECTORY_DIM,
-    COLOR_EARTH_FILL, COLOR_EARTH_GLOW,
-    COLOR_MOON_FILL, COLOR_MOON_GLOW,
-    COLOR_STARFIELD, COLOR_SPACECRAFT,
-    FONT_FAMILY,
-)
+# Theme definitions for the Artemis II Mission Dashboard.
+#
+# Structure:
+#   Each theme is built by a private function using three internal color
+#   buckets (surface, accent, viz). Only semantic tokens leave the builder
+#   via the returned dict. Nothing outside themes.py reads the raw buckets.
+#
+#   surface — neutrals: backgrounds, borders, text scale
+#   accent  — six named palette slots (accent_a → accent_f)
+#   viz     — space-environment and trajectory rendering colors
+#
+# To add a theme: write a _build_<name>_theme() function, register it in
+# THEMES, and change ACTIVE_THEME_NAME. No other files need to change.
 
 
+def _build_dark_theme() -> dict:
 
-THEME_DARK = {
+    # ── Palette (internal — never referenced outside this builder) ─────
 
-    # ── Surfaces ──
-    "bg":           BG_BASE,
-    "panel_bg":     PANEL_BG,
-    "panel_border": PANEL_BORDER,
+    surface = {
+        "page":   "#050a0f",   # near-black deep-space background
+        "panel":  "#0a1628",   # dark navy panel fill
+        "border": "#1a2f4a",   # mid-navy panel border
+        "grid":   "#0f1f35",   # subtle grid line — between bg and border
+    }
 
-    # ── Typography ──
-    "text":         FONT_PRIMARY,
-    "text_dim":     FONT_DIM,
-    "font_family":  FONT_FAMILY,
+    text = {
+        "hi":   "#c8e8ff",   # primary — light blue-white
+        "mid":  "#4a7a9b",   # secondary — muted steel blue
+        "lo":   "#2d5473",   # tertiary — dim steel blue
+        "hint": "#1e3a52",   # near-invisible — structural hints only
+    }
 
-    # ── Status indicators ──
-    "status_live":  STATUS_LIVE,
+    status = {
+        "live": "#22c55e",   # green — nominal / live indicator
+    }
 
-    # ── Panel group accents ──
-    "accent": {
-        "vectors":    ACCENT_VECTORS,
-        "trajectory": ACCENT_TRAJECTORY,
-        "gravity":    ACCENT_GRAVITY,
-        "range":      ACCENT_RANGE,
-    },
+    accent = {
+        "teal":        "#00e5cc",   # accent_a
+        "cyan":        "#00aaff",   # accent_b
+        "purple":      "#a855f7",   # accent_c
+        "amber":       "#f59e0b",   # accent_d
+        "blue_mid":    "#5082b4",   # accent_e — future arc glow base
+        "blue_bright": "#3473e8",   # accent_f — future arc core base
+    }
 
-    # ── Plotly axis / grid ──
-    "axis_line":    PANEL_BORDER,       # Axis lines match panel border
-    "grid":         "#0f1f35",          # Subtle grid — between bg and panel border
-    "tick_text":    FONT_DIM,           # Axis tick labels
-    "zero_line":    PANEL_BORDER,
+    viz = {
+        "space_bg":  "#000000",   # pure black — canvas behind SVG starfield
+        "path":      "#ffffff",   # past trajectory arc
+        "path_dim":  "#2a3f5f",   # ghost / dimmed arc tint
+        "earth":     "#1e90ff",   # Earth sphere fill
+        "moon":      "#b0b0b0",   # Moon sphere fill
+        "starfield": "#ffffff",   # star dot color
+        "marker":    "#ffffff",   # Orion spacecraft position dot
+    }
 
-    # ── Trajectory viz ──
-    "trajectory":       COLOR_TRAJECTORY,
-    "trajectory_dim":   COLOR_TRAJECTORY_DIM,
-    "earth_fill":       COLOR_EARTH_FILL,
-    "earth_glow":       COLOR_EARTH_GLOW,
-    "moon_fill":        COLOR_MOON_FILL,
-    "moon_glow":        COLOR_MOON_GLOW,
-    "starfield":        COLOR_STARFIELD,
-    "spacecraft":       COLOR_SPACECRAFT,
+    # ── Exported token dict ────────────────────────────────────────────
+
+    return {
+
+        # Surfaces
+        "page_bg":      surface["page"],
+        "panel_bg":     surface["panel"],
+        "panel_border": surface["border"],
+
+        # Typography — font choice is a theme decision
+        "font_family":  "'Space Mono', monospace",
+
+        # Text scale
+        "text_hi":   text["hi"],
+        "text_mid":  text["mid"],
+        "text_lo":   text["lo"],
+        "text_hint": text["hint"],
+
+        # Status
+        "status_live": status["live"],
+
+        # Chart support
+        "chart_grid":    surface["grid"],
+        "chart_plot_bg": "rgba(0,0,0,0)",   # CSS owns the panel layer
+
+        # Accent palette — named by slot, not by dashboard role.
+        # config.py maps slots to semantic names (ACCENT_VECTORS = T["accent_a"]).
+        # A future dashboard reuses this theme and remaps the slots freely.
+        "accent_a": accent["teal"],
+        "accent_b": accent["cyan"],
+        "accent_c": accent["purple"],
+        "accent_d": accent["amber"],
+        "accent_e": accent["blue_mid"],
+        "accent_f": accent["blue_bright"],
+
+        # Viz — space environment & trajectory rendering
+        "space_bg":       viz["space_bg"],
+        "viz_path":       viz["path"],
+        "viz_path_dim":   viz["path_dim"],
+        "viz_body_earth": viz["earth"],
+        "viz_body_moon":  viz["moon"],
+        "viz_starfield":  viz["starfield"],
+        "viz_marker":     viz["marker"],
+
+        # Arc color aliases — same values as accent_e/f; named explicitly
+        # so the intent is readable here without chasing the slot mapping.
+        "arc_future_glow": accent["blue_mid"],
+        "arc_future_core": accent["blue_bright"],
+    }
+
+
+# ── Registry ──────────────────────────────────────────────────────────────
+
+THEMES = {
+    "dark": _build_dark_theme(),
 }
+
+ACTIVE_THEME_NAME = "dark"
+ACTIVE_THEME      = THEMES[ACTIVE_THEME_NAME]
+THEME_DARK        = THEMES["dark"]   # direct alias used by config.py

@@ -9,89 +9,71 @@ import plotly.io as pio
 
 from app.config import (
     PLOTLY_BG,
+    PANEL_BG, PANEL_BORDER,
+    FONT_FAMILY, FONT_PRIMARY, FONT_DIM,
+    CHART_GRID_COLOR,
+    ACCENT_VECTORS, ACCENT_TRAJECTORY, ACCENT_GRAVITY, ACCENT_RANGE,
     FONT_SIZE_LABEL,
 )
-from app.themes import THEME_DARK
 
 
-
-T = THEME_DARK
-
-# ── Build the template ─────────────────────────────────────────────────
 
 _layout = go.Layout(
 
-    # Transparent — CSS owns the panel background
     paper_bgcolor=PLOTLY_BG,
     plot_bgcolor=PLOTLY_BG,
 
-    # Typography
     font=dict(
-        family=T["font_family"],
-        color=T["text_dim"],
+        family=FONT_FAMILY,
+        color=FONT_DIM,
         size=FONT_SIZE_LABEL,
     ),
 
-    # Margins — tight by default; individual figures override as needed
     margin=dict(l=0, r=0, t=0, b=0, pad=0),
 
-    # X axis defaults
     xaxis=dict(
         showgrid=True,
-        gridcolor=T["grid"],
+        gridcolor=CHART_GRID_COLOR,
         gridwidth=1,
         zeroline=False,
-        linecolor=T["axis_line"],
+        linecolor=PANEL_BORDER,
         linewidth=1,
-        tickfont=dict(
-            color=T["tick_text"],
-            size=FONT_SIZE_LABEL,
-        ),
+        tickfont=dict(color=FONT_DIM, size=FONT_SIZE_LABEL),
     ),
 
-    # Y axis defaults
     yaxis=dict(
         showgrid=True,
-        gridcolor=T["grid"],
+        gridcolor=CHART_GRID_COLOR,
         gridwidth=1,
         zeroline=False,
-        linecolor=T["axis_line"],
+        linecolor=PANEL_BORDER,
         linewidth=1,
-        tickfont=dict(
-            color=T["tick_text"],
-            size=FONT_SIZE_LABEL,
-        ),
+        tickfont=dict(color=FONT_DIM, size=FONT_SIZE_LABEL),
     ),
 
-    # Legend
     legend=dict(
-        font=dict(color=T["text_dim"], size=FONT_SIZE_LABEL),
+        font=dict(color=FONT_DIM, size=FONT_SIZE_LABEL),
         bgcolor=PLOTLY_BG,
         borderwidth=0,
     ),
 
-    # Hover label
     hoverlabel=dict(
-        bgcolor=T["panel_bg"],
-        bordercolor=T["panel_border"],
+        bgcolor=PANEL_BG,
+        bordercolor=PANEL_BORDER,
         font=dict(
-            family=T["font_family"],
-            color=T["text"],
+            family=FONT_FAMILY,
+            color=FONT_PRIMARY,
             size=FONT_SIZE_LABEL,
         ),
     ),
 
-    # Colorway — panel accent colors as the default trace color cycle.
-    # First trace gets vectors teal, second gets trajectory cyan, etc.
     colorway=[
-        T["accent"]["vectors"],
-        T["accent"]["trajectory"],
-        T["accent"]["gravity"],
-        T["accent"]["range"],
+        ACCENT_VECTORS,
+        ACCENT_TRAJECTORY,
+        ACCENT_GRAVITY,
+        ACCENT_RANGE,
     ],
 )
-
-# ── Register and set as default ────────────────────────────────────────
 
 pio.templates["artemis2"] = go.layout.Template(layout=_layout)
 pio.templates.default = "artemis2"

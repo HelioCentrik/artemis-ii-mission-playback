@@ -3,8 +3,14 @@
 # Single source of truth for paths, constants, design tokens, and layout
 # dimensions. Everything that might be referenced from more than one module
 # lives here. Grouped by concern; each section is independently importable.
+#
+# Color tokens are unpacked from the active theme (app/themes.py).
+# Do not define raw hex values here — add them to themes.py instead.
 
 from pathlib import Path
+
+from app.themes import THEME_DARK as _T
+from app.utils import hex_to_rgb as _hex_to_rgb
 
 
 
@@ -12,8 +18,8 @@ from pathlib import Path
 #  PATHS
 # ═══════════════════════════════════════════════════════════════════════════
 
-APP_DIR     = Path(__file__).parent          # app/
-PROJECT_DIR = APP_DIR.parent                 # project root
+APP_DIR     = Path(__file__).parent
+PROJECT_DIR = APP_DIR.parent
 DATA_DIR    = PROJECT_DIR / "data"
 ASSETS_DIR  = PROJECT_DIR / "assets"
 DB_PATH     = DATA_DIR / "artemis2.duckdb"
@@ -23,7 +29,7 @@ DB_PATH     = DATA_DIR / "artemis2.duckdb"
 #  JPL HORIZONS API
 # ═══════════════════════════════════════════════════════════════════════════
 
-HORIZONS_URL = "https://ssd.jpl.nasa.gov/api/horizons.api"
+HORIZONS_URL  = "https://ssd.jpl.nasa.gov/api/horizons.api"
 
 # Body identifiers
 SPACECRAFT_ID = "-1024"        # Orion capsule (Artemis II)
@@ -70,8 +76,8 @@ GM_MOON  =   4_902.8001
 GM_SUN   = 1.327_124_4e11
 
 # Mean radii (km)
-R_EARTH = 6_371.0
-R_MOON  = 1_737.4
+R_EARTH  = 6_371.0
+R_MOON   = 1_737.4
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -94,6 +100,55 @@ PHASE_COUNT = len(PHASES)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  COLOR TOKENS
+#
+#  All values unpacked from the active theme. Semantic names here map to
+#  slot names in themes.py — see that file for raw hex values and rationale.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Surfaces ──
+BG_BASE      = _T["page_bg"]
+PANEL_BG     = _T["panel_bg"]
+PANEL_BORDER = _T["panel_border"]
+
+# ── Typography ──
+FONT_PRIMARY = _T["text_hi"]
+FONT_DIM     = _T["text_mid"]
+FONT_FAMILY  = _T["font_family"]
+
+# ── Status ──
+STATUS_LIVE  = _T["status_live"]
+
+# ── Chart support ──
+CHART_GRID_COLOR = _T["chart_grid"]
+PLOTLY_BG        = _T["chart_plot_bg"]
+
+# ── Panel group accents ──
+ACCENT_VECTORS    = _T["accent_a"]   # teal   — velocity & vector panels
+ACCENT_TRAJECTORY = _T["accent_b"]   # cyan   — orbital mechanics panels
+ACCENT_GRAVITY    = _T["accent_c"]   # purple — gravity panels
+ACCENT_RANGE      = _T["accent_d"]   # amber  — range / comms panels
+
+# ── Trajectory visualization ──
+COLOR_TRAJECTORY     = _T["viz_path"]
+COLOR_TRAJECTORY_DIM = _T["viz_path_dim"]
+COLOR_EARTH_FILL     = _T["viz_body_earth"]
+COLOR_MOON_FILL      = _T["viz_body_moon"]
+COLOR_STARFIELD      = _T["viz_starfield"]
+COLOR_SPACECRAFT     = _T["viz_marker"]
+SPACE_BG_COLOR       = _T["space_bg"]
+
+# ── Arc RGB component strings ──
+# Used in trajectory.py rgba() calls. Derived from theme hex so arc colors
+# stay in sync with the palette automatically when a theme changes.
+PAST_ARC_RGB      = _hex_to_rgb(_T["viz_path"])          # "255,255,255"
+TRAJ_DIM_GLOW_RGB = _hex_to_rgb(_T["viz_path"])          # "255,255,255"
+TRAJ_DIM_CORE_RGB = _hex_to_rgb(_T["viz_path"])          # "255,255,255"
+FUTURE_GLOW_RGB   = _hex_to_rgb(_T["arc_future_glow"])   # "80,130,180"
+FUTURE_CORE_RGB   = _hex_to_rgb(_T["arc_future_core"])   # "52,115,232"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  TRAJECTORY VIZ — STARFIELD + CAMERA
 #
 #  Controls the fixed viewport for the 2D Earth–Moon trajectory panel.
@@ -104,13 +159,11 @@ PHASE_COUNT = len(PHASES)
 # Dim population: faint background stars (fraction = STAR_DIM_FRACTION of total)
 # Bright population: remainder
 
-SPACE_BG_COLOR = "#000000"
-
 STAR_SEED  = 42
 STAR_COUNT = 360
 STAR_DIM_FRACTION  = 0.79
 
-STAR_SIZE_DIM_MIN  = 0.04    # SVG viewBox units (0–100 coordinate space)
+STAR_SIZE_DIM_MIN  = 0.04
 STAR_SIZE_DIM_MAX  = 0.07
 STAR_SIZE_FG_MIN   = 0.06
 STAR_SIZE_FG_MAX   = 0.08
@@ -127,18 +180,15 @@ VIEW_X_OFFSET_KM   = -10_000    # Shift view center left(−) / right(+) in km.
 VIEW_Y_OFFSET_KM   =   8_000    # Shift view center down(−) / up(+) in km.
 
 # ── Dim context arc (full mission ghost path) ─────────────────────────────
-TRAJ_DIM_GLOW_RGB          = "255,255,255"
 TRAJ_DIM_GLOW_WIDE         = 8
 TRAJ_DIM_GLOW_WIDE_ALPHA   = 0.15
 TRAJ_DIM_GLOW_NARROW       = 3
 TRAJ_DIM_GLOW_NARROW_ALPHA = 0.20
-TRAJ_DIM_CORE_RGB          = "255,255,255"
 TRAJ_DIM_CORE_WIDTH        = 1
 TRAJ_DIM_CORE_ALPHA        = 0.33
 TRAJ_DIM_CORE_DASH         = "dot"
 
 # ── Dim context arc (full mission ghost path) ─────────────────────────────
-PAST_ARC_RGB        = "255,255,255"
 PAST_ARC_GLOW_WIDTH = 6
 PAST_ARC_GLOW_ALPHA = 0.20
 PAST_ARC_CORE_WIDTH = 1
@@ -150,14 +200,12 @@ FUTURE_FADE_HOURS    = 9      # Hours at end of window that fade to transparent
 FUTURE_FADE_SEGMENTS = 12     # Opacity steps across the fade window
 
 # Glow layers (wide + narrow pass behind the core)
-FUTURE_GLOW_RGB          = "80,130,180"
 FUTURE_GLOW_WIDE         = 6              # Wide glow pass width (px)
 FUTURE_GLOW_WIDE_ALPHA   = 0.20           # Wide glow base opacity
 FUTURE_GLOW_NARROW       = 3              # Narrow glow pass width (px)
 FUTURE_GLOW_NARROW_ALPHA = 0.30           # Narrow glow base opacity
 
 # Dotted core
-FUTURE_CORE_RGB   = "52, 115, 232"
 FUTURE_CORE_WIDTH = 0.8              # Core line width (px)
 FUTURE_CORE_ALPHA = 1.0              # Core base opacity
 FUTURE_CORE_DASH  = "dot"            # "dot", "dash", "dashdot", "longdashdot"
@@ -183,73 +231,26 @@ ORION_MARKER_SIZE = 5          # Diameter of the position dot (px)
 #  All values in px unless noted. Injected as CSS custom properties.
 # ═══════════════════════════════════════════════════════════════════════════
 
-# Header
-HEADER_BRAND_HEIGHT  = 44      # Top branding bar
-HEADER_STATUS_HEIGHT = 32      # Status bar (GMT, MET, DOY)
+HEADER_BRAND_HEIGHT  = 44
+HEADER_STATUS_HEIGHT = 32
 
-# Trajectory panel
-TRAJECTORY_MIN_HEIGHT = 540    # Main viz area (excluding scrubber)
+TRAJECTORY_MIN_HEIGHT = 540
 
-# Scrubber
-SCRUBBER_HEIGHT     = 48       # Phase scrubber track
-SCRUBBER_DOT_SIZE   = 12       # Phase marker dot diameter
-SCRUBBER_DOT_ACTIVE = 14       # Active phase marker diameter
+SCRUBBER_HEIGHT     = 48
+SCRUBBER_DOT_SIZE   = 12
+SCRUBBER_DOT_ACTIVE = 14
 
-# Telemetry
-TELEMETRY_MIN_HEIGHT = 360     # Telemetry grid minimum height
+TELEMETRY_MIN_HEIGHT = 360
 
-# Panels
-PANEL_BORDER_RADIUS = 4        # Hard-edge utilitarian feel
-PANEL_GAP           = 10       # Grid gap between telemetry panels
-PANEL_PADDING       = 16       # Interior padding
+PANEL_BORDER_RADIUS = 4
+PANEL_GAP           = 10
+PANEL_PADDING       = 16
 
-# Sparklines
-SPARKLINE_HEIGHT = 80          # Mini-chart height inside KPI tiles
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  COLOR TOKENS
-#
-#  Canonical color definitions. Injected as CSS custom properties via
-#  index_string.py. Plotly figures reference these through the artemis2
-#  template or import them directly.
-# ═══════════════════════════════════════════════════════════════════════════
-
-# ── Surface / background ──
-BG_BASE      = "#050a0f"       # Page background
-PANEL_BG     = "#0a1628"       # Panel card fill
-PANEL_BORDER = "#1a2f4a"       # Panel card border
-
-# ── Typography ──
-FONT_PRIMARY = "#c8e8ff"       # Primary text
-FONT_DIM     = "#4a7a9b"       # Secondary / labels / deemphasized
-
-# ── Status ──
-STATUS_LIVE  = "#22c55e"       # Green dot — live / nominal indicator
-
-# ── Panel group accents ──
-ACCENT_VECTORS    = "#00e5cc"  # Teal     — velocity & vector components
-ACCENT_TRAJECTORY = "#00aaff"  # Cyan     — orbital mechanics, C3, eccentricity
-ACCENT_GRAVITY    = "#a855f7"  # Purple   — gravitational accelerations
-ACCENT_RANGE      = "#f59e0b"  # Amber    — distances, light time, comms
-
-# ── Trajectory visualization ──
-COLOR_TRAJECTORY      = "#ffffff"   # Primary arc (past path)
-COLOR_TRAJECTORY_DIM  = "#2a3f5f"   # Dashed future / return arc
-COLOR_EARTH_FILL      = "#1e90ff"   # Earth sphere
-COLOR_EARTH_GLOW      = "#1e90ff33" # Earth glow halo (low alpha)
-COLOR_MOON_FILL       = "#b0b0b0"   # Moon sphere
-COLOR_MOON_GLOW       = "#b0b0b033" # Moon glow halo
-COLOR_STARFIELD       = "#ffffff"   # Background star dots
-COLOR_SPACECRAFT      = "#ffffff"   # Orion marker
+SPARKLINE_HEIGHT = 80
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  PANEL GROUPS
-#
-#  Structured definitions for telemetry panel groups. Keys are used as
-#  CSS class suffixes, callback group IDs, and programmatic lookups.
-#  Adding a new panel group = adding one entry here.
 # ═══════════════════════════════════════════════════════════════════════════
 
 PANEL_GROUPS = {
@@ -280,25 +281,15 @@ PANEL_GROUPS = {
 #  TYPOGRAPHY
 # ═══════════════════════════════════════════════════════════════════════════
 
-FONT_FAMILY = "'Space Mono', monospace"
+# FONT_FAMILY is unpacked from the theme above (color tokens section).
+# Non-theme typography constants (sizes, Google Fonts URL) live here.
 
 GOOGLE_FONTS_URL = (
     "https://fonts.googleapis.com/css2?"
     "family=Space+Mono:wght@400;700&display=swap"
 )
 
-# Font sizes (px) — referenced by Plotly template and CSS variables
-FONT_SIZE_KPI    = 28          # Large KPI readout value
-FONT_SIZE_LABEL  = 11          # Tile labels, axis ticks
-FONT_SIZE_HEADER = 14          # Panel group headers
-FONT_SIZE_STATUS = 12          # Status bar text
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  PLOTLY DEFAULTS
-# ═══════════════════════════════════════════════════════════════════════════
-
-# Transparent backgrounds — CSS owns the visual layer.
-# Every figure must use these; the artemis2 Plotly template applies them
-# automatically, but they're here for any manual figure construction.
-PLOTLY_BG = "rgba(0,0,0,0)"
+FONT_SIZE_KPI    = 28
+FONT_SIZE_LABEL  = 11
+FONT_SIZE_HEADER = 14
+FONT_SIZE_STATUS = 12

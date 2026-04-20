@@ -26,6 +26,7 @@ from app.config import (
     PLOTLY_BG,
     COLOR_TRAJECTORY, COLOR_TRAJECTORY_DIM, COLOR_SPACECRAFT,
     FONT_SIZE_LABEL,
+    FONT_FAMILY, FONT_PRIMARY, FONT_DIM, PANEL_BORDER,   # ← added
     VIEW_ROTATION_DEG, VIEW_ZOOM, VIEW_X_OFFSET_KM, VIEW_Y_OFFSET_KM,
     STAR_SEED, STAR_COUNT,
     STAR_DIM_FRACTION,
@@ -44,7 +45,6 @@ from app.config import (
     FUTURE_GLOW_RGB, FUTURE_GLOW_WIDE, FUTURE_GLOW_WIDE_ALPHA, FUTURE_GLOW_NARROW, FUTURE_GLOW_NARROW_ALPHA,
     FUTURE_CORE_RGB, FUTURE_CORE_WIDTH, FUTURE_CORE_ALPHA, FUTURE_CORE_DASH,
 )
-from app.themes import THEME_DARK
 from app.utils import rotate_2d, circle_xy, fmt_met, in_range
 from app.db import get_con
 from app.phases import get_phases
@@ -360,8 +360,7 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
 
     T.append(go.Scatter(
         x=label_x, y=label_y, mode="text", text=label_t,
-        textfont=dict(color=THEME_DARK["text_dim"], size=FONT_SIZE_LABEL,
-                      family=THEME_DARK["font_family"]),
+        textfont=dict(color=FONT_DIM, size=FONT_SIZE_LABEL, family=FONT_FAMILY),
         hoverinfo="skip", showlegend=False,
     ))
 
@@ -374,11 +373,10 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
             showarrow=False,
             xshift=ORION_LABEL_XSHIFT, yshift=ORION_LABEL_YSHIFT,
             xanchor="left",
-            font=dict(color=THEME_DARK["text"], size=FONT_SIZE_LABEL,
-                      family=THEME_DARK["font_family"]),
+            font=dict(color=FONT_PRIMARY, size=FONT_SIZE_LABEL, family=FONT_FAMILY),
             align="left",
             bgcolor=f"rgba(5,10,20,{ORION_LABEL_BG_ALPHA})",
-            bordercolor=THEME_DARK["panel_border"],
+            bordercolor=PANEL_BORDER,
             borderwidth=1, borderpad=6,
         )
 
