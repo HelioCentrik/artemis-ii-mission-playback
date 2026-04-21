@@ -95,20 +95,38 @@ R_MOON   = 1_737.4
 #  Nothing else needs to change.
 # ═══════════════════════════════════════════════════════════════════════════
 
+# ── Hardcoded phase timestamps (UTC) ──────────────────────────────────────
+# Source: NASA mission blogs + press releases. These are confirmed ops events
+# with known times. Detectors in phases.py are bypassed for any key listed here.
+# c3_zero is intentionally absent — it's a physics crossing, not an ops event;
+# the DB detector owns it.
+
+PHASE_HARDCODED_TIMES: dict[str, str] = {
+    "perigee_raise":    "2026-04-02T11:10:00",   # ~43s burn, perigee raise (approx; wake-up was 11:06)
+    "tli_burn":         "2026-04-02T23:49:00",   # 5m 49s, ΔV = 1,274 fps — confirmed
+    "otc2_outbound":    "2026-04-06T03:03:00",   # 17.5s
+    "lunar_soi_entry":  "2026-04-06T04:41:00",   # Moon's gravity becomes dominant
+    "closest_approach": "2026-04-06T23:02:00",   # Pericynthion; distance record at +3min
+    "lunar_soi_exit":   "2026-04-07T17:32:00",   # ~18.5h post-flyby (derived from NSF report)
+    "return_burn_1":    "2026-04-08T00:03:00",   # 15s thruster burn
+    "return_burn_2":    "2026-04-10T02:53:00",   # 9s thruster burn
+}
+
 PHASE_REGISTRY = (
-    {"key": "parking_orbit",    "label": "Parking Orbit",    "short": "PO",  "scrubber": True,  "arc_marker": False},
-    {"key": "tli_burn",         "label": "TLI Burn",         "short": "TLI", "scrubber": True,  "arc_marker": True },
-    {"key": "apogee",           "label": "Parking Apogee",   "short": "APG", "scrubber": False, "arc_marker": True },
-    {"key": "outbound_coast",   "label": "Outbound Coast",   "short": "OC",  "scrubber": True,  "arc_marker": False},
-    {"key": "mid_course",       "label": "Mid-Course Burn",  "short": "MCC", "scrubber": False, "arc_marker": True },
-    {"key": "grav_crossover",   "label": "Grav. Crossover",  "short": "GXO", "scrubber": False, "arc_marker": True },
-    {"key": "lunar_soi_entry",  "label": "Lunar SOI Entry",  "short": "SOI", "scrubber": False, "arc_marker": True },
-    {"key": "closest_approach", "label": "Closest Approach", "short": "CA",  "scrubber": True,  "arc_marker": True },
-    {"key": "lunar_soi_exit",   "label": "Lunar SOI Exit",   "short": "SOX", "scrubber": False, "arc_marker": True },
-    {"key": "transearth_coast", "label": "Transearth Coast", "short": "TC",  "scrubber": True,  "arc_marker": False},
-    {"key": "distance_record",  "label": "Distance Record",  "short": "REC", "scrubber": False, "arc_marker": True },
-    {"key": "earth_approach",   "label": "Earth Approach",   "short": "EA",  "scrubber": True,  "arc_marker": True },
-    {"key": "dataset_close",    "label": "Last Known Pos.",  "short": "LKP", "scrubber": False, "arc_marker": True },
+    {"key": "parking_orbit",    "label": "Parking Orbit",       "short": "PO",   "scrubber": True,  "arc_marker": False},
+    {"key": "perigee_raise",    "label": "Perigee Raise Burn",  "short": "PRB",  "scrubber": False, "arc_marker": True },
+    {"key": "tli_burn",         "label": "TLI Burn",            "short": "TLI",  "scrubber": True,  "arc_marker": True },
+    {"key": "c3_zero",          "label": "Earth Escape (C3=0)", "short": "C3",   "scrubber": False, "arc_marker": True },
+    {"key": "outbound_coast",   "label": "Outbound Coast",      "short": "OC",   "scrubber": True,  "arc_marker": False},
+    {"key": "otc2_outbound",    "label": "OTC-2 Outbound",      "short": "OTC2", "scrubber": False, "arc_marker": True },
+    {"key": "lunar_soi_entry",  "label": "Lunar SOI Entry",     "short": "SOI",  "scrubber": False, "arc_marker": True },
+    {"key": "closest_approach", "label": "Closest Approach",    "short": "CA",   "scrubber": True,  "arc_marker": True },
+    {"key": "lunar_soi_exit",   "label": "Lunar SOI Exit",      "short": "SOX",  "scrubber": False, "arc_marker": True },
+    {"key": "transearth_coast", "label": "Transearth Coast",    "short": "TC",   "scrubber": True,  "arc_marker": False},
+    {"key": "return_burn_1",    "label": "Return Burn 1",       "short": "RB1",  "scrubber": False, "arc_marker": True },
+    {"key": "return_burn_2",    "label": "Return Burn 2",       "short": "RB2",  "scrubber": False, "arc_marker": True },
+    {"key": "earth_approach",   "label": "Earth Approach",      "short": "EA",   "scrubber": True,  "arc_marker": True },
+    {"key": "dataset_close",    "label": "Last Known Pos.",     "short": "LKP",  "scrubber": False, "arc_marker": True },
 )
 
 # Backward-compat aliases used by app.py until the scrubber is rebuilt.
@@ -173,11 +191,11 @@ ARC_DOT_OTHER = _T["accent_h"]   # steel silver
 # Maps each phase key to its dot color category.
 # Keys not listed fall back to "other".
 ARC_MARKER_CATEGORY: dict[str, str] = {
-    "tli_burn":         "burn",
-    "mid_course":       "burn",
-    "outbound_coast":   "coast",
-    "transearth_coast": "coast",
-    "parking_orbit":    "coast",
+    "perigee_raise":  "burn",
+    "tli_burn":       "burn",
+    "otc2_outbound":  "burn",
+    "return_burn_1":  "burn",
+    "return_burn_2":  "burn",
 }
 
 # ── Arc marker dot sizing + label offset ──
@@ -278,8 +296,8 @@ PANEL_PADDING       = 16
 
 TRAJECTORY_MIN_HEIGHT = 540
 
-SCRUBBER_HEIGHT            = 48
-SCRUBBER_BORDER_RADIUS     = 24
+SCRUBBER_HEIGHT            = 44
+SCRUBBER_BORDER_RADIUS     = 20
 SCRUBBER_HORIZONTAL_MARGIN = 112
 SCRUBBER_DOT_SIZE          = 12
 SCRUBBER_DOT_ACTIVE        = 14
