@@ -141,7 +141,8 @@ body {
 
 .panel-trajectory-viz {
     flex: 1;
-    min-height: 0;          /* allow flex child to shrink for the plotly div */
+    min-height: 0;
+    position: relative;         /* positioning context for scrubber + layers */
 }
 
 /* Ensure the Plotly graph fills its container */
@@ -161,12 +162,24 @@ body {
    ═══════════════════════════════════════════════════════════════════════ */
 
 .scrubber {
+    position: absolute;
+    bottom: 14px;
+    left: var(--scrubber-h-margin);
+    right: var(--scrubber-h-margin);
     height: var(--scrubber-h);
-    padding: 0 40px;
+    z-index: 2;
+    pointer-events: auto;       /* explicit — parent Plotly layer will be none */
+
     display: flex;
     align-items: center;
-    position: relative;
-    border-top: 1px solid var(--panel-border);
+    padding: 0 var(--panel-padding);
+
+    /* Dark pill backdrop so dots read over the starfield */
+    background: rgba(5, 10, 20, 0.78);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--scrubber-radius);
+
+    /* Remove old: border-top, position: relative */
 }
 
 .scrubber-track {

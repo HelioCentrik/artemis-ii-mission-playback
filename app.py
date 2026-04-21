@@ -153,10 +153,17 @@ app.layout = html.Div([
             className="panel-trajectory-header",
         ),
         html.Div(
-            id="trajectory-viz",
+            [
+                # Callback fills this — starfield (z=0) + Plotly (z=1)
+                html.Div(
+                    id="trajectory-content",
+                    style={"position": "absolute", "inset": "0"},
+                ),
+                # Scrubber stays static — no teardown/rebuild on phase change
+                _build_scrubber(),
+            ],
             className="panel-trajectory-viz",
         ),
-        _build_scrubber(),
     ], className="panel panel-trajectory"),
 
     # Telemetry panels
@@ -200,20 +207,20 @@ def update_scrubber_dots(phase_idx):
 
 
 @app.callback(
-    Output("trajectory-viz", "children"),
+    Output("trajectory-content", "children"),   # ← was "trajectory-viz"
     Input("phase-store", "data"),
 )
 def update_trajectory(phase_idx):
     """
     phase-store change → rebuild trajectory figure.
 
-    phase_idx is a scrubber-relative index (0-based into get_scrubber_phases()).
-    build_trajectory_fig expects a global index into get_phases(), so we
-    resolve via phase key before calling.
+    Targets trajectory-content, a static absolute-fill div inside
+    panel-trajectory-viz. The scrubber is a sibling — it stays in the DOM
+    across all phase changes, so update_scrubber_dots has no race condition.
 
-    Returns a position:relative wrapper containing two absolute layers:
-      1. Static SVG starfield (z=0) — always fills panel edge to edge.
-      2. Plotly figure (z=1) — transparent background, trajectory on top.
+    Returns the starfield SVG layer (z=0) + Plotly graph (z=1).
+    Plotly gets pointer-events:none since dragmode and displayModeBar are
+    already disabled — no reason it should eat mouse events.
     """
     scrubber_phases = get_scrubber_phases()
     all_phases      = get_phases()
@@ -243,6 +250,7 @@ def update_trajectory(phase_idx):
                 "inset": "0",
                 "height": "100%",
                 "zIndex": "1",
+                "pointerEvents": "none",    # ← added; Plotly was eating clicks
             },
         ),
     ], style={"position": "relative", "height": "100%"})

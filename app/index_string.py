@@ -18,7 +18,8 @@ from app.config import (
     ACCENT_VECTORS, ACCENT_TRAJECTORY, ACCENT_GRAVITY, ACCENT_RANGE,
     # Layout
     HEADER_BRAND_HEIGHT, HEADER_STATUS_HEIGHT,
-    TRAJECTORY_MIN_HEIGHT, SCRUBBER_HEIGHT,
+    TRAJECTORY_MIN_HEIGHT,
+    SCRUBBER_HEIGHT, SCRUBBER_BORDER_RADIUS, SCRUBBER_HORIZONTAL_MARGIN,
     SCRUBBER_DOT_SIZE, SCRUBBER_DOT_ACTIVE,
     TELEMETRY_MIN_HEIGHT, PANEL_BORDER_RADIUS, PANEL_GAP, PANEL_PADDING,
     SPARKLINE_HEIGHT,
@@ -69,6 +70,8 @@ INDEX_STRING = f"""<!DOCTYPE html>
             --header-status-h:     {HEADER_STATUS_HEIGHT}px;
             --traj-min-h:          {TRAJECTORY_MIN_HEIGHT}px;
             --scrubber-h:          {SCRUBBER_HEIGHT}px;
+            --scrubber-radius:     {SCRUBBER_BORDER_RADIUS}px;
+            --scrubber-h-margin:   {SCRUBBER_HORIZONTAL_MARGIN}px;
             --scrubber-dot:        {SCRUBBER_DOT_SIZE}px;
             --scrubber-dot-active: {SCRUBBER_DOT_ACTIVE}px;
             --telem-min-h:         {TELEMETRY_MIN_HEIGHT}px;

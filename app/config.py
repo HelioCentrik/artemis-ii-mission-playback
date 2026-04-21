@@ -215,7 +215,7 @@ STAR_ALPHA_FG_MAX  = 0.75
 VIEW_ROTATION_DEG  = 125.0      # Scene rotation CCW (degrees). Turn until the arc sits nicely across the wide panel.
 VIEW_ZOOM          =   0.2325   # Fraction of full mission bounding box shown. < 1.0 zooms in, > 1.0 zooms out.
 VIEW_X_OFFSET_KM   = -10_000    # Shift view center left(−) / right(+) in km.
-VIEW_Y_OFFSET_KM   =   8_000    # Shift view center down(−) / up(+) in km.
+VIEW_Y_OFFSET_KM   =     000    # Shift view center down(−) / up(+) in km.
 
 # ── Dim context arc (full mission ghost path) ─────────────────────────────
 TRAJ_DIM_GLOW_WIDE         = 8
@@ -272,19 +272,20 @@ ORION_MARKER_SIZE = 5          # Diameter of the position dot (px)
 HEADER_BRAND_HEIGHT  = 44
 HEADER_STATUS_HEIGHT = 32
 
-TRAJECTORY_MIN_HEIGHT = 540
-
-SCRUBBER_HEIGHT     = 48
-SCRUBBER_DOT_SIZE   = 12
-SCRUBBER_DOT_ACTIVE = 14
-
-TELEMETRY_MIN_HEIGHT = 360
-
 PANEL_BORDER_RADIUS = 4
 PANEL_GAP           = 10
 PANEL_PADDING       = 16
 
-SPARKLINE_HEIGHT = 80
+TRAJECTORY_MIN_HEIGHT = 540
+
+SCRUBBER_HEIGHT            = 48
+SCRUBBER_BORDER_RADIUS     = 24
+SCRUBBER_HORIZONTAL_MARGIN = 112
+SCRUBBER_DOT_SIZE          = 12
+SCRUBBER_DOT_ACTIVE        = 14
+
+TELEMETRY_MIN_HEIGHT = 360
+SPARKLINE_HEIGHT     = 80
 
 
 # ═══════════════════════════════════════════════════════════════════════════

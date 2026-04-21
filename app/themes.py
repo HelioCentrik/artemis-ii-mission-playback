@@ -38,10 +38,10 @@ def _build_dark_theme() -> dict:
     }
 
     accent = {
-        "teal":         "#00e5cc",   # accent_a
-        "cyan":         "#00aaff",   # accent_b
-        "violet":       "#7f5af7",   # accent_c
-        "amber":        "#f5af0b",   # accent_d
+        "teal":         "#00f5ab",   # accent_a
+        "cyan":         "#00c3ff",   # accent_b
+        "violet":       "#786afb",   # accent_c
+        "amber":        "#f5ce0b",   # accent_d
         "blue_mid":     "#5082b4",   # accent_e — future arc glow base
         "blue_bright":  "#3473e8",   # accent_f — future arc core base
         "blood_orange": "#e8420a",   # accent_g
