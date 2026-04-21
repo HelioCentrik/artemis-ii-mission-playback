@@ -10,7 +10,8 @@
 #      dataset_close, etc.).
 #
 # Detection runs in _DETECTION_ORDER. Dependencies must precede dependents:
-#   tli_burn       → outbound_coast
+#   otc2_outbound  → outbound_coast
+#   tli_burn       → (outbound_coast no longer depends on this)
 #   closest_approach → transearth_coast, earth_approach
 
 import duckdb
@@ -75,19 +76,23 @@ def _detect_c3_zero(con, **_) -> datetime:
     """).fetchone()[0]
 
 
-def _detect_outbound_coast(con, *, tli_burn: datetime, **_) -> datetime:
+def _detect_outbound_coast(con, *, otc2_outbound: datetime, **_) -> datetime:
     """
-    First row after TLI where r_earth crosses 200,000 km outbound.
-    Roughly half the Earth–Moon distance — solidly mid-coast.
+    ~45 minutes before OTC-2 Outbound — scrubber dot for the pre-burn
+    outbound coast. Gives a meaningful jump point just before the mid-course
+    correction without landing on the burn itself.
+
+    Tune the offset (currently 45 min) if you want the dot closer or
+    further from OTC-2 on the scrubber track.
     """
+    target = otc2_outbound - timedelta(minutes=120)
     return con.execute("""
         SELECT datetime_utc
-        FROM   v_kinematics
-        WHERE  datetime_utc > ?
-          AND  rg_km        >= 200000.0
-        ORDER  BY datetime_utc ASC
+        FROM   orion_trajectory
+        WHERE  datetime_utc <= ?
+        ORDER  BY datetime_utc DESC
         LIMIT  1
-    """, [tli_burn]).fetchone()[0]
+    """, [target]).fetchone()[0]
 
 
 def _detect_transearth_coast(con, *, closest_approach: datetime, **_) -> datetime:
@@ -142,23 +147,28 @@ _DETECTORS: dict[str, Callable] = {
 }
 
 # Hardcoded keys still appear here so their resolved timestamps are available
-# as **kwargs for any detector that depends on them (e.g. outbound_coast
-# needs tli_burn, transearth_coast needs closest_approach).
+# as **kwargs for any detector that depends on them.
+#
+# Dependency order:
+#   otc2_outbound must precede outbound_coast (detector uses it as anchor)
+#   closest_approach must precede transearth_coast and earth_approach
 _DETECTION_ORDER: tuple[str, ...] = (
     "parking_orbit",
     "perigee_raise",        # hardcoded
-    "tli_burn",             # hardcoded → outbound_coast depends on it
-    "c3_zero",
-    "outbound_coast",
-    "otc2_outbound",        # hardcoded
+    "tli_burn",             # hardcoded
+    "slingshot_entry",      # hardcoded (≈ TLI ignition; tune in config.py)
+    "slingshot_exit",       # hardcoded (≈ post-TLI; tune to actual C3=0 crossing)
+    "c3_zero",              # detector — first row where C3 >= 0
+    "otc2_outbound",        # hardcoded ← outbound_coast depends on this; must come first
+    "outbound_coast",       # detector — ~45 min before otc2_outbound
     "lunar_soi_entry",      # hardcoded
-    "closest_approach",     # hardcoded → transearth_coast, earth_approach depend on it
+    "closest_approach",     # hardcoded ← transearth_coast + earth_approach depend on this
     "lunar_soi_exit",       # hardcoded
-    "transearth_coast",
+    "transearth_coast",     # detector — midpoint of return leg
     "return_burn_1",        # hardcoded
     "return_burn_2",        # hardcoded
-    "earth_approach",
-    "dataset_close",
+    "earth_approach",       # detector — first row post-flyby where r_earth < 100,000 km
+    "dataset_close",        # detector — last row
 )
 
 
