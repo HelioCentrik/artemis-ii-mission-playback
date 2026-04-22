@@ -113,13 +113,14 @@ _X_ANCHOR_RATIO = 2.8
 #  Trace helpers
 # ═════════════════════════════════════════════════════════════════════════
 
-def _filled(cx, cy, r, rgba, n=120):
+def _filled(cx, cy, r, rgba, n=120, opacity=1.0):
     xs, ys = circle_xy(cx, cy, r, n)
     return go.Scatter(
         x=xs, y=ys, mode="lines",
         fill="toself", fillcolor=rgba,
         line=dict(color="rgba(0,0,0,0)", width=0),
         hoverinfo="skip", showlegend=False,
+        opacity=opacity,
     )
 
 
@@ -206,6 +207,28 @@ def _get_fixed_ranges() -> dict:
         # star_colors=[f"rgba(255,255,255,{v:.2f})" for v in sa],
     )
     return _FIXED_RANGES
+
+
+def get_moon_preload_data() -> dict:
+    """
+    Return Moon rendering constants needed by _build_preload_data() in app.py.
+    Body radii and viewport range live here — this keeps them out of app.py.
+
+    Keys
+    ----
+    moon_radii        : [MG4, MG3, MG2, MR] — four circle radii in display-km
+    moon_y_range      : [y_lo, y_hi] — viewport y bounds for visibility check
+    moon_label_y_mult : MOON_LABEL_Y_MULT constant (avoids hardcoding in JS)
+    earth_label_y     : fixed y position of the EARTH label (constant across phases)
+    """
+    R  = _get_body_radii()
+    fr = _get_fixed_ranges()
+    return {
+        "moon_radii":        [R["MG4"], R["MG3"], R["MG2"], R["MR"]],
+        "moon_y_range":      fr["y_range"],
+        "moon_label_y_mult": MOON_LABEL_Y_MULT,
+        "earth_label_y":     float(-R["ER"] * EARTH_LABEL_Y_MULT),
+    }
 
 
 # ═════════════════════════════════════════════════════════════════════════
@@ -381,12 +404,14 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
         hoverinfo="skip", showlegend=False,
     ))
 
-    # Moon: only when inside viewport
-    if moon_visible:
-        T.append(_filled(fmx, fmy, MG4, "rgba(160,160,160,0.03)"))
-        T.append(_filled(fmx, fmy, MG3, "rgba(170,170,170,0.06)"))
-        T.append(_filled(fmx, fmy, MG2, "rgba(185,185,185,0.12)"))
-        T.append(_filled(fmx, fmy, MR,  "rgba(155,155,165,0.92)"))
+    # Moon: always emitted at stable indices; opacity=0 when out of viewport.
+    # Clientside restyles x/y + opacity every tick during playback.
+    IDX_MOON_START = len(T)
+    moon_opacity = 1.0 if moon_visible else 0.0
+    T.append(_filled(fmx, fmy, MG4, "rgba(160,160,160,0.03)", opacity=moon_opacity))
+    T.append(_filled(fmx, fmy, MG3, "rgba(170,170,170,0.06)", opacity=moon_opacity))
+    T.append(_filled(fmx, fmy, MG2, "rgba(185,185,185,0.12)", opacity=moon_opacity))
+    T.append(_filled(fmx, fmy, MR, "rgba(155,155,165,0.92)", opacity=moon_opacity))
 
     # Past arc — always emitted so trace indices are stable across all phases.
     # Empty lists render nothing; playback will restyle x/y each tick.
@@ -406,6 +431,8 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
         T.append(_line(tx, ty, f"rgba({TRAJ_DIM_CORE_RGB},{TRAJ_DIM_CORE_ALPHA:.3f})", TRAJ_DIM_CORE_WIDTH, dash=TRAJ_DIM_CORE_DASH))
 
     # Future arc — solid portion (three layers: wide glow + narrow glow + core)
+    IDX_FUTURE_START = len(T)                  # ← ADD THIS LINE
+
     if len(sfx) > 1:
         T.append(_line(sfx, sfy, f"rgba({FUTURE_GLOW_RGB},{FUTURE_GLOW_WIDE_ALPHA:.3f})",   FUTURE_GLOW_WIDE))
         T.append(_line(sfx, sfy, f"rgba({FUTURE_GLOW_RGB},{FUTURE_GLOW_NARROW_ALPHA:.3f})", FUTURE_GLOW_NARROW))
@@ -427,6 +454,8 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
             T.append(_line(ffx[i0:i1], ffy[i0:i1], f"rgba({FUTURE_CORE_RGB},{FUTURE_CORE_ALPHA * fade:.3f})",
                            FUTURE_CORE_WIDTH, dash=FUTURE_CORE_DASH))
 
+    IDX_FUTURE_END = len(T)
+
     # Arc marker dots — past events only, hover labels
     T.extend(_build_arc_marker_traces(get_arc_marker_phases(), a, pt))
 
@@ -439,17 +468,17 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
         hoverinfo="skip", showlegend=False,
     ))
 
-    # Body labels
-    label_x = [0.0]
-    label_y = [-ER * EARTH_LABEL_Y_MULT]
-    label_t = ["EARTH"]
-    if moon_visible:
-        label_x.append(fmx)
-        label_y.append(fmy - MR * MOON_LABEL_Y_MULT)
-        label_t.append("MOON")
+    # Body labels — always 2 points (Earth + Moon). Moon label at NaN when out of
+    # viewport; Plotly silently skips NaN positions in mode="text".
+    IDX_LABEL = len(T)
+    moon_label_x = fmx if moon_visible else float("nan")
+    moon_label_y = fmy - MR * MOON_LABEL_Y_MULT if moon_visible else float("nan")
 
     T.append(go.Scatter(
-        x=label_x, y=label_y, mode="text", text=label_t,
+        x=[0.0, moon_label_x],
+        y=[-ER * EARTH_LABEL_Y_MULT, moon_label_y],
+        mode="text",
+        text=["EARTH", "MOON"],
         textfont=dict(color=FONT_DIM, size=FONT_SIZE_LABEL, family=FONT_FAMILY),
         hoverinfo="skip", showlegend=False,
     ))
@@ -493,9 +522,13 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
 
     fig.update_layout(meta={
         "trace_idx": {
-            "past_glow": IDX_PAST_GLOW,
-            "past_core": IDX_PAST_CORE,
-            "marker": IDX_MARKER,
+            "past_glow":    IDX_PAST_GLOW,
+            "past_core":    IDX_PAST_CORE,
+            "marker":       IDX_MARKER,
+            "future_start": IDX_FUTURE_START,
+            "future_end":   IDX_FUTURE_END,
+            "moon_start":   IDX_MOON_START,
+            "label":        IDX_LABEL,
         }
     })
 

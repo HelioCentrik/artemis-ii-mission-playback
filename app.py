@@ -51,7 +51,7 @@ from app.db import get_con
 from app.phases import get_scrubber_phases, get_phases, get_arc_marker_phases
 from app.utils import rotate_2d
 from app.index_string import INDEX_STRING
-from app.trajectory import build_trajectory_fig, build_starfield_svg
+from app.trajectory import build_trajectory_fig, build_starfield_svg, get_moon_preload_data
 
 # Register the artemis2 Plotly template as a side effect of import
 import app.plotly_template  # noqa: F401
@@ -97,6 +97,15 @@ def _build_preload_data() -> dict:
     timestamps = df["datetime_utc"].dt.strftime("%Y-%m-%dT%H:%M:%S").tolist()
     ts_index   = {ts: i for i, ts in enumerate(timestamps)}
 
+    # Moon rotated coords — same rotation angle as Orion.
+    # v_earth_moon joins orion_trajectory 1:1 on datetime_utc; row count matches.
+    moon_df = con.execute("""
+        SELECT m_x_km, m_y_km FROM v_earth_moon ORDER BY datetime_utc
+    """).df()
+    moon_rx, moon_ry = rotate_2d(
+        moon_df["m_x_km"].values, moon_df["m_y_km"].values, a
+    )
+
     arc_markers = []
     for phase in get_arc_marker_phases():
         dt_str = phase["datetime_utc"].strftime("%Y-%m-%dT%H:%M:%S")
@@ -130,6 +139,9 @@ def _build_preload_data() -> dict:
         "annotation_window_frames": PLAYBACK_ANNOTATION_WINDOW_FRAMES,
         "total_frames":             len(df),
         "frames_per_tick":          PLAYBACK_FRAMES_PER_TICK,
+        "moon_rx":  moon_rx.tolist(),
+        "moon_ry":  moon_ry.tolist(),
+        **get_moon_preload_data(),  # moon_radii, moon_y_range, moon_label_y_mult, earth_label_y
     }
 
 
@@ -406,6 +418,19 @@ app.clientside_callback(
     """
     function(frameState, preloaded) {
 
+        // ── Moon circle helper ────────────────────────────────────────────────
+        // Parametric circle: 120 segments, closed (first == last point).
+        function circleXY(cx, cy, r) {
+            var n = 120, x = new Array(n + 1), y = new Array(n + 1);
+            var step = (2 * Math.PI) / n;
+            for (var i = 0; i <= n; i++) {
+                var t = i * step;
+                x[i] = cx + r * Math.cos(t);
+                y[i] = cy + r * Math.sin(t);
+            }
+            return [x, y];
+        }
+
         // ── Guards ───────────────────────────────────────────────────────
         if (!frameState || !preloaded) {
             return window.dash_clientside.no_update;
@@ -475,6 +500,56 @@ app.clientside_callback(
             'annotations[1].x':       eventX,
             'annotations[1].y':       eventY
         });
+        
+        // ── Step 2: hide future arc during playback ───────────────────────
+        var futureStart = meta.trace_idx.future_start;
+        var futureEnd   = meta.trace_idx.future_end;
+        if (futureEnd > futureStart) {
+            var futureIndices = [];
+            for (var k = futureStart; k < futureEnd; k++) {
+                futureIndices.push(k);
+            }
+            Plotly.restyle(graphDiv, {opacity: 0}, futureIndices);
+        }
+        
+        // ── Step 3: Moon position + visibility ───────────────────────────────
+        var moonStart  = meta.trace_idx.moon_start;
+        var labelIdx   = meta.trace_idx.label;
+
+        if (moonStart !== undefined && labelIdx !== undefined) {
+            var moonX      = preloaded.moon_rx[fi];
+            var moonY      = preloaded.moon_ry[fi];
+            var moonRadii  = preloaded.moon_radii;          // [MG4, MG3, MG2, MR]
+            var yRange     = preloaded.moon_y_range;        // [y_lo, y_hi]
+            var inView     = moonY >= (yRange[0] - moonRadii[0])
+                          && moonY <= (yRange[1] + moonRadii[0]);
+            var moonOp     = inView ? 1 : 0;
+
+            // Build x/y/opacity arrays for the 4 Moon body traces.
+            var moonXs = [], moonYs = [], moonOps = [], moonIdxs = [];
+            for (var k = 0; k < moonRadii.length; k++) {
+                var circ = circleXY(moonX, moonY, moonRadii[k]);
+                moonXs.push(circ[0]);
+                moonYs.push(circ[1]);
+                moonOps.push(moonOp);
+                moonIdxs.push(moonStart + k);
+            }
+            Plotly.restyle(graphDiv,
+                {x: moonXs, y: moonYs, opacity: moonOps},
+                moonIdxs
+            );
+
+            // Moon + Earth body labels.
+            // Earth label is fixed (Earth never moves); Moon label follows Moon.
+            // NaN position = Plotly skips that text point entirely.
+            var MR         = moonRadii[3];
+            var mlx        = inView ? moonX : NaN;
+            var mly        = inView ? moonY - MR * preloaded.moon_label_y_mult : NaN;
+            Plotly.restyle(graphDiv,
+                {x: [[0.0, mlx]], y: [[preloaded.earth_label_y, mly]]},
+                [labelIdx]
+            );
+        }
 
         // ── Step 8 part B: scrubber dot highlight (direct DOM) ───────────
         var scrubberFrames = preloaded.scrubber_frame_indices || [];
