@@ -291,7 +291,7 @@ def _build_arc_marker_traces(
 #  Main builder
 # ═════════════════════════════════════════════════════════════════════════
 
-def build_trajectory_fig(phase_idx: int) -> go.Figure:
+def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
     """
     2D Earth–Moon trajectory figure for the given phase index (0–4).
     Viewport is fixed across all phases; Moon appears only when in-frame.
@@ -299,7 +299,7 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
     con    = get_con()
     phases = get_phases()
     phase  = phases[phase_idx]
-    pt     = phase["datetime_utc"]
+    pt     = override_dt if override_dt is not None else phase["datetime_utc"]
     a      = np.radians(VIEW_ROTATION_DEG)
     R      = _get_body_radii()
     fr     = _get_fixed_ranges()
@@ -388,10 +388,16 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
         T.append(_filled(fmx, fmy, MG2, "rgba(185,185,185,0.12)"))
         T.append(_filled(fmx, fmy, MR,  "rgba(155,155,165,0.92)"))
 
-    # Past arc: glow passes + solid core
-    if len(px_) > 1:
-        T.append(_line(px_, py_, f"rgba({PAST_ARC_RGB}, {PAST_ARC_GLOW_ALPHA})", PAST_ARC_GLOW_WIDTH))
-        T.append(_line(px_, py_, f"rgba({PAST_ARC_RGB}, {PAST_ARC_CORE_ALPHA})", PAST_ARC_CORE_WIDTH))
+    # Past arc — always emitted so trace indices are stable across all phases.
+    # Empty lists render nothing; playback will restyle x/y each tick.
+    _past_x = list(px_) if len(px_) > 1 else []
+    _past_y = list(py_) if len(py_) > 1 else []
+
+    IDX_PAST_GLOW = len(T)
+    T.append(_line(_past_x, _past_y, f"rgba({PAST_ARC_RGB}, {PAST_ARC_GLOW_ALPHA})", PAST_ARC_GLOW_WIDTH))
+
+    IDX_PAST_CORE = len(T)
+    T.append(_line(_past_x, _past_y, f"rgba({PAST_ARC_RGB}, {PAST_ARC_CORE_ALPHA})", PAST_ARC_CORE_WIDTH))
 
     # Full mission dim context arc (ghost path — always visible)
     if False:
@@ -424,7 +430,8 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
     # Arc marker dots — past events only, hover labels
     T.extend(_build_arc_marker_traces(get_arc_marker_phases(), a, pt))
 
-    # Spacecraft marker
+    # Spacecraft marker — index recorded for playback restyle
+    IDX_MARKER = len(T)
     T.append(go.Scatter(
         x=[fsx], y=[fsy], mode="markers",
         marker=dict(size=ORION_MARKER_SIZE, color="#ffffff", symbol="circle",
@@ -452,15 +459,15 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
 
     if ORION_LABEL_SHOW:
         fig.add_annotation(
-            x=fsx, y=fsy, text=callout,
+            x=0, y=0, text="",
+            visible=False,
             showarrow=False,
-            xshift=ORION_LABEL_XSHIFT, yshift=ORION_LABEL_YSHIFT,
-            xanchor="left",
+            xanchor="center",
+            yshift=-28,
             font=dict(color=FONT_PRIMARY, size=FONT_SIZE_LABEL, family=FONT_FAMILY),
-            align="left",
-            bgcolor=f"rgba(5,10,20,{ORION_LABEL_BG_ALPHA})",
+            bgcolor="rgba(5,10,20,0.82)",
             bordercolor=PANEL_BORDER,
-            borderwidth=1, borderpad=6,
+            borderwidth=1, borderpad=5,
         )
 
     fig.update_layout(
@@ -483,5 +490,13 @@ def build_trajectory_fig(phase_idx: int) -> go.Figure:
         hovermode=False,
         dragmode=False,
     )
+
+    fig.update_layout(meta={
+        "trace_idx": {
+            "past_glow": IDX_PAST_GLOW,
+            "past_core": IDX_PAST_CORE,
+            "marker": IDX_MARKER,
+        }
+    })
 
     return fig

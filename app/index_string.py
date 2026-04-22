@@ -25,6 +25,8 @@ from app.config import (
     SPARKLINE_HEIGHT,
     # Trajectory viz
     COLOR_TRAJECTORY, COLOR_TRAJECTORY_DIM,
+    # Playback
+    PLAYBACK_BTN_SIZE, PLAYBACK_BTN_FONT_SIZE,
 )
 
 
@@ -83,6 +85,10 @@ INDEX_STRING = f"""<!DOCTYPE html>
             /* ── Trajectory colors (for CSS-side use) ── */
             --color-trajectory:     {COLOR_TRAJECTORY};
             --color-trajectory-dim: {COLOR_TRAJECTORY_DIM};
+            
+            /* Playback */
+            --playback-btn-size:      {PLAYBACK_BTN_SIZE}px;
+            --playback-btn-font-size: {PLAYBACK_BTN_FONT_SIZE}px;
 
             /* ── Dashboard bounds ── */
             --dashboard-max-w:    1400px;

@@ -154,6 +154,36 @@ body {
 
 
 /* ═══════════════════════════════════════════════════════════════════════
+   PLAYBACK CONTROLS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.playback-btn {
+    width: var(--playback-btn-size);
+    height: var(--playback-btn-size);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    font-size: var(--playback-btn-font-size);
+    color: var(--font-primary);
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+    user-select: none;
+}
+
+.playback-btn:hover {
+    border-color: var(--accent-trajectory);
+    color: var(--accent-trajectory);
+}
+
+.playback-btn.playing {
+    border-color: var(--accent-trajectory);
+    color: var(--accent-trajectory);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
    PHASE SCRUBBER
 
    Horizontal track with phase marker dots, embedded at the bottom
