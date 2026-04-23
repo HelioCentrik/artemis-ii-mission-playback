@@ -241,29 +241,25 @@ def _build_arc_marker_traces(
     current_dt,
 ) -> list:
     """
-    Dot markers for arc_marker phases that have already been passed
-    (datetime_utc <= current_dt). No permanent labels — short code and
-    full label surface on hover only.
+    Always returns exactly 3 traces in fixed order: [burn, coast, other].
+    Empty categories get x=[], y=[] — stable indices regardless of phase.
+    Clientside restyles x/y each tick by filtering preloaded arc_markers.
     """
-    # Filter to past events only
     past_phases = [p for p in arc_phases if p["datetime_utc"] <= current_dt]
-    if not past_phases:
-        return []
-
-    con = get_con()
-
-    timestamps   = [p["datetime_utc"] for p in past_phases]
-    placeholders = ", ".join(["?" for _ in timestamps])
-    rows = con.execute(
-        f"SELECT datetime_utc, x_km, y_km FROM orion_trajectory "
-        f"WHERE datetime_utc IN ({placeholders})",
-        timestamps,
-    ).fetchall()
 
     coord_map: dict = {}
-    for dt, x, y in rows:
-        rx, ry = rotate_2d(float(x), float(y), rotation_rad)
-        coord_map[dt] = (float(rx), float(ry))
+    if past_phases:
+        con = get_con()
+        timestamps   = [p["datetime_utc"] for p in past_phases]
+        placeholders = ", ".join(["?" for _ in timestamps])
+        rows = con.execute(
+            f"SELECT datetime_utc, x_km, y_km FROM orion_trajectory "
+            f"WHERE datetime_utc IN ({placeholders})",
+            timestamps,
+        ).fetchall()
+        for dt, x, y in rows:
+            rx, ry = rotate_2d(float(x), float(y), rotation_rad)
+            coord_map[dt] = (float(rx), float(ry))
 
     _PALETTE = {
         "burn":  ARC_DOT_BURN,
@@ -280,24 +276,21 @@ def _build_arc_marker_traces(
         groups[cat].append({"phase": phase, "x": coords[0], "y": coords[1]})
 
     traces = []
-
-    for cat, items in groups.items():
-        if not items:
-            continue
-        color = _PALETTE[cat]
+    for cat in ("burn", "coast", "other"):   # fixed order — indices must be stable
+        items = groups[cat]
         traces.append(go.Scatter(
             x=[it["x"] for it in items],
             y=[it["y"] for it in items],
             mode="markers",
             marker=dict(
                 size=ARC_DOT_SIZE,
-                color=color,
+                color=_PALETTE[cat],
                 line=dict(color="rgba(0,0,0,0)", width=0),
             ),
             customdata=[
                 [it["phase"]["short"], it["phase"]["label"]]
                 for it in items
-            ],
+            ] or None,
             hovertemplate="<b>%{customdata[0]}</b> · %{customdata[1]}<extra></extra>",
             hoverlabel=dict(
                 bgcolor="#0a1628",
@@ -307,7 +300,7 @@ def _build_arc_marker_traces(
             showlegend=False,
         ))
 
-    return traces
+    return traces   # always exactly 3
 
 
 # ═════════════════════════════════════════════════════════════════════════
@@ -457,6 +450,7 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
     IDX_FUTURE_END = len(T)
 
     # Arc marker dots — past events only, hover labels
+    IDX_ARC_MARKERS_START = len(T)
     T.extend(_build_arc_marker_traces(get_arc_marker_phases(), a, pt))
 
     # Spacecraft marker — index recorded for playback restyle
@@ -522,13 +516,14 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
 
     fig.update_layout(meta={
         "trace_idx": {
-            "past_glow":    IDX_PAST_GLOW,
-            "past_core":    IDX_PAST_CORE,
-            "marker":       IDX_MARKER,
-            "future_start": IDX_FUTURE_START,
-            "future_end":   IDX_FUTURE_END,
-            "moon_start":   IDX_MOON_START,
-            "label":        IDX_LABEL,
+            "past_glow":        IDX_PAST_GLOW,
+            "past_core":        IDX_PAST_CORE,
+            "marker":           IDX_MARKER,
+            "future_start":     IDX_FUTURE_START,
+            "future_end":       IDX_FUTURE_END,
+            "moon_start":       IDX_MOON_START,
+            "label":            IDX_LABEL,
+            "arc_markers_start": IDX_ARC_MARKERS_START,  # ← add; +0=burn +1=coast +2=other
         }
     })
 

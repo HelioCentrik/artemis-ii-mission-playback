@@ -27,9 +27,9 @@
 #   Server callbacks:
 #     update-phase       : scrubber dot click  → phase-store
 #     update-scrubber    : phase-store → scrubber-dot classNames
-#     on-pause           : playback-running-store → pause-rebuild-store (Step 9a)
+#     on-pause           : playback-running-store → pause-rebuild-store
 #     update-trajectory  : phase-store | pause-rebuild-store → trajectory-content
-#                          (Step 9b — full-quality rebuild on phase click or pause)
+#                          (Full-quality rebuild on phase click or pause)
 
 import dash
 from dash import html, dcc, Input, Output, State, ctx
@@ -401,10 +401,10 @@ app.clientside_callback(
 #   fig.layout.meta (embedded by build_trajectory_fig).
 #
 #   What it updates each tick:
-#     Step 7 : Past arc glow + core x/y sliced to current frame
-#     Step 6 : Spacecraft marker position + Orion speed callout annotation
-#     Step 8 : Arc event badge annotation (visible, text, x, y)
-#              Scrubber dot highlight (direct DOM className swap)
+#     Past arc glow + core x/y sliced to current frame
+#     Spacecraft marker position + Orion speed callout annotation
+#     Arc event badge annotation (visible, text, x, y)
+#      Scrubber dot highlight (direct DOM className swap)
 #
 #   Graph div resolution:
 #     dcc.Graph(id="trajectory-graph") — Plotly attaches ._fullData to the
@@ -459,7 +459,7 @@ app.clientside_callback(
         var ry  = preloaded.ry;
         var spd = (preloaded.speed[fi] || 0).toFixed(3);
 
-        // ── Step 7: past arc + Step 6: spacecraft (single restyle) ──────
+        // ── Past arc + spacecraft (single restyle) ──────
         var arcX = rx.slice(0, fi + 1);
         var arcY = ry.slice(0, fi + 1);
 
@@ -468,7 +468,7 @@ app.clientside_callback(
             y: [[ry[fi]], arcY, arcY]
         }, [spIdx, pgIdx, pcIdx]);
 
-        // ── Step 8 part A: arc event badge ───────────────────────────────
+        // ── Arc event badge ───────────────────────────────
         var windowFrames = preloaded.annotation_window_frames || 180;
         var markers      = preloaded.arc_markers || [];
 
@@ -490,7 +490,7 @@ app.clientside_callback(
             }
         }
 
-        // ── Step 6: Orion callout + event badge (single relayout) ────────
+        // ── Orion callout + event badge (single relayout) ────────
         Plotly.relayout(graphDiv, {
             'annotations[0].x':       rx[fi],
             'annotations[0].y':       ry[fi],
@@ -501,7 +501,7 @@ app.clientside_callback(
             'annotations[1].y':       eventY
         });
         
-        // ── Step 2: hide future arc during playback ───────────────────────
+        // ── hide future arc during playback ───────────────────────
         var futureStart = meta.trace_idx.future_start;
         var futureEnd   = meta.trace_idx.future_end;
         if (futureEnd > futureStart) {
@@ -512,7 +512,7 @@ app.clientside_callback(
             Plotly.restyle(graphDiv, {opacity: 0}, futureIndices);
         }
         
-        // ── Step 3: Moon position + visibility ───────────────────────────────
+        // ── Moon position + visibility ───────────────────────────────
         var moonStart  = meta.trace_idx.moon_start;
         var labelIdx   = meta.trace_idx.label;
 
@@ -550,8 +550,29 @@ app.clientside_callback(
                 [labelIdx]
             );
         }
+        
+        // ── Arc marker dots — filter to past events per frame ─────
+        var arcStart = meta.trace_idx.arc_markers_start;
+        if (arcStart !== undefined) {
+            var burnX = [],  burnY  = [];
+            var coastX = [], coastY = [];
+            var otherX = [], otherY = [];
 
-        // ── Step 8 part B: scrubber dot highlight (direct DOM) ───────────
+            for (var i = 0; i < markers.length; i++) {
+                var m = markers[i];
+                if (m.frame_idx > fi) { continue; }
+                if      (m.category === 'burn')  { burnX.push(m.rx);  burnY.push(m.ry);  }
+                else if (m.category === 'coast') { coastX.push(m.rx); coastY.push(m.ry); }
+                else                             { otherX.push(m.rx); otherY.push(m.ry); }
+            }
+
+            Plotly.restyle(graphDiv,
+                {x: [burnX, coastX, otherX], y: [burnY, coastY, otherY]},
+                [arcStart, arcStart + 1, arcStart + 2]
+            );
+        }
+
+        // ── Scrubber dot highlight (direct DOM) ───────────
         var scrubberFrames = preloaded.scrubber_frame_indices || [];
         var activeDot      = 0;
         for (var j = 0; j < scrubberFrames.length; j++) {
@@ -605,7 +626,7 @@ def update_scrubber_dots(phase_idx):
     ]
 
 
-# ── Step 9a — detect pause, write pause-rebuild-store ────────────────────────
+# ── Detect pause, write pause-rebuild-store ────────────────────────
 @app.callback(
     Output("pause-rebuild-store", "data"),
     Input("playback-running-store", "data"),
@@ -633,7 +654,7 @@ def on_playback_pause(running_state, frame_state, phase_idx):
     }
 
 
-# ── Step 9b — full-quality figure rebuild ────────────────────────────────────
+# ── Full-quality figure rebuild ────────────────────────────────────
 @app.callback(
     Output("trajectory-content", "children"),
     Input("phase-store",         "data"),   # scrubber dot click
