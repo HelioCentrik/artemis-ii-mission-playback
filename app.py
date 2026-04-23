@@ -608,24 +608,6 @@ def update_phase(n_clicks):
     return triggered["index"]
 
 
-@app.callback(
-    Output({"type": "scrubber-dot", "index": ALL}, "className"),
-    Input("phase-store", "data"),
-)
-def update_scrubber_dots(phase_idx):
-    """
-    Highlight the active scrubber dot on phase-store change.
-    During playback the clientside callback handles highlighting via direct DOM
-    manipulation — phase-store doesn't change mid-play, so no conflict.
-    """
-    n      = len(get_scrubber_phases())
-    active = phase_idx or 0
-    return [
-        "scrubber-dot active" if i == active else "scrubber-dot"
-        for i in range(n)
-    ]
-
-
 # ── Detect pause, write pause-rebuild-store ────────────────────────
 @app.callback(
     Output("pause-rebuild-store", "data"),
