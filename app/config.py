@@ -298,6 +298,7 @@ ORION_MARKER_SIZE = 5          # Diameter of the position dot (px)
 #  PLAYBACK
 # ═══════════════════════════════════════════════════════════════════════════
 
+PLAYBACK_FRAME_INTERVAL_MIN       = 1
 PLAYBACK_INTERVAL_MS              = 100   # dcc.Interval tick rate (ms) — 10fps
 PLAYBACK_FRAMES_PER_TICK          = 6    # frames advanced per tick (60 rows = 1 hr at 1-min resolution)
 PLAYBACK_ANNOTATION_WINDOW_FRAMES = 180

@@ -42,7 +42,7 @@ from app.config import (
     PANEL_GROUPS,
     VIEW_ROTATION_DEG,
     ARC_MARKER_CATEGORY,
-    PLAYBACK_INTERVAL_MS, PLAYBACK_FRAMES_PER_TICK, PLAYBACK_ANNOTATION_WINDOW_FRAMES,
+    PLAYBACK_FRAME_INTERVAL_MIN, PLAYBACK_INTERVAL_MS, PLAYBACK_FRAMES_PER_TICK, PLAYBACK_ANNOTATION_WINDOW_FRAMES,
     LAUNCH_TIME,
 )
 from app.db import get_con
@@ -182,6 +182,9 @@ server = app.server
 #  LAYOUT HELPERS
 # ═══════════════════════════════════════════════════════════════════════════
 
+_TICKS_PER_SEC = 1000 / PLAYBACK_INTERVAL_MS
+_PLAYBACK_SPEED_X = int(PLAYBACK_FRAMES_PER_TICK * _TICKS_PER_SEC * PLAYBACK_FRAME_INTERVAL_MIN * 60)
+
 def _build_header():
     """Branding bar + status bar."""
     return html.Div([
@@ -198,7 +201,7 @@ def _build_header():
                     id="status-text",
                 ),
             ]),
-            html.Span("PLAYBACK · 1.0×"),
+            html.Span(f"PLAYBACK · {_PLAYBACK_SPEED_X}×"),
         ], className="header-status"),
     ])
 
