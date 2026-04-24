@@ -119,27 +119,27 @@ PHASE_HARDCODED_TIMES: dict[str, str] = {
 
 PHASE_REGISTRY = (
     # ── Scrubber dot 0 ────────────────────────────────────────────────────
-    {"key": "parking_orbit",    "label": "Parking Orbit",          "short": "PO",   "scrubber": True,  "arc_marker": False},
-    {"key": "perigee_raise",    "label": "Perigee Raise Burn",     "short": "PRB",  "scrubber": False, "arc_marker": True },
+    {"key": "parking_orbit",    "label": "Parking Orbit",          "short": "PO",   "scrubber": True,  "arc_marker": False, "status_bar": True,  "status_label": "PARKING ORBIT"},
+    {"key": "perigee_raise",    "label": "Perigee Raise Burn",     "short": "PRB",  "scrubber": False, "arc_marker": True,  "status_bar": False},
     # ── Scrubber dot 1 ────────────────────────────────────────────────────
-    {"key": "slingshot_entry",  "label": "Earth Slingshot Entry",  "short": "SE",   "scrubber": True,  "arc_marker": False},
-    {"key": "tli_burn",         "label": "TLI Burn",               "short": "TLI",  "scrubber": False, "arc_marker": True },
+    {"key": "slingshot_entry",  "label": "Earth Slingshot Entry",  "short": "SE",   "scrubber": True,  "arc_marker": False, "status_bar": True,  "status_label": "EARTH SLINGSHOT"},
+    {"key": "tli_burn",         "label": "TLI Burn",               "short": "TLI",  "scrubber": False, "arc_marker": True,  "status_bar": False},
     # ── Scrubber dot 2 ────────────────────────────────────────────────────
-    {"key": "slingshot_exit",   "label": "Earth Slingshot Exit",   "short": "SX",   "scrubber": True,  "arc_marker": False},
-    {"key": "c3_zero",          "label": "Earth Escape (C3=0)",    "short": "C3",   "scrubber": False, "arc_marker": True },
-    # ── Scrubber dot 3: ~45 min before OTC-2 ──────────────────────────────
-    {"key": "outbound_coast",   "label": "Outbound Coast",         "short": "OC",   "scrubber": True,  "arc_marker": False},
-    {"key": "otc2_outbound",    "label": "OTC-2 Outbound",         "short": "OTC2", "scrubber": False, "arc_marker": True },
-    {"key": "lunar_soi_entry",  "label": "Lunar SOI Entry",        "short": "SOI",  "scrubber": False, "arc_marker": True },
-    {"key": "closest_approach", "label": "Closest Approach",       "short": "CA",   "scrubber": False, "arc_marker": True },
+    {"key": "slingshot_exit",   "label": "Earth Slingshot Exit",   "short": "SX",   "scrubber": True,  "arc_marker": False, "status_bar": True,  "status_label": "TRANS-LUNAR COAST"},
+    {"key": "c3_zero",          "label": "Earth Escape (C3=0)",    "short": "C3",   "scrubber": False, "arc_marker": True,  "status_bar": False},
+    # ── Scrubber dot 3: ~120 min before OTC-2 ─────────────────────────────
+    {"key": "outbound_coast",   "label": "Outbound Coast",         "short": "OC",   "scrubber": True,  "arc_marker": False, "status_bar": False},
+    {"key": "otc2_outbound",    "label": "OTC-2 Outbound",         "short": "OTC2", "scrubber": False, "arc_marker": True,  "status_bar": False},
+    {"key": "lunar_soi_entry",  "label": "Lunar SOI Entry",        "short": "SOI",  "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "LUNAR APPROACH"},
+    {"key": "closest_approach", "label": "Closest Approach",       "short": "CA",   "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "CLOSEST APPROACH"},
     # ── Scrubber dot 4 ────────────────────────────────────────────────────
-    {"key": "lunar_soi_exit",   "label": "Lunar SOI Exit",         "short": "SOX",  "scrubber": True,  "arc_marker": True },
-    {"key": "transearth_coast", "label": "Transearth Coast",       "short": "TC",   "scrubber": False, "arc_marker": False},
-    {"key": "return_burn_1",    "label": "Return Burn 1",          "short": "RB1",  "scrubber": False, "arc_marker": True },
-    {"key": "return_burn_2",    "label": "Return Burn 2",          "short": "RB2",  "scrubber": False, "arc_marker": True },
+    {"key": "lunar_soi_exit",   "label": "Lunar SOI Exit",         "short": "SOX",  "scrubber": True,  "arc_marker": True,  "status_bar": True,  "status_label": "TRANS-EARTH COAST"},
+    {"key": "transearth_coast", "label": "Transearth Coast",       "short": "TC",   "scrubber": False, "arc_marker": False, "status_bar": False},
+    {"key": "return_burn_1",    "label": "Return Burn 1",          "short": "RB1",  "scrubber": False, "arc_marker": True,  "status_bar": False},
+    {"key": "return_burn_2",    "label": "Return Burn 2",          "short": "RB2",  "scrubber": False, "arc_marker": True,  "status_bar": False},
     # ── Scrubber dot 5 ────────────────────────────────────────────────────
-    {"key": "earth_approach",   "label": "Earth Approach",         "short": "EA",   "scrubber": True,  "arc_marker": True },
-    {"key": "dataset_close",    "label": "Last Known Pos.",        "short": "LKP",  "scrubber": False, "arc_marker": True },
+    {"key": "earth_approach",   "label": "Earth Approach",         "short": "EA",   "scrubber": True,  "arc_marker": True,  "status_bar": True,  "status_label": "EARTH APPROACH"},
+    {"key": "dataset_close",    "label": "Last Known Pos.",        "short": "LKP",  "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "LAST KNOWN POSITION"},
 )
 
 # Backward-compat aliases used by app.py until the scrubber is rebuilt.

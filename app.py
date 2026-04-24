@@ -21,8 +21,7 @@
 #     advance-frame      : interval tick        → playback-frame-store (no-ops if paused)
 #     render-btn-state   : playback-running-store → btn icon + className
 #     update-frame-viz   : playback-frame-store → Plotly.restyle/relayout via DOM id
-#                          (Steps 6 + 7 + 8 combined — spacecraft, arc, annotations,
-#                           scrubber dot highlight)
+#                          (Spacecraft, arc, annotations, scrubber dot highlight)
 #
 #   Server callbacks:
 #     update-phase       : scrubber dot click  → phase-store
@@ -43,9 +42,8 @@ from app.config import (
     PANEL_GROUPS,
     VIEW_ROTATION_DEG,
     ARC_MARKER_CATEGORY,
-    PLAYBACK_INTERVAL_MS,
-    PLAYBACK_FRAMES_PER_TICK,
-    PLAYBACK_ANNOTATION_WINDOW_FRAMES,
+    PLAYBACK_INTERVAL_MS, PLAYBACK_FRAMES_PER_TICK, PLAYBACK_ANNOTATION_WINDOW_FRAMES,
+    LAUNCH_TIME,
 )
 from app.db import get_con
 from app.phases import get_scrubber_phases, get_phases, get_arc_marker_phases
@@ -129,6 +127,21 @@ def _build_preload_data() -> dict:
         dt_str = sp["datetime_utc"].strftime("%Y-%m-%dT%H:%M:%S")
         scrubber_frame_indices.append(ts_index.get(dt_str, 0))
 
+    # Status bar phases — events that define phase-label transitions.
+    # Clientside walks forward and keeps the last one whose frame_idx ≤ fi.
+    status_phases = []
+    for phase in get_phases():
+        if not phase.get("status_bar"):
+            continue
+        dt_str = phase["datetime_utc"].strftime("%Y-%m-%dT%H:%M:%S")
+        fidx   = ts_index.get(dt_str)
+        if fidx is None:
+            continue
+        status_phases.append({
+            "frame_idx":    fidx,
+            "status_label": phase.get("status_label", phase["label"].upper()),
+        })
+
     return {
         "rx":                       rx.tolist(),
         "ry":                       ry.tolist(),
@@ -139,9 +152,11 @@ def _build_preload_data() -> dict:
         "annotation_window_frames": PLAYBACK_ANNOTATION_WINDOW_FRAMES,
         "total_frames":             len(df),
         "frames_per_tick":          PLAYBACK_FRAMES_PER_TICK,
-        "moon_rx":  moon_rx.tolist(),
-        "moon_ry":  moon_ry.tolist(),
-        **get_moon_preload_data(),  # moon_radii, moon_y_range, moon_label_y_mult, earth_label_y
+        "moon_rx":                  moon_rx.tolist(),
+        "moon_ry":                  moon_ry.tolist(),
+        "status_phases":            status_phases,                        # ← add
+        "launch_iso":               LAUNCH_TIME.replace(" ", "T"),        # ← add
+        **get_moon_preload_data(),
     }
 
 
@@ -394,7 +409,7 @@ app.clientside_callback(
     Input("playback-running-store", "data"),
 )
 
-# ── Steps 6 + 7 + 8 — per-frame figure update (clientside, zero round-trips) ──
+# ── Per-frame figure update (clientside, zero round-trips) ──
 #
 #   Fires on every playback-frame-store change. Directly manipulates the live
 #   Plotly graph via Plotly.restyle / Plotly.relayout using trace indices from
@@ -581,6 +596,42 @@ app.clientside_callback(
         document.querySelectorAll('.scrubber-dot').forEach(function(dot, idx) {
             dot.className = (idx === activeDot) ? 'scrubber-dot active' : 'scrubber-dot';
         });
+
+                // ── Status bar — GMT · MET · Phase ───────────────────────────
+        var ts         = preloaded.timestamps[fi];
+        var frameDate  = new Date(ts + 'Z');
+        var launchDate = new Date(preloaded.launch_iso + 'Z');
+
+        function pad2(n) { return String(n).padStart(2, '0'); }
+        function pad3(n) { return String(n).padStart(3, '0'); }
+
+        // GMT: YYYY:DDD:HH:MM:SS (mission-control day-of-year format)
+        var year   = frameDate.getUTCFullYear();
+        var doy    = Math.floor((frameDate - new Date(Date.UTC(year, 0, 1))) / 86400000) + 1;
+        var gmtStr = year + ':' + pad3(doy) + ':' +
+                     pad2(frameDate.getUTCHours())   + ':' +
+                     pad2(frameDate.getUTCMinutes()) + ':' +
+                     pad2(frameDate.getUTCSeconds());
+
+        // MET: DDT HH:MM:SS (elapsed since SLS liftoff)
+        var metSec = Math.floor((frameDate - launchDate) / 1000);
+        var metD   = Math.floor(metSec / 86400);
+        var metH   = Math.floor((metSec % 86400) / 3600);
+        var metM   = Math.floor((metSec % 3600) / 60);
+        var metS   = metSec % 60;
+        var metStr = pad2(metD) + 'T ' + pad2(metH) + ':' + pad2(metM) + ':' + pad2(metS);
+
+        // Phase label: last status_phase whose frame_idx ≤ fi
+        var statusPhases = preloaded.status_phases || [];
+        var phaseLabel   = '';
+        for (var p = 0; p < statusPhases.length; p++) {
+            if (fi >= statusPhases[p].frame_idx) { phaseLabel = statusPhases[p].status_label; }
+        }
+
+        var statusEl = document.getElementById('status-text');
+        if (statusEl) {
+            statusEl.textContent = 'GMT ' + gmtStr + ' · MET ' + metStr + ' · ' + phaseLabel;
+        }
 
         return window.dash_clientside.no_update;
     }
