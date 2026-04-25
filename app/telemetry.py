@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from app.config import TELEMETRY_METRICS
+from app.config import TELEMETRY_METRICS, SPARKLINE_VIEWBOX_WIDTH
 from app.db import get_con
 
 
@@ -105,3 +105,19 @@ def get_telemetry_at(dt_utc: datetime) -> dict[str, float]:
 
     row = df.iloc[0]
     return {col: float(row[col]) for col in _COLUMNS}
+
+
+def get_frame_pct(dt_utc: datetime) -> float:
+    """
+    SVG x-coordinate (0–SPARKLINE_VIEWBOX_WIDTH) for dt_utc.
+    Used to position sparkline needles on server-side tile rebuilds.
+    """
+    con    = get_con()
+    result = con.execute("""
+        SELECT
+            (COUNT(*) FILTER (WHERE datetime_utc <= ?) - 1)::FLOAT
+            / NULLIF(COUNT(*) - 1, 0)
+            * ?
+        FROM orion_trajectory
+    """, [dt_utc, SPARKLINE_VIEWBOX_WIDTH]).fetchone()
+    return float(result[0]) if result and result[0] is not None else 0.0

@@ -409,6 +409,12 @@ body {
     flex: 1;
     min-height: var(--sparkline-h);
 }
+.tile-sparkline > div,
+.tile-sparkline p {
+    height: 100%;
+    margin: 0;
+    line-height: 0;
+}
 
 /* Ensure sparkline Plotly chart fills the tile */
 .tile-sparkline .js-plotly-plot,

@@ -57,8 +57,9 @@ from app.phases import get_scrubber_phases, get_phases, get_arc_marker_phases
 from app.utils import rotate_2d
 from app.index_string import INDEX_STRING
 from app.trajectory import build_trajectory_fig, build_starfield_svg, get_moon_preload_data
-from app.telemetry import get_telemetry_preload
+from app.telemetry import get_telemetry_preload, get_telemetry_at, get_frame_pct
 from app.sparklines import build_sparkline_points
+from app.kpi import build_kpi_tile
 
 # Register the artemis2 Plotly template as a side effect of import
 import app.plotly_template  # noqa: F401
@@ -190,15 +191,19 @@ def _build_preload_data() -> dict:
         "moon_ry":                  moon_ry.tolist(),
         "status_phases":            status_phases,
         "launch_iso":               LAUNCH_TIME.replace(" ", "T"),
-        "telemetry":                telem,                # ← add
-        "telemetry_sparklines":     sparklines,           # ← add
-        "telemetry_meta":           telemetry_meta,       # ← add
+        "telemetry":                telem,
+        "telemetry_sparklines":     sparklines,
+        "telemetry_meta":           telemetry_meta,
         **get_moon_preload_data(),
     }
 
 
 # Runs at import time — before any callback or layout is evaluated.
 _PRELOAD_DATA = _build_preload_data()
+_SPARKLINE_POINTS = {
+    col: build_sparkline_points(series)
+    for col, series in get_telemetry_preload().items()
+}
 
 
 
@@ -250,7 +255,43 @@ def _build_scrubber():
     ], className="scrubber")
 
 
-def _build_telemetry_panel(group_key, group):
+def _build_telemetry_panel(
+    group_key:    str,
+    group:        dict,
+    values_dict:  dict | None = None,
+    current_pct:  float       = 0.0,
+) -> html.Div:
+    """
+    Build one telemetry panel with 3 KPI tiles.
+
+    values_dict  : {column: float} from get_telemetry_at(); None → stub tiles
+    current_pct  : SVG x-coord for sparkline needle (0–SPARKLINE_VIEWBOX_WIDTH)
+    """
+    if values_dict is None:
+        # Stub tiles — shown only during the initial layout render before the
+        # update_telemetry callback fires. Three stubs to match 3-col grid.
+        stub_tile = html.Div([
+            html.Div([
+                html.Span("---", className="tile-label"),
+                html.Span("---", className="tile-unit"),
+            ], className="tile-header"),
+            html.Span("--", className="tile-value"),
+            html.Div(className="tile-sparkline"),
+        ], className="tile")
+
+        tiles = [stub_tile, stub_tile, stub_tile]
+
+    else:
+        tiles = [
+            build_kpi_tile(
+                metric_cfg       = m,
+                value            = values_dict.get(m["column"], 0.0),
+                sparkline_points = _SPARKLINE_POINTS.get(m["column"], ""),
+                current_pct      = current_pct,
+            )
+            for m in TELEMETRY_METRICS[group_key]
+        ]
+
     return html.Div([
         html.Div([
             html.Div([
@@ -259,31 +300,18 @@ def _build_telemetry_panel(group_key, group):
             ], className="telemetry-panel-label"),
             html.Span(group["code"], className="telemetry-panel-code"),
         ], className="telemetry-panel-header"),
-        html.Div([
-            html.Div([
-                html.Div([
-                    html.Span("---", className="tile-label"),
-                    html.Span("---", className="tile-unit"),
-                ], className="tile-header"),
-                html.Div("--", className="tile-value"),
-                html.Div(className="tile-sparkline"),
-            ], className="tile"),
-            html.Div([
-                html.Div([
-                    html.Span("---", className="tile-label"),
-                    html.Span("---", className="tile-unit"),
-                ], className="tile-header"),
-                html.Div("--", className="tile-value"),
-                html.Div(className="tile-sparkline"),
-            ], className="tile"),
-        ], className="tile-grid"),
+        html.Div(tiles, className="tile-grid"),
     ], className=f"panel telemetry-panel telemetry-panel--{group_key}")
 
 
-def _build_telemetry_grid():
+def _build_telemetry_grid() -> html.Div:
     return html.Div(
-        [_build_telemetry_panel(key, grp) for key, grp in PANEL_GROUPS.items()],
+        id="telemetry-grid",
         className="telemetry-grid",
+        children=[
+            _build_telemetry_panel(key, grp)
+            for key, grp in PANEL_GROUPS.items()
+        ],
     )
 
 
@@ -550,10 +578,44 @@ def update_trajectory(phase_idx, pause_data):
     return _trajectory_content(fig)
 
 
+@app.callback(
+    Output("telemetry-grid", "children"),
+    Input("phase-store",         "data"),
+    Input("pause-rebuild-store", "data"),
+    prevent_initial_call=False,
+)
+def update_telemetry(phase_idx, pause_data):
+    """
+    Rebuild all four telemetry panels on phase-click or playback pause.
+
+    Trigger priority:
+      pause-rebuild-store — uses exact paused dt_str for frame accuracy
+      phase-store         — uses canonical phase timestamp
+      initial load        — falls through to phase 0
+    """
+    triggered = ctx.triggered_id
+
+    if triggered == "pause-rebuild-store" and pause_data and pause_data.get("dt_str"):
+        dt_utc = _datetime.fromisoformat(pause_data["dt_str"])
+    else:
+        phases = get_phases()
+        idx    = phase_idx if phase_idx is not None else 0
+        idx    = max(0, min(idx, len(phases) - 1))
+        dt_utc = phases[idx]["datetime_utc"]
+
+    values      = get_telemetry_at(dt_utc)
+    current_pct = get_frame_pct(dt_utc)
+
+    return [
+        _build_telemetry_panel(key, grp, values, current_pct)
+        for key, grp in PANEL_GROUPS.items()
+    ]
+
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  ENTRYPOINT
 # ═══════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    app.run(debug=True, port=8050, threaded=False)
