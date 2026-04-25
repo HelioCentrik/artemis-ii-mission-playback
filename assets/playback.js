@@ -224,9 +224,21 @@
 
         var state = window._artemisState;
 
-        // No-op until initialized and running. Reset timing so the first
-        // tick after resume doesn't try to "catch up" elapsed idle time.
-        if (!state || !state.running || !state.preloaded) {
+        // No-op until initialized. Reset timing so the first tick after
+        // resume doesn't try to "catch up" elapsed idle time.
+        if (!state || !state.preloaded) {
+            _lastTs  = null;
+            _elapsed = 0;
+            return;
+        }
+
+        // Paused — drain any forced render request (e.g. scrubber click),
+        // then bail. Keeps the view responsive without running the full loop.
+        if (!state.running) {
+            if (state.needsRender) {
+                state.needsRender = false;
+                renderFrame(state.frame_idx, state.preloaded);
+            }
             _lastTs  = null;
             _elapsed = 0;
             return;

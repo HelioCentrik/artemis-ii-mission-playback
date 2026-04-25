@@ -17,11 +17,16 @@
 #                                         server-side full-quality figure rebuild
 #
 #   Clientside callbacks (zero round-trips):
-#     toggle-running     : playback-btn click  → playback-running-store
-#     advance-frame      : interval tick        → playback-frame-store (no-ops if paused)
-#     render-btn-state   : playback-running-store → btn icon + className
-#     update-frame-viz   : playback-frame-store → Plotly.restyle/relayout via DOM id
-#                          (Spacecraft, arc, annotations, scrubber dot highlight)
+#     init-artemis-state : traj-preload-store load → window._artemisState init
+#     toggle-running     : playback-btn click  → window._artemisState.running
+#                          + playback-running-store (triggers on-pause server cb)
+#     reset-frame        : phase-store change  → window._artemisState.frame_idx
+#                          + playback-frame-store (keeps on-pause state accurate)
+#
+#   Hot path (React-free):
+#     playback.js rAF loop reads window._artemisState each frame, advances
+#     frame_idx on wall-clock elapsed time, calls Plotly directly.
+#     Writes window._artemisFrame each tick for telemetry hooks (Phase 5).
 #
 #   Server callbacks:
 #     update-phase       : scrubber dot click  → phase-store
@@ -54,6 +59,7 @@ from app.trajectory import build_trajectory_fig, build_starfield_svg, get_moon_p
 
 # Register the artemis2 Plotly template as a side effect of import
 import app.plotly_template  # noqa: F401
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -166,6 +172,7 @@ def _build_preload_data() -> dict:
 _PRELOAD_DATA = _build_preload_data()
 
 
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  APP INIT
 # ═══════════════════════════════════════════════════════════════════════════
@@ -178,6 +185,7 @@ app = dash.Dash(
 )
 
 server = app.server
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -297,6 +305,7 @@ def _trajectory_content(fig) -> html.Div:
     ], style={"position": "relative", "height": "100%"})
 
 
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  PAGE LAYOUT
 # ═══════════════════════════════════════════════════════════════════════════
@@ -314,15 +323,8 @@ app.layout = html.Div([
     # Written on pause → triggers full-quality figure rebuild.
     dcc.Store(id="pause-rebuild-store"),
 
-    # ── Interval ────────────────────────────────────────────────────────
-    dcc.Interval(
-        id="playback-interval",
-        interval=PLAYBACK_INTERVAL_MS,
-        disabled=False,         # always ticking; advance-frame no-ops when paused
-    ),
-
-    # ── Dummy output for clientside frame-viz callback ───────────────────
-    html.Div(id="playback-viz-dummy", style={"display": "none"}),
+    # ── Dummy outputs for clientside callbacks ───────────────────────────
+    html.Div(id="artemis-init-dummy",  style={"display": "none"}),
 
     # ── Header ───────────────────────────────────────────────────────────
     _build_header(),
@@ -348,9 +350,29 @@ app.layout = html.Div([
 ], className="dashboard")
 
 
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  CLIENTSIDE CALLBACKS
 # ═══════════════════════════════════════════════════════════════════════════
+
+# ── Initialize window._artemisState on page load ─────────────────────────────
+# Fires once with the baked-in preload data. After this the rAF loop in
+# playback.js has everything it needs — it just waits for running = true.
+app.clientside_callback(
+    """function(preloaded) {
+        if (!preloaded) return window.dash_clientside.no_update;
+        window._artemisState = {
+            running:     false,
+            frame_idx:   0,
+            preloaded:   preloaded,
+            needsRender: false,
+        };
+        window._artemisFrame = 0;
+        return null;
+    }""",
+    Output("artemis-init-dummy", "children"),
+    Input("traj-preload-store", "data"),
+)
 
 # ── Toggle play/pause ────────────────────────────────────────────────────────
 # Writes window._artemisState.running so the rAF loop sees it immediately.
@@ -378,33 +400,22 @@ app.clientside_callback(
     prevent_initial_call=True,
 )
 
-# ── Advance frame on each interval tick ─────────────────────────────────────
-app.clientside_callback(
-    """function(n_intervals, runState, frameState, preloaded) {
-        if (!runState || !runState.running || !preloaded || !frameState) {
-            return window.dash_clientside.no_update;
-        }
-        var next = frameState.frame_idx + preloaded.frames_per_tick;
-        if (next >= preloaded.total_frames) {
-            return {frame_idx: preloaded.total_frames - 1};
-        }
-        return {frame_idx: next};
-    }""",
-    Output("playback-frame-store", "data"),
-    Input("playback-interval", "n_intervals"),
-    State("playback-running-store", "data"),
-    State("playback-frame-store", "data"),
-    State("traj-preload-store", "data"),
-    prevent_initial_call=True,
-)
-
 # ── Reset frame when scrubber dot is clicked ────────────────────────────────
+# Writes window._artemisState so the rAF loop advances from the new position.
+# needsRender forces an immediate draw even when paused.
+# Still writes playback-frame-store so on_playback_pause reads the correct
+# frame when the user pauses after a scrubber-click.
 app.clientside_callback(
     """function(phaseIdx, preloaded) {
         if (phaseIdx === null || phaseIdx === undefined || !preloaded)
             return window.dash_clientside.no_update;
         var frames = preloaded.scrubber_frame_indices || [];
         var fi = (frames[phaseIdx] !== undefined) ? frames[phaseIdx] : 0;
+
+        if (!window._artemisState) window._artemisState = {};
+        window._artemisState.frame_idx   = fi;
+        window._artemisState.needsRender = true;
+
         return {frame_idx: fi};
     }""",
     Output("playback-frame-store", "data", allow_duplicate=True),
@@ -413,238 +424,6 @@ app.clientside_callback(
     prevent_initial_call=True,
 )
 
-# ── Per-frame figure update (clientside, zero round-trips) ──
-#
-#   Fires on every playback-frame-store change. Directly manipulates the live
-#   Plotly graph via Plotly.restyle / Plotly.relayout using trace indices from
-#   fig.layout.meta (embedded by build_trajectory_fig).
-#
-#   What it updates each tick:
-#     Past arc glow + core x/y sliced to current frame
-#     Spacecraft marker position + Orion speed callout annotation
-#     Arc event badge annotation (visible, text, x, y)
-#      Scrubber dot highlight (direct DOM className swap)
-#
-#   Graph div resolution:
-#     dcc.Graph(id="trajectory-graph") — Plotly attaches ._fullData to the
-#     element it manages. Try the outer container first; fall back to the
-#     inner .js-plotly-plot child if Plotly mounted on a child div instead.
-#
-#   Plotly call budget per tick:
-#     1× Plotly.restyle  — spacecraft marker + 2 arc traces batched
-#     1× Plotly.relayout — both annotations batched
-app.clientside_callback(
-    """
-    function(frameState, preloaded) {
-
-        // ── Moon circle helper ────────────────────────────────────────────────
-        // Parametric circle: 120 segments, closed (first == last point).
-        function circleXY(cx, cy, r) {
-            var n = 120, x = new Array(n + 1), y = new Array(n + 1);
-            var step = (2 * Math.PI) / n;
-            for (var i = 0; i <= n; i++) {
-                var t = i * step;
-                x[i] = cx + r * Math.cos(t);
-                y[i] = cy + r * Math.sin(t);
-            }
-            return [x, y];
-        }
-
-        // ── Guards ───────────────────────────────────────────────────────
-        if (!frameState || !preloaded) {
-            return window.dash_clientside.no_update;
-        }
-        var fi = frameState.frame_idx;
-        if (fi === undefined || fi === null) {
-            return window.dash_clientside.no_update;
-        }
-
-        // ── Resolve the live Plotly graph element ─────────────────────────
-        var graphDiv = document.querySelector('.js-plotly-plot');
-        if (!graphDiv || !graphDiv.layout || !graphDiv.layout.meta) {
-            return window.dash_clientside.no_update;
-        }
-
-        var meta  = graphDiv.layout.meta;
-        var spIdx = meta.trace_idx.marker;
-        var pgIdx = meta.trace_idx.past_glow;
-        var pcIdx = meta.trace_idx.past_core;
-
-        if (spIdx === undefined || pgIdx === undefined || pcIdx === undefined) {
-            return window.dash_clientside.no_update;
-        }
-
-        var rx  = preloaded.rx;
-        var ry  = preloaded.ry;
-        var spd = (preloaded.speed[fi] || 0).toFixed(3);
-
-        // ── Past arc + spacecraft (single restyle) ──────
-        var arcX = rx.slice(0, fi + 1);
-        var arcY = ry.slice(0, fi + 1);
-
-        Plotly.restyle(graphDiv, {
-            x: [[rx[fi]], arcX, arcX],
-            y: [[ry[fi]], arcY, arcY]
-        }, [spIdx, pgIdx, pcIdx]);
-
-        // ── Arc event badge ───────────────────────────────
-        var windowFrames = preloaded.annotation_window_frames || 180;
-        var markers      = preloaded.arc_markers || [];
-
-        var eventVisible = false;
-        var eventText    = '';
-        var eventX       = 0;
-        var eventY       = 0;
-        var bestDist     = Infinity;
-
-        for (var i = 0; i < markers.length; i++) {
-            var m       = markers[i];
-            var absDist = Math.abs(fi - m.frame_idx);
-            if (absDist <= windowFrames && absDist < bestDist) {
-                bestDist     = absDist;
-                eventText    = m.short + ' · ' + m.label;
-                eventX       = m.rx;
-                eventY       = m.ry;
-                eventVisible = true;
-            }
-        }
-
-        // ── Orion callout + event badge (single relayout) ────────
-        Plotly.relayout(graphDiv, {
-            'annotations[0].x':       rx[fi],
-            'annotations[0].y':       ry[fi],
-            'annotations[0].text':    'ORION<br>' + spd + ' km/s',
-            'annotations[1].visible': eventVisible,
-            'annotations[1].text':    eventText,
-            'annotations[1].x':       eventX,
-            'annotations[1].y':       eventY
-        });
-        
-        // ── hide future arc during playback ───────────────────────
-        var futureStart = meta.trace_idx.future_start;
-        var futureEnd   = meta.trace_idx.future_end;
-        if (futureEnd > futureStart) {
-            var futureIndices = [];
-            for (var k = futureStart; k < futureEnd; k++) {
-                futureIndices.push(k);
-            }
-            Plotly.restyle(graphDiv, {opacity: 0}, futureIndices);
-        }
-        
-        // ── Moon position + visibility ───────────────────────────────
-        var moonStart  = meta.trace_idx.moon_start;
-        var labelIdx   = meta.trace_idx.label;
-
-        if (moonStart !== undefined && labelIdx !== undefined) {
-            var moonX      = preloaded.moon_rx[fi];
-            var moonY      = preloaded.moon_ry[fi];
-            var moonRadii  = preloaded.moon_radii;          // [MG4, MG3, MG2, MR]
-            var yRange     = preloaded.moon_y_range;        // [y_lo, y_hi]
-            var inView     = moonY >= (yRange[0] - moonRadii[0])
-                          && moonY <= (yRange[1] + moonRadii[0]);
-            var moonOp     = inView ? 1 : 0;
-
-            // Build x/y/opacity arrays for the 4 Moon body traces.
-            var moonXs = [], moonYs = [], moonOps = [], moonIdxs = [];
-            for (var k = 0; k < moonRadii.length; k++) {
-                var circ = circleXY(moonX, moonY, moonRadii[k]);
-                moonXs.push(circ[0]);
-                moonYs.push(circ[1]);
-                moonOps.push(moonOp);
-                moonIdxs.push(moonStart + k);
-            }
-            Plotly.restyle(graphDiv,
-                {x: moonXs, y: moonYs, opacity: moonOps},
-                moonIdxs
-            );
-
-            // Moon + Earth body labels.
-            // Earth label is fixed (Earth never moves); Moon label follows Moon.
-            // NaN position = Plotly skips that text point entirely.
-            var MR         = moonRadii[3];
-            var mlx        = inView ? moonX : NaN;
-            var mly        = inView ? moonY - MR * preloaded.moon_label_y_mult : NaN;
-            Plotly.restyle(graphDiv,
-                {x: [[0.0, mlx]], y: [[preloaded.earth_label_y, mly]]},
-                [labelIdx]
-            );
-        }
-        
-        // ── Arc marker dots — filter to past events per frame ─────
-        var arcStart = meta.trace_idx.arc_markers_start;
-        if (arcStart !== undefined) {
-            var burnX = [],  burnY  = [];
-            var coastX = [], coastY = [];
-            var otherX = [], otherY = [];
-
-            for (var i = 0; i < markers.length; i++) {
-                var m = markers[i];
-                if (m.frame_idx > fi) { continue; }
-                if      (m.category === 'burn')  { burnX.push(m.rx);  burnY.push(m.ry);  }
-                else if (m.category === 'coast') { coastX.push(m.rx); coastY.push(m.ry); }
-                else                             { otherX.push(m.rx); otherY.push(m.ry); }
-            }
-
-            Plotly.restyle(graphDiv,
-                {x: [burnX, coastX, otherX], y: [burnY, coastY, otherY]},
-                [arcStart, arcStart + 1, arcStart + 2]
-            );
-        }
-
-        // ── Scrubber dot highlight (direct DOM) ───────────
-        var scrubberFrames = preloaded.scrubber_frame_indices || [];
-        var activeDot      = 0;
-        for (var j = 0; j < scrubberFrames.length; j++) {
-            if (fi >= scrubberFrames[j]) { activeDot = j; }
-        }
-        document.querySelectorAll('.scrubber-dot').forEach(function(dot, idx) {
-            dot.className = (idx === activeDot) ? 'scrubber-dot active' : 'scrubber-dot';
-        });
-
-                // ── Status bar — GMT · MET · Phase ───────────────────────────
-        var ts         = preloaded.timestamps[fi];
-        var frameDate  = new Date(ts + 'Z');
-        var launchDate = new Date(preloaded.launch_iso + 'Z');
-
-        function pad2(n) { return String(n).padStart(2, '0'); }
-        function pad3(n) { return String(n).padStart(3, '0'); }
-
-        // GMT: YYYY:DDD:HH:MM:SS (mission-control day-of-year format)
-        var year   = frameDate.getUTCFullYear();
-        var doy    = Math.floor((frameDate - new Date(Date.UTC(year, 0, 1))) / 86400000) + 1;
-        var gmtStr = year + ':' + pad3(doy) + ':' +
-                     pad2(frameDate.getUTCHours())   + ':' +
-                     pad2(frameDate.getUTCMinutes()) + ':' +
-                     pad2(frameDate.getUTCSeconds());
-
-        // MET: DDT HH:MM:SS (elapsed since SLS liftoff)
-        var metSec = Math.floor((frameDate - launchDate) / 1000);
-        var metD   = Math.floor(metSec / 86400);
-        var metH   = Math.floor((metSec % 86400) / 3600);
-        var metM   = Math.floor((metSec % 3600) / 60);
-        var metS   = metSec % 60;
-        var metStr = pad2(metD) + 'T ' + pad2(metH) + ':' + pad2(metM) + ':' + pad2(metS);
-
-        // Phase label: last status_phase whose frame_idx ≤ fi
-        var statusPhases = preloaded.status_phases || [];
-        var phaseLabel   = '';
-        for (var p = 0; p < statusPhases.length; p++) {
-            if (fi >= statusPhases[p].frame_idx) { phaseLabel = statusPhases[p].status_label; }
-        }
-
-        var statusEl = document.getElementById('status-text');
-        if (statusEl) {
-            statusEl.textContent = 'GMT ' + gmtStr + ' · MET ' + metStr + ' · ' + phaseLabel;
-        }
-
-        return window.dash_clientside.no_update;
-    }
-    """,
-    Output("playback-viz-dummy", "children"),
-    Input("playback-frame-store", "data"),
-    State("traj-preload-store", "data"),
-    prevent_initial_call=True,
-)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -723,6 +502,7 @@ def update_trajectory(phase_idx, pause_data):
         fig = build_trajectory_fig(global_idx)
 
     return _trajectory_content(fig)
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════
