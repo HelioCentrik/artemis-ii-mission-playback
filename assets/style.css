@@ -80,17 +80,6 @@ body {
     text-transform: uppercase;
 }
 
-.header-status {
-    height: var(--header-status-h);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 4px;
-    color: var(--font-dim);
-    font-size: var(--font-size-status);
-    letter-spacing: 1px;
-}
-
 .status-dot {
     display: inline-block;
     width: 8px;
@@ -150,6 +139,41 @@ body {
 .panel-trajectory-viz .plot-container {
     width: 100% !important;
     height: 100% !important;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TRAJECTORY HUD OVERLAY
+
+   Absolutely positioned across the top of the viz area. z=2 sits above
+   starfield (z=0) and Plotly graph (z=1). Pointer-events disabled so
+   clicks pass through to the scrubber below.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.traj-hud-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    pointer-events: none;
+    color: var(--font-dim);
+    font-size: var(--font-size-status);
+    letter-spacing: 1px;
+}
+
+.traj-hud-left {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.traj-hud-right {
+    /* inherits color/font from parent */
 }
 
 

@@ -302,6 +302,9 @@ PLAYBACK_FRAME_INTERVAL_MIN       = 1
 PLAYBACK_INTERVAL_MS              = 100   # dcc.Interval tick rate (ms) — 10fps
 PLAYBACK_FRAMES_PER_TICK          = 6    # frames advanced per tick (60 rows = 1 hr at 1-min resolution)
 PLAYBACK_ANNOTATION_WINDOW_FRAMES = 180
+PLAYBACK_SPEED_MULT               = PLAYBACK_FRAMES_PER_TICK * (1000 // PLAYBACK_INTERVAL_MS) * 60
+PLAYBACK_SPEED_LABEL              = f"PLAYBACK · {PLAYBACK_SPEED_MULT}×"
+
 
 PLAYBACK_BTN_SIZE      = 32   # px — play/pause button diameter
 PLAYBACK_BTN_FONT_SIZE = 20   # px
@@ -314,7 +317,6 @@ PLAYBACK_BTN_FONT_SIZE = 20   # px
 # ═══════════════════════════════════════════════════════════════════════════
 
 HEADER_BRAND_HEIGHT  = 44
-HEADER_STATUS_HEIGHT = 32
 
 PANEL_BORDER_RADIUS = 4
 PANEL_GAP           = 10

@@ -43,6 +43,7 @@ from app.config import (
     VIEW_ROTATION_DEG,
     ARC_MARKER_CATEGORY,
     PLAYBACK_FRAME_INTERVAL_MIN, PLAYBACK_INTERVAL_MS, PLAYBACK_FRAMES_PER_TICK, PLAYBACK_ANNOTATION_WINDOW_FRAMES,
+    PLAYBACK_SPEED_LABEL,
     LAUNCH_TIME,
 )
 from app.db import get_con
@@ -182,27 +183,14 @@ server = app.server
 #  LAYOUT HELPERS
 # ═══════════════════════════════════════════════════════════════════════════
 
-_TICKS_PER_SEC = 1000 / PLAYBACK_INTERVAL_MS
-_PLAYBACK_SPEED_X = int(PLAYBACK_FRAMES_PER_TICK * _TICKS_PER_SEC * PLAYBACK_FRAME_INTERVAL_MIN * 60)
-
 def _build_header():
-    """Branding bar + status bar."""
+    """Branding bar only — status info moved to trajectory HUD overlay."""
     return html.Div([
         html.Div([
             html.Div([
                 html.Div("ARTEMIS II : MISSION PLAYBACK", className="header-title"),
             ], className="header-brand-left"),
         ], className="header-brand"),
-        html.Div([
-            html.Div([
-                html.Span(className="status-dot"),
-                html.Span(
-                    "GMT ---:--:--:-- · MET --T --:--:-- · ----:---",
-                    id="status-text",
-                ),
-            ]),
-            html.Span(f"PLAYBACK · {_PLAYBACK_SPEED_X}×"),
-        ], className="header-status"),
     ])
 
 
@@ -263,7 +251,8 @@ def _build_telemetry_grid():
 
 def _trajectory_content(fig) -> html.Div:
     """
-    Starfield SVG (z=0) + Plotly graph (z=1) inside a relative container.
+    Starfield SVG (z=0) + Plotly graph (z=1) + HUD overlay (z=2)
+    inside a relative container.
 
     dcc.Graph gets id="trajectory-graph" so the clientside frame-update
     callback can locate it via document.getElementById. React reconciles
@@ -293,6 +282,17 @@ def _trajectory_content(fig) -> html.Div:
                 "pointerEvents": "none",
             },
         ),
+        # ── HUD overlay — GMT · MET · Phase · Playback rate ──────────────
+        html.Div([
+            html.Div([
+                html.Span(className="status-dot"),
+                html.Span(
+                    "GMT ---:--:--:-- · MET --T --:--:-- · ----:---",
+                    id="status-text",
+                ),
+            ], className="traj-hud-left"),
+            html.Span(PLAYBACK_SPEED_LABEL, className="traj-hud-right"),
+        ], className="traj-hud-overlay"),
     ], style={"position": "relative", "height": "100%"})
 
 

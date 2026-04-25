@@ -17,7 +17,7 @@ from app.config import (
     # Accents
     ACCENT_VECTORS, ACCENT_TRAJECTORY, ACCENT_GRAVITY, ACCENT_RANGE,
     # Layout
-    HEADER_BRAND_HEIGHT, HEADER_STATUS_HEIGHT,
+    HEADER_BRAND_HEIGHT,
     TRAJECTORY_MIN_HEIGHT,
     SCRUBBER_HEIGHT, SCRUBBER_BORDER_RADIUS, SCRUBBER_HORIZONTAL_MARGIN,
     SCRUBBER_DOT_SIZE, SCRUBBER_DOT_ACTIVE,
@@ -69,7 +69,6 @@ INDEX_STRING = f"""<!DOCTYPE html>
 
             /* ── Layout ── */
             --header-brand-h:      {HEADER_BRAND_HEIGHT}px;
-            --header-status-h:     {HEADER_STATUS_HEIGHT}px;
             --traj-min-h:          {TRAJECTORY_MIN_HEIGHT}px;
             --scrubber-h:          {SCRUBBER_HEIGHT}px;
             --scrubber-radius:     {SCRUBBER_BORDER_RADIUS}px;
