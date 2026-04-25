@@ -193,13 +193,14 @@ TELEMETRY_METRICS: dict[str, list[dict]] = {
 #  Colors are inherited from CSS var(--panel-accent) — no tokens needed.
 # ═══════════════════════════════════════════════════════════════════════════
 
-SPARKLINE_VIEWBOX_WIDTH  = 100   # internal SVG x range (0 → 100 = full mission)
-SPARKLINE_VIEWBOX_HEIGHT = 40    # internal SVG y range
-SPARKLINE_Y_PAD          = 4     # top/bottom padding inside viewBox (keeps line off edge)
-SPARKLINE_PATH_OPACITY   = 0.55  # sparkline line opacity
-SPARKLINE_PATH_WIDTH     = 1.5   # sparkline stroke-width (SVG units)
-SPARKLINE_NEEDLE_OPACITY = 0.85  # position needle opacity
-SPARKLINE_NEEDLE_WIDTH   = 1.5   # needle stroke-width (SVG units)
+SPARKLINE_VIEWBOX_WIDTH  = 100    # internal SVG x range (0 → 100 = full mission)
+SPARKLINE_VIEWBOX_HEIGHT = 40     # internal SVG y range
+SPARKLINE_Y_PAD          = 4      # top/bottom padding inside viewBox (keeps line off edge)
+SPARKLINE_PATH_OPACITY   = 0.55   # sparkline line opacity
+SPARKLINE_PATH_WIDTH     = 1.5    # sparkline stroke-width (SVG units)
+SPARKLINE_NEEDLE_OPACITY = 0.85   # position needle opacity
+SPARKLINE_NEEDLE_WIDTH   = 1.5    # needle stroke-width (SVG units)
+SPARKLINE_DOWNSAMPLE_N   = 200    # points in the SVG polyline (visual fidelity vs payload size)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
