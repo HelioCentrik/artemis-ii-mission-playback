@@ -374,6 +374,7 @@ app.clientside_callback(
     Input("traj-preload-store", "data"),
 )
 
+
 # ── Toggle play/pause ────────────────────────────────────────────────────────
 # Writes window._artemisState.running so the rAF loop sees it immediately.
 # Button DOM update is a side effect here — render-btn-state callback removed.
@@ -399,6 +400,7 @@ app.clientside_callback(
     State("playback-running-store", "data"),
     prevent_initial_call=True,
 )
+
 
 # ── Reset frame when scrubber dot is clicked ────────────────────────────────
 # Writes window._artemisState so the rAF loop advances from the new position.
@@ -442,11 +444,26 @@ def update_phase(n_clicks):
     return triggered["index"]
 
 
-# ── Detect pause, write pause-rebuild-store ────────────────────────
-@app.callback(
+# ── Detect pause → write pause-rebuild-store ─────────────────────────────────
+# Clientside so it can read window._artemisState.frame_idx directly — the rAF
+# loop never writes back to playback-frame-store, so the old server callback
+# always saw a stale frame index.
+app.clientside_callback(
+    """function(runningState, phaseIdx) {
+        if (!runningState || runningState.running)
+            return window.dash_clientside.no_update;
+
+        var state = window._artemisState;
+        if (!state || !state.preloaded || !state.preloaded.timestamps)
+            return window.dash_clientside.no_update;
+
+        return {
+            dt_str:    state.preloaded.timestamps[state.frame_idx],
+            phase_idx: phaseIdx || 0,
+        };
+    }""",
     Output("pause-rebuild-store", "data"),
     Input("playback-running-store", "data"),
-    State("playback-frame-store", "data"),
     State("phase-store", "data"),
     prevent_initial_call=True,
 )
