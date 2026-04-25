@@ -106,7 +106,10 @@ WITH base AS (
         -- Earth–Moon distance: |Moon position vector|
         SQRT(m.x_km * m.x_km + m.y_km * m.y_km + m.z_km * m.z_km)  AS r_em_km,
 
-        -- Pass-through for trajectory viz
+        -- Earth range — needed for grav_earth_ms2 / dominance_ratio
+        o.rg_km,
+
+        -- Pass-through for trajectory viz and em_fraction
         o.x_km  AS o_x_km,  o.y_km  AS o_y_km,  o.z_km  AS o_z_km,
         m.x_km  AS m_x_km,  m.y_km  AS m_y_km,  m.z_km  AS m_z_km
 
@@ -114,10 +117,23 @@ WITH base AS (
     JOIN moon_trajectory  m ON o.datetime_utc = m.datetime_utc
 ),
 with_r AS (
+    -- Derive spacecraft-to-Moon distance from the relative position vector
     SELECT
         *,
         SQRT(dx * dx + dy * dy + dz * dz)  AS r_moon_km
     FROM base
+),
+with_grav AS (
+    -- Compute both gravitational acceleration terms here so dominance_ratio
+    -- can reference them by alias in the final SELECT.
+    -- DuckDB does not allow same-SELECT alias references.
+    SELECT
+        *,
+        (4902.8001  / (r_moon_km * r_moon_km)) * 1000.0  AS grav_moon_ms2,
+        (398600.4418 / (rg_km    * rg_km))    * 1000.0  AS grav_earth_ms2_int
+        -- _int suffix: internal intermediate only — not exported.
+        -- grav_earth_ms2 for display comes from v_kinematics.
+    FROM with_r
 )
 SELECT
     datetime_utc,
@@ -136,19 +152,21 @@ SELECT
     r_em_km,
 
     -- Fractional progress toward Moon (0 at Earth, ~1 at flyby)
-    -- Uses Earth distance from v_kinematics; approximated here as o_x/y/z
     SQRT(o_x_km * o_x_km + o_y_km * o_y_km + o_z_km * o_z_km)
         / NULLIF(r_em_km, 0.0)                                      AS em_fraction,
 
     -- Gravitational acceleration from Moon                    m/s²
-    -- GM/r² [km/s²] × 1000 → m/s²
-    (4902.8001 / (r_moon_km * r_moon_km)) * 1000.0                  AS grav_moon_ms2,
+    grav_moon_ms2,
+
+    -- Moon/Earth gravity dominance ratio                      —
+    -- > 1 means Moon's pull exceeds Earth's at current position
+    grav_moon_ms2 / NULLIF(grav_earth_ms2_int, 0.0)                AS dominance_ratio,
 
     -- Raw positions for trajectory viz
     o_x_km, o_y_km, o_z_km,
     m_x_km, m_y_km, m_z_km
 
-FROM with_r
+FROM with_grav
 """
 
 

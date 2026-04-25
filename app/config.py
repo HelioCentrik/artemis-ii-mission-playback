@@ -142,10 +142,64 @@ PHASE_REGISTRY = (
     {"key": "dataset_close",    "label": "Last Known Pos.",        "short": "LKP",  "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "LAST KNOWN POSITION"},
 )
 
-# Backward-compat aliases used by app.py until the scrubber is rebuilt.
-# Remove these once app.py is updated to read PHASE_REGISTRY directly.
-PHASES      = tuple(p for p in PHASE_REGISTRY if p["scrubber"])
-PHASE_COUNT = len(PHASES)
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  TELEMETRY METRICS
+#
+#  Single source of truth for all telemetry tile configuration.
+#  Keyed by panel group (same keys as PANEL_GROUPS), each value is an
+#  ordered list of metric dicts consumed by telemetry.py, kpi.py, and
+#  playback.js.
+#
+#  Keys per metric:
+#    column   — DuckDB column name in the preload join query
+#    label    — display label in the tile header (uppercase)
+#    unit     — display unit string
+#    fmt      — Python format string for server-side value rendering
+#    decimals — decimal places for JS .toFixed() during playback
+#    locale   — if True, JS uses toLocaleString() for thousands separators
+# ═══════════════════════════════════════════════════════════════════════════
+
+TELEMETRY_METRICS: dict[str, list[dict]] = {
+    "vectors": [
+        {"column": "speed_kms",    "label": "TOTAL SPEED", "unit": "km/s", "fmt": "{:.3f}", "decimals": 3, "locale": False},
+        {"column": "v_escape_kms", "label": "ESCAPE VEL",  "unit": "km/s", "fmt": "{:.3f}", "decimals": 3, "locale": False},
+        {"column": "rr_kms",       "label": "RADIAL VEL",  "unit": "km/s", "fmt": "{:.3f}", "decimals": 3, "locale": False},
+    ],
+    "trajectory": [
+        {"column": "c3_km2s2", "label": "CHAR ENERGY",  "unit": "km²/s²", "fmt": "{:.2f}", "decimals": 2, "locale": False},
+        {"column": "ec",       "label": "ECCENTRICITY", "unit": "—",       "fmt": "{:.4f}", "decimals": 4, "locale": False},
+        {"column": "inc_deg",  "label": "INCLINATION",  "unit": "deg",     "fmt": "{:.2f}", "decimals": 2, "locale": False},
+    ],
+    "gravity": [
+        {"column": "grav_earth_ms2",  "label": "EARTH GRAV", "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False},
+        {"column": "grav_moon_ms2",   "label": "MOON GRAV",  "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False},
+        {"column": "dominance_ratio", "label": "MOON/EARTH", "unit": "—",    "fmt": "{:.6f}", "decimals": 6, "locale": False},
+    ],
+    "range": [
+        {"column": "rg_km",     "label": "EARTH DIST", "unit": "km", "fmt": "{:,.1f}", "decimals": 1, "locale": True},
+        {"column": "lt_sec",    "label": "LIGHT TIME",  "unit": "ls", "fmt": "{:.3f}", "decimals": 3, "locale": False},
+        {"column": "r_moon_km", "label": "MOON DIST",  "unit": "km", "fmt": "{:,.1f}", "decimals": 1, "locale": True},
+    ],
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  SPARKLINE SVG
+#
+#  Controls the inline SVG sparkline rendered in each KPI tile.
+#  Internal coordinate space (VIEWBOX_*) is independent of CSS px size —
+#  the SVG scales to fill .tile-sparkline via width/height="100%".
+#  Colors are inherited from CSS var(--panel-accent) — no tokens needed.
+# ═══════════════════════════════════════════════════════════════════════════
+
+SPARKLINE_VIEWBOX_WIDTH  = 100   # internal SVG x range (0 → 100 = full mission)
+SPARKLINE_VIEWBOX_HEIGHT = 40    # internal SVG y range
+SPARKLINE_Y_PAD          = 4     # top/bottom padding inside viewBox (keeps line off edge)
+SPARKLINE_PATH_OPACITY   = 0.55  # sparkline line opacity
+SPARKLINE_PATH_WIDTH     = 1.5   # sparkline stroke-width (SVG units)
+SPARKLINE_NEEDLE_OPACITY = 0.85  # position needle opacity
+SPARKLINE_NEEDLE_WIDTH   = 1.5   # needle stroke-width (SVG units)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
