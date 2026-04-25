@@ -178,6 +178,49 @@
                 : 'scrubber-dot';
         });
 
+                // ── Telemetry tile updates ────────────────────────────────────────
+        var telem     = preloaded.telemetry;
+        var telemMeta = preloaded.telemetry_meta;
+
+        if (telem && telemMeta) {
+            var totalFrames = preloaded.total_frames || 1;
+            var needleX     = ((fi / Math.max(totalFrames - 1, 1)) * 100).toFixed(1);
+            var needleXStr  = String(needleX);
+
+            for (var t = 0; t < telemMeta.length; t++) {
+                var meta   = telemMeta[t];
+                var col    = meta.column;
+                var series = telem[col];
+
+                if (!series) { continue; }
+
+                var raw = series[fi];
+                if (raw === undefined || raw === null) { continue; }
+
+                // ── Value span ───────────────────────────────────────────
+                var valEl = document.getElementById('tile-val--' + col);
+                if (valEl) {
+                    var formatted;
+                    if (meta.locale) {
+                        formatted = Number(raw).toLocaleString('en-US', {
+                            minimumFractionDigits: meta.decimals,
+                            maximumFractionDigits: meta.decimals,
+                        });
+                    } else {
+                        formatted = Number(raw).toFixed(meta.decimals);
+                    }
+                    valEl.textContent = formatted;
+                }
+
+                // ── Sparkline needle ─────────────────────────────────────
+                var needleEl = document.getElementById('tile-needle--' + col);
+                if (needleEl) {
+                    needleEl.setAttribute('x1', needleXStr);
+                    needleEl.setAttribute('x2', needleXStr);
+                }
+            }
+        }
+
         // ── Status bar — GMT · MET · Phase ───────────────────────────────
         var ts         = preloaded.timestamps[fi];
         var frameDate  = new Date(ts + 'Z');
