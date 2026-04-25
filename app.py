@@ -352,11 +352,25 @@ app.layout = html.Div([
 #  CLIENTSIDE CALLBACKS
 # ═══════════════════════════════════════════════════════════════════════════
 
-# ── Toggle running on button click ──────────────────────────────────────────
+# ── Toggle play/pause ────────────────────────────────────────────────────────
+# Writes window._artemisState.running so the rAF loop sees it immediately.
+# Button DOM update is a side effect here — render-btn-state callback removed.
+# Still writes playback-running-store so on_playback_pause fires on pause.
 app.clientside_callback(
     """function(n_clicks, state) {
         if (!n_clicks || !state) return window.dash_clientside.no_update;
-        return {running: !state.running};
+        var nowRunning = !state.running;
+
+        if (!window._artemisState) window._artemisState = {};
+        window._artemisState.running = nowRunning;
+
+        var btn = document.getElementById('playback-btn');
+        if (btn) {
+            btn.textContent = nowRunning ? '\u23f8' : '\u25b6';
+            btn.className   = nowRunning ? 'playback-btn playing' : 'playback-btn';
+        }
+
+        return {running: nowRunning};
     }""",
     Output("playback-running-store", "data"),
     Input("playback-btn", "n_clicks"),
@@ -397,20 +411,6 @@ app.clientside_callback(
     Input("phase-store", "data"),
     State("traj-preload-store", "data"),
     prevent_initial_call=True,
-)
-
-# ── Sync button icon + className ─────────────────────────────────────────────
-app.clientside_callback(
-    """function(state) {
-        if (!state) return ["▶", "playback-btn"];
-        return [
-            state.running ? "⏸" : "▶",
-            state.running ? "playback-btn playing" : "playback-btn"
-        ];
-    }""",
-    Output("playback-btn", "children"),
-    Output("playback-btn", "className"),
-    Input("playback-running-store", "data"),
 )
 
 # ── Per-frame figure update (clientside, zero round-trips) ──
