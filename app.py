@@ -153,6 +153,7 @@ def _build_preload_data() -> dict:
         "annotation_window_frames": PLAYBACK_ANNOTATION_WINDOW_FRAMES,
         "total_frames":             len(df),
         "frames_per_tick":          PLAYBACK_FRAMES_PER_TICK,
+        "target_ms_per_frame":      PLAYBACK_INTERVAL_MS / PLAYBACK_FRAMES_PER_TICK,
         "moon_rx":                  moon_rx.tolist(),
         "moon_ry":                  moon_ry.tolist(),
         "status_phases":            status_phases,                        # ← add
