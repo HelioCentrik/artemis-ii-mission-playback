@@ -50,12 +50,15 @@ from app.config import (
     PLAYBACK_FRAME_INTERVAL_MIN, PLAYBACK_INTERVAL_MS, PLAYBACK_FRAMES_PER_TICK, PLAYBACK_ANNOTATION_WINDOW_FRAMES,
     PLAYBACK_SPEED_LABEL,
     LAUNCH_TIME,
+    TELEMETRY_METRICS,
 )
 from app.db import get_con
 from app.phases import get_scrubber_phases, get_phases, get_arc_marker_phases
 from app.utils import rotate_2d
 from app.index_string import INDEX_STRING
 from app.trajectory import build_trajectory_fig, build_starfield_svg, get_moon_preload_data
+from app.telemetry import get_telemetry_preload
+from app.sparklines import build_sparkline_points
 
 # Register the artemis2 Plotly template as a side effect of import
 import app.plotly_template  # noqa: F401
@@ -149,6 +152,29 @@ def _build_preload_data() -> dict:
             "status_label": phase.get("status_label", phase["label"].upper()),
         })
 
+    # ── Telemetry series + sparkline paths ───────────────────────────────
+    # get_telemetry_preload() is cached at module level in telemetry.py —
+    # safe to call here without worrying about double-execution.
+    telem = get_telemetry_preload()
+
+    sparklines = {
+        col: build_sparkline_points(series)
+        for col, series in telem.items()
+    }
+
+    # Flat ordered list of JS format metadata — one entry per metric,
+    # in TELEMETRY_METRICS group/metric order. playback.js iterates this
+    # to know which DOM id to write and how to format the value.
+    telemetry_meta = [
+        {
+            "column":   m["column"],
+            "decimals": m["decimals"],
+            "locale":   m["locale"],
+        }
+        for metrics in TELEMETRY_METRICS.values()
+        for m in metrics
+    ]
+
     return {
         "rx":                       rx.tolist(),
         "ry":                       ry.tolist(),
@@ -162,8 +188,11 @@ def _build_preload_data() -> dict:
         "target_ms_per_frame":      PLAYBACK_INTERVAL_MS / PLAYBACK_FRAMES_PER_TICK,
         "moon_rx":                  moon_rx.tolist(),
         "moon_ry":                  moon_ry.tolist(),
-        "status_phases":            status_phases,                        # ← add
-        "launch_iso":               LAUNCH_TIME.replace(" ", "T"),        # ← add
+        "status_phases":            status_phases,
+        "launch_iso":               LAUNCH_TIME.replace(" ", "T"),
+        "telemetry":                telem,                # ← add
+        "telemetry_sparklines":     sparklines,           # ← add
+        "telemetry_meta":           telemetry_meta,       # ← add
         **get_moon_preload_data(),
     }
 
