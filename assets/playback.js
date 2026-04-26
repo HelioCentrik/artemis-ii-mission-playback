@@ -27,6 +27,20 @@
         window._artemisRafId = null;
     }
 
+    // ── Geometry from config bridge (window._artemisConfig) ──────────────
+    // Populated by index_string.py before this script loads.
+    // Computed once at IIFE init — not per-frame.
+    var _cfg             = window._artemisConfig;
+    var SVG_VW           = _cfg.KPI_SVG_WIDTH;
+    var DIAL_R           = _cfg.DIAL_RADIUS;
+    var DIAL_CX          = SVG_VW / 2;
+    var DIAL_ANG_MIN     = _cfg.DIAL_ANGLE_MIN;
+    var DIAL_ANG_MAX     = _cfg.DIAL_ANGLE_MAX;
+    var DIAL_ANG_MIN_RAD = DIAL_ANG_MIN * Math.PI / 180;
+    var DIAL_ANG_MAX_RAD = DIAL_ANG_MAX * Math.PI / 180;
+    var DIAL_ANG_RANGE   = DIAL_ANG_MIN - DIAL_ANG_MAX;
+    var DIAL_CY          = (_cfg.KPI_SVG_HEIGHT + DIAL_R + DIAL_R * Math.sin(DIAL_ANG_MAX_RAD)) / 2;
+
     // ── rAF timing state ─────────────────────────────────────────────────
     var _lastTs  = null;
     var _elapsed = 0;
@@ -193,22 +207,8 @@
 
         if (telem && telemMeta) {
             var totalFrames = preloaded.total_frames || 1;
-            var needleX     = ((fi / Math.max(totalFrames - 1, 1)) * 100).toFixed(1);
+            var needleX     = ((fi / Math.max(totalFrames - 1, 1)) * SVG_VW).toFixed(1);
             var needleXStr  = String(needleX);
-
-            // ── Dial constants — mirror config.py ────────────────────────
-            // SPARKLINE_VIEWBOX_HEIGHT=40, DIAL_RADIUS=28, DIAL_ANGLE_MIN=170, DIAL_ANGLE_MAX=10.
-            // If those tokens change, update here too.
-            var SVG_VW           = 100;
-            var DIAL_CX          = 50;
-            var DIAL_R           = 32;
-            var DIAL_ANG_MIN     = 170;
-            var DIAL_ANG_MIN_RAD = DIAL_ANG_MIN * Math.PI / 180;
-            var DIAL_ANG_MAX     = 10;
-            var DIAL_ANG_RANGE   = DIAL_ANG_MIN - DIAL_ANG_MAX;          // 160
-            // cy formula mirrors build_dial_svg: (_VH + r + r·sin(ang_max_rad)) / 2
-            var _angMaxRad       = DIAL_ANG_MAX * Math.PI / 180;
-            var DIAL_CY          = (40 + DIAL_R + DIAL_R * Math.sin(_angMaxRad)) / 2;
 
             for (var t = 0; t < telemMeta.length; t++) {
                 var meta   = telemMeta[t];

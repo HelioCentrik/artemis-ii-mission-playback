@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dash import html, dcc
 
-from app.config import SPARKLINE_VIEWBOX_WIDTH
+from app.config import KPI_SVG_VIEWBOX_WIDTH
 from app.viz_builders import (
     build_sparkline_svg,
     build_bar_svg,

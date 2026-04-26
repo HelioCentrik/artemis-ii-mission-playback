@@ -4,7 +4,7 @@
 # Google Fonts <link> into <head>. Dash replaces its default HTML shell
 # with this string — the {%...%} placeholders are required by Dash.
 
-
+import json
 
 from app.config import (
     # Surfaces
@@ -22,13 +22,40 @@ from app.config import (
     SCRUBBER_HEIGHT, SCRUBBER_BORDER_RADIUS, SCRUBBER_HORIZONTAL_MARGIN,
     SCRUBBER_DOT_SIZE, SCRUBBER_DOT_ACTIVE,
     TELEMETRY_MIN_HEIGHT, PANEL_BORDER_RADIUS, PANEL_GAP, PANEL_PADDING,
-    SPARKLINE_HEIGHT,
     # Trajectory viz
     COLOR_TRAJECTORY, COLOR_TRAJECTORY_DIM,
     # Playback
     PLAYBACK_BTN_SIZE, PLAYBACK_BTN_FONT_SIZE,
+    # Telemetry
+    KPI_SVG_VIEWBOX_WIDTH, KPI_SVG_VIEWBOX_HEIGHT,
+    SPARKLINE_PAD_X, SPARKLINE_PAD_Y, SPARKLINE_WIDTH, SPARKLINE_HEIGHT,
+    DIAL_RADIUS, DIAL_ANGLE_MIN, DIAL_ANGLE_MAX, DIAL_STROKE_WIDTH,
+    DIAL_STROKE_LINECAP,
 )
 
+
+def _build_artemis_config_script() -> str:
+    """
+    Emit a <script> block that sets window._artemisConfig from live Python config values.
+    Injected into <head> before playback.js loads — do not move below {%css%}.
+    """
+    cfg = {
+        # KPI viz size
+        "KPI_SVG_WIDTH":      KPI_SVG_VIEWBOX_WIDTH,
+        "KPI_SVG_HEIGHT":     KPI_SVG_VIEWBOX_HEIGHT,
+        # Dial geometry
+        "DIAL_RADIUS":        DIAL_RADIUS,
+        "DIAL_ANGLE_MIN":     DIAL_ANGLE_MIN,
+        "DIAL_ANGLE_MAX":     DIAL_ANGLE_MAX,
+        "DIAL_STROKE_WIDTH":  DIAL_STROKE_WIDTH,
+        "DIAL_STROKE_LINECAP": DIAL_STROKE_LINECAP,
+        # Sparkline geometry
+        "SPARKLINE_WIDTH":    SPARKLINE_WIDTH,
+        "SPARKLINE_HEIGHT":   SPARKLINE_HEIGHT,
+        "SPARKLINE_PAD_X":    SPARKLINE_PAD_X,
+        "SPARKLINE_PAD_Y":    SPARKLINE_PAD_Y,
+    }
+    return f"<script>window._artemisConfig = {json.dumps(cfg)};</script>"
 
 
 INDEX_STRING = f"""<!DOCTYPE html>
@@ -84,8 +111,8 @@ INDEX_STRING = f"""<!DOCTYPE html>
             /* ── Trajectory colors (for CSS-side use) ── */
             --color-trajectory:     {COLOR_TRAJECTORY};
             --color-trajectory-dim: {COLOR_TRAJECTORY_DIM};
-            
-            /* Playback */
+
+            /* ── Playback ── */
             --playback-btn-size:      {PLAYBACK_BTN_SIZE}px;
             --playback-btn-font-size: {PLAYBACK_BTN_FONT_SIZE}px;
 
@@ -94,8 +121,9 @@ INDEX_STRING = f"""<!DOCTYPE html>
         }}
     </style>
 
+    {_build_artemis_config_script()}
     {{%css%}}
-    
+
 </head>
 <body>
     {{%app_entry%}}

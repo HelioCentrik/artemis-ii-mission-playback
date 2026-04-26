@@ -307,7 +307,7 @@ def _build_telemetry_panel(
     Build one telemetry panel with 3 KPI tiles.
 
     values_dict  : {column: float} from get_telemetry_at(); None → stub tiles
-    current_pct  : SVG x-coord for sparkline needle (0–SPARKLINE_VIEWBOX_WIDTH)
+    current_pct  : SVG x-coord for sparkline needle (0–KPI_SVG_VIEWBOX_WIDTH)
     series_stats : {column: {min, max}} for bar/bidir range scaling
     """
     if values_dict is None:

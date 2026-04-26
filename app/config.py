@@ -186,6 +186,9 @@ TELEMETRY_METRICS: dict[str, list[dict]] = {
     ],
 }
 
+KPI_SVG_VIEWBOX_WIDTH  = 100    # internal SVG x range (0 → 100 = full mission)
+KPI_SVG_VIEWBOX_HEIGHT = 40     # internal SVG y range
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  SPARKLINE SVG
@@ -196,9 +199,10 @@ TELEMETRY_METRICS: dict[str, list[dict]] = {
 #  Colors are inherited from CSS var(--panel-accent) — no tokens needed.
 # ═══════════════════════════════════════════════════════════════════════════
 
-SPARKLINE_VIEWBOX_WIDTH  = 100    # internal SVG x range (0 → 100 = full mission)
-SPARKLINE_VIEWBOX_HEIGHT = 40     # internal SVG y range
-SPARKLINE_Y_PAD          = 4      # top/bottom padding inside viewBox (keeps line off edge)
+SPARKLINE_PAD_X          = 10     # left/right padding inside sparkline
+SPARKLINE_PAD_Y          = 4      # top/bottom padding inside sparkline
+SPARKLINE_WIDTH          = 100    # usable sparkline width inside tile
+SPARKLINE_HEIGHT         = 40     # usable sparkline height inside tile
 SPARKLINE_PATH_OPACITY   = 0.55   # sparkline line opacity
 SPARKLINE_PATH_WIDTH     = 1.5    # sparkline stroke-width (SVG units)
 SPARKLINE_NEEDLE_OPACITY = 0.85   # position needle opacity
@@ -236,12 +240,13 @@ BIDIR_NEGATIVE_COLOR = _hsl_rotate(_T["accent_a"], BIDIR_HUE_OFFSET)
 #  Background arc is always full sweep; filled arc shows current value.
 # ═══════════════════════════════════════════════════════════════════════════
 
-DIAL_RADIUS       = 32    # arc radius in SVG units
-DIAL_STROKE_WIDTH = 10    # arc stroke width
-DIAL_ANGLE_MIN    = 170   # degrees — left endpoint (just inside 9 o'clock)
-DIAL_ANGLE_MAX    = 10    # degrees — right endpoint (just inside 3 o'clock)
-DIAL_VAL_MIN      = 0.0   # data value mapped to DIAL_ANGLE_MIN
-DIAL_VAL_MAX      = 90.0  # data value mapped to DIAL_ANGLE_MAX
+DIAL_RADIUS         = 32      # arc radius in SVG units
+DIAL_STROKE_WIDTH   = 10      # arc stroke width
+DIAL_ANGLE_MIN      = 170     # degrees — left endpoint (just inside 9 o'clock)
+DIAL_ANGLE_MAX      = 10      # degrees — right endpoint (just inside 3 o'clock)
+DIAL_VAL_MIN        = 0.0     # data value mapped to DIAL_ANGLE_MIN
+DIAL_VAL_MAX        = 90.0    # data value mapped to DIAL_ANGLE_MAX
+DIAL_STROKE_LINECAP = "butt"  # SVG stroke-linecap: "butt" | "round" | "square"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
