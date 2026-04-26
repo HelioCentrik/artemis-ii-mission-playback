@@ -160,7 +160,7 @@ def build_bidir_bar_svg(
     JS target: tile-bidir--{column} → x, width, style.fill attributes.
     """
     by   = (_VH - BAR_HEIGHT) / 2
-    mid  = _VW / bidir_mid   # 50.0 — the anchor point
+    mid  = _VW * bidir_mid   # 50.0 — the anchor point
 
     deviation = value - center
     dev_pos   = max(series_max - center, 1e-9)
