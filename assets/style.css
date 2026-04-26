@@ -377,11 +377,6 @@ body {
     min-height: 120px;
 }
 
-/* value_only tiles have no sub-viz div — center header + value vertically */
-.tile:not(:has(.tile-sparkline)) {
-    justify-content: center;
-}
-
 .tile-header {
     display: flex;
     justify-content: space-between;
@@ -409,6 +404,15 @@ body {
     color: var(--panel-accent, var(--font-primary));
     line-height: 1.1;
     margin-bottom: 4px;
+}
+/* value-only tiles: no sub-viz rendered — expand value to fill visual weight */
+.tile--value-only .tile-value {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    font-size: 48px;
+    margin-bottom: 0;
 }
 
 .tile-delta {

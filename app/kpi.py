@@ -83,6 +83,7 @@ def build_kpi_tile(
         else None
     )
 
+    tile_class = "tile tile--value-only" if svg_string is None else "tile"
     return html.Div(
         [
             html.Div(
@@ -99,5 +100,5 @@ def build_kpi_tile(
             ),
             sub_viz_div,
         ],
-        className="tile",
+        className=tile_class,
     )
