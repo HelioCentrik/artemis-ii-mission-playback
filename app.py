@@ -517,6 +517,7 @@ app.clientside_callback(
         if (!window._artemisState) window._artemisState = {};
         window._artemisState.frame_idx   = fi;
         window._artemisState.needsRender = true;
+        window._artemisState.resetTiming = true;
 
         return {frame_idx: fi};
     }""",
@@ -641,9 +642,9 @@ def update_telemetry(phase_idx, pause_data):
     if triggered == "pause-rebuild-store" and pause_data and pause_data.get("dt_str"):
         dt_utc = _datetime.fromisoformat(pause_data["dt_str"])
     else:
-        phases = get_phases()
-        idx    = phase_idx if phase_idx is not None else 0
-        idx    = max(0, min(idx, len(phases) - 1))
+        phases = get_scrubber_phases()
+        idx = phase_idx if phase_idx is not None else 0
+        idx = max(0, min(idx, len(phases) - 1))
         dt_utc = phases[idx]["datetime_utc"]
 
     values      = get_telemetry_at(dt_utc)

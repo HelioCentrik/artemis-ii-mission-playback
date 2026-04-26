@@ -376,6 +376,14 @@
             return;
         }
 
+        // Timing reset requested by scrubber dot click — clear accumulated
+        // elapsed before the loop resumes so it doesn't jump frames.
+        if (state.resetTiming) {
+            state.resetTiming = false;
+            _lastTs  = null;
+            _elapsed = 0;
+        }
+
         // Paused — drain any forced render request (e.g. scrubber click),
         // then bail. Keeps the view responsive without running the full loop.
         if (!state.running) {
