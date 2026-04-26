@@ -10,7 +10,10 @@
 from pathlib import Path
 
 from app.themes import THEME_DARK as _T
-from app.utils import hex_to_rgb as _hex_to_rgb
+from app.utils import (
+    hex_to_rgb as _hex_to_rgb,
+    hsl_rotate as _hsl_rotate,
+)
 
 
 
@@ -162,24 +165,24 @@ PHASE_REGISTRY = (
 
 TELEMETRY_METRICS: dict[str, list[dict]] = {
     "vectors": [
-        {"column": "speed_kms",    "label": "TOTAL SPEED", "unit": "km/s", "fmt": "{:.3f}", "decimals": 3, "locale": False},
-        {"column": "v_escape_kms", "label": "ESCAPE VEL",  "unit": "km/s", "fmt": "{:.3f}", "decimals": 3, "locale": False},
-        {"column": "rr_kms",       "label": "RADIAL VEL",  "unit": "km/s", "fmt": "{:.3f}", "decimals": 3, "locale": False},
+        {"column": "speed_kms",    "label": "TOTAL SPEED", "unit": "km/s",    "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "sparkline"},
+        {"column": "v_escape_kms", "label": "ESCAPE VEL",  "unit": "km/s",    "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "value_only"},
+        {"column": "rr_kms",       "label": "RADIAL VEL",  "unit": "km/s",    "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "bidir_bar"},
     ],
     "trajectory": [
-        {"column": "c3_km2s2", "label": "CHAR ENERGY",  "unit": "km²/s²", "fmt": "{:.2f}", "decimals": 2, "locale": False},
-        {"column": "ec",       "label": "ECCENTRICITY", "unit": "—",       "fmt": "{:.4f}", "decimals": 4, "locale": False},
-        {"column": "inc_deg",  "label": "INCLINATION",  "unit": "deg",     "fmt": "{:.2f}", "decimals": 2, "locale": False},
+        {"column": "c3_km2s2", "label": "CHAR ENERGY",  "unit": "km²/s²", "fmt": "{:.2f}",  "decimals": 2, "locale": False, "viz_type": "value_only"},
+        {"column": "ec",       "label": "ECCENTRICITY", "unit": "—",       "fmt": "{:.4f}",  "decimals": 4, "locale": False, "viz_type": "bar"},
+        {"column": "inc_deg",  "label": "INCLINATION",  "unit": "deg",     "fmt": "{:.2f}",  "decimals": 2, "locale": False, "viz_type": "dial"},
     ],
     "gravity": [
-        {"column": "grav_earth_ms2",  "label": "EARTH GRAV", "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False},
-        {"column": "grav_moon_ms2",   "label": "MOON GRAV",  "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False},
-        {"column": "dominance_ratio", "label": "MOON/EARTH", "unit": "—",    "fmt": "{:.6f}", "decimals": 6, "locale": False},
+        {"column": "grav_earth_ms2",  "label": "EARTH GRAV", "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False, "viz_type": "bar"},
+        {"column": "grav_moon_ms2",   "label": "MOON GRAV",  "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False, "viz_type": "sparkline"},
+        {"column": "dominance_ratio", "label": "MOON/EARTH", "unit": "—",    "fmt": "{:.6f}", "decimals": 6, "locale": False, "viz_type": "bar"},
     ],
     "range": [
-        {"column": "rg_km",     "label": "EARTH DIST", "unit": "km", "fmt": "{:,.1f}", "decimals": 1, "locale": True},
-        {"column": "lt_sec",    "label": "LIGHT TIME",  "unit": "ls", "fmt": "{:.3f}", "decimals": 3, "locale": False},
-        {"column": "r_moon_km", "label": "MOON DIST",  "unit": "km", "fmt": "{:,.1f}", "decimals": 1, "locale": True},
+        {"column": "rg_km",     "label": "EARTH DIST", "unit": "km", "fmt": "{:,.1f}", "decimals": 1, "locale": True,  "viz_type": "sparkline"},
+        {"column": "lt_sec",    "label": "LIGHT TIME",  "unit": "ls", "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "value_only"},
+        {"column": "r_moon_km", "label": "MOON DIST",  "unit": "km", "fmt": "{:,.1f}", "decimals": 1, "locale": True,  "viz_type": "sparkline"},
     ],
 }
 
@@ -201,6 +204,44 @@ SPARKLINE_PATH_WIDTH     = 1.5    # sparkline stroke-width (SVG units)
 SPARKLINE_NEEDLE_OPACITY = 0.85   # position needle opacity
 SPARKLINE_NEEDLE_WIDTH   = 1.5    # needle stroke-width (SVG units)
 SPARKLINE_DOWNSAMPLE_N   = 200    # points in the SVG polyline (visual fidelity vs payload size)
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  BAR VIZ
+#
+#  Controls standard bar and both halves of the bi-directional bar.
+#  Height is in CSS px — matches tile-sparkline slot height so all
+#  sub-viz types occupy the same vertical space in the tile.
+# ═══════════════════════════════════════════════════════════════════════════
+
+BAR_HEIGHT        = 6     # px — filled rect height
+BAR_BORDER_RADIUS = 3     # px — rounded cap on the fill rect
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  BI-DIRECTIONAL BAR VIZ
+#
+#  Positive side uses var(--panel-accent) (same as sparklines).
+#  Negative side uses a fixed cool color so directionality reads clearly
+#  regardless of which panel accent is active.
+# ═══════════════════════════════════════════════════════════════════════════
+
+BIDIR_HUE_OFFSET     = 180
+BIDIR_NEGATIVE_COLOR = _hsl_rotate(_T["accent_a"], BIDIR_HUE_OFFSET)
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  DIAL VIZ
+#
+#  SVG arc indicator for inclination.
+#  Arc sweeps DIAL_ANGLE_MIN → DIAL_ANGLE_MAX degrees (SVG clock convention:
+#  0° = 3 o'clock, angles increase clockwise).
+#  Background arc is always full sweep; filled arc shows current value.
+# ═══════════════════════════════════════════════════════════════════════════
+
+DIAL_RADIUS       = 16    # px — arc radius in SVG units
+DIAL_STROKE_WIDTH = 3     # px — arc stroke width
+DIAL_ANGLE_MIN    = 180   # degrees — leftmost position (9 o'clock = min value)
+DIAL_ANGLE_MAX    = 0     # degrees — rightmost position (3 o'clock = max value)
+DIAL_VAL_MIN      = 0.0   # data minimum mapped to DIAL_ANGLE_MIN
+DIAL_VAL_MAX      = 90.0  # data maximum mapped to DIAL_ANGLE_MAX
 
 
 # ═══════════════════════════════════════════════════════════════════════════

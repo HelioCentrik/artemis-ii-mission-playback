@@ -3,6 +3,8 @@
 # Stdlib-only utility helpers shared across the app.
 # No Dash, Plotly, DuckDB, or app-module imports here.
 
+import colorsys
+
 import numpy as np
 
 
@@ -77,3 +79,12 @@ def hex_to_rgb(hex_color: str) -> str:
     """
     h = hex_color.lstrip("#")
     return f"{int(h[0:2], 16)},{int(h[2:4], 16)},{int(h[4:6], 16)}"
+
+def hsl_rotate(hex_str: str, degrees: float) -> str:
+    """Rotate the hue of a hex color by `degrees` (0–360). Returns hex."""
+    h = hex_str.lstrip("#")
+    r, g, b = (int(h[i:i+2], 16) / 255.0 for i in (0, 2, 4))
+    hue, lum, sat = colorsys.rgb_to_hls(r, g, b)   # note: colorsys is HLS not HSL
+    hue = (hue + degrees / 360.0) % 1.0
+    r2, g2, b2 = colorsys.hls_to_rgb(hue, lum, sat)
+    return "#{:02x}{:02x}{:02x}".format(int(r2 * 255), int(g2 * 255), int(b2 * 255))
