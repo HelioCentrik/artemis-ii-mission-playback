@@ -85,6 +85,70 @@ R_MOON   = 1_737.4
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  COLOR TOKENS
+#
+#  All values unpacked from the active theme. Semantic names here map to
+#  slot names in themes.py — see that file for raw hex values and rationale.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Surfaces ──
+BG_BASE      = _T["page_bg"]
+PANEL_BG     = _T["panel_bg"]
+PANEL_BORDER = _T["panel_border"]
+
+# ── Typography ──
+FONT_PRIMARY = _T["text_hi"]
+FONT_DIM     = _T["text_mid"]
+FONT_FAMILY  = _T["font_family"]
+
+# ── Status ──
+STATUS_LIVE  = _T["status_live"]
+
+# ── Chart support ──
+CHART_GRID_COLOR = _T["chart_grid"]
+PLOTLY_BG        = _T["chart_plot_bg"]
+
+# ── Panel group accents ──
+ACCENT_VECTORS    = _T["accent_a"]   # teal   — velocity & vector panels
+ACCENT_TRAJECTORY = _T["accent_b"]   # cyan   — orbital mechanics panels
+ACCENT_GRAVITY    = _T["accent_c"]   # purple — gravity panels
+ACCENT_RANGE      = _T["accent_d"]   # amber  — range / comms panels
+
+# ── Trajectory visualization ──
+COLOR_TRAJECTORY     = _T["viz_path"]
+COLOR_TRAJECTORY_DIM = _T["viz_path_dim"]
+COLOR_EARTH_FILL     = _T["viz_body_earth"]
+COLOR_MOON_FILL      = _T["viz_body_moon"]
+COLOR_STARFIELD      = _T["viz_starfield"]
+COLOR_SPACECRAFT     = _T["viz_marker"]
+SPACE_BG_COLOR       = _T["space_bg"]
+
+# ── Arc RGB component strings ──
+# Used in trajectory.py rgba() calls. Derived from theme hex so arc colors
+# stay in sync with the palette automatically when a theme changes.
+PAST_ARC_RGB      = _hex_to_rgb(_T["viz_path"])          # "255,255,255"
+TRAJ_DIM_GLOW_RGB = _hex_to_rgb(_T["viz_path"])          # "255,255,255"
+TRAJ_DIM_CORE_RGB = _hex_to_rgb(_T["viz_path"])          # "255,255,255"
+FUTURE_GLOW_RGB   = _hex_to_rgb(_T["arc_future_glow"])   # "80,130,180"
+FUTURE_CORE_RGB   = _hex_to_rgb(_T["arc_future_core"])   # "52,115,232"
+
+# ── Arc marker dot colors ──
+ARC_DOT_BURN  = _T["accent_g"]   # blood orange
+ARC_DOT_COAST = _T["accent_a"]   # teal
+ARC_DOT_OTHER = _T["accent_h"]   # steel silver
+
+# Maps each phase key to its dot color category.
+# Keys not listed fall back to "other".
+ARC_MARKER_CATEGORY: dict[str, str] = {
+    "perigee_raise":  "burn",
+    "tli_burn":       "burn",
+    "otc2_outbound":  "burn",
+    "return_burn_1":  "burn",
+    "return_burn_2":  "burn",
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  MISSION PHASES
 #
 #  Each entry declares what a phase IS and where it APPEARS.
@@ -165,13 +229,16 @@ PHASE_REGISTRY = (
 
 TELEMETRY_METRICS: dict[str, list[dict]] = {
     "vectors": [
-        {"column": "speed_kms",    "label": "TOTAL SPEED", "unit": "km/s",    "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "sparkline"},
-        {"column": "v_escape_kms", "label": "ESCAPE VEL",  "unit": "km/s",    "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "value_only"},
-        {"column": "rr_kms",       "label": "RADIAL VEL",  "unit": "km/s",    "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "bidir_bar"},
+        {"column": "speed_kms",    "label": "TOTAL SPEED", "unit": "km/s", "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "sparkline"},
+        {"column": "v_escape_kms", "label": "ESCAPE VEL",  "unit": "km/s", "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "value_only"},
+        {"column": "rr_kms",       "label": "RADIAL VEL",  "unit": "km/s", "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "bidir_bar",
+         "bidir_neg_color": ACCENT_GRAVITY},
     ],
     "trajectory": [
-        {"column": "c3_km2s2", "label": "CHAR ENERGY",  "unit": "km²/s²", "fmt": "{:.2f}", "decimals": 2, "locale": False, "viz_type": "bidir_bar", "bidir_center": 0.0},
-        {"column": "ec",       "label": "ECCENTRICITY", "unit": "—",      "fmt": "{:.4f}", "decimals": 4, "locale": False, "viz_type": "bidir_bar", "bidir_center": 1.0},
+        {"column": "c3_km2s2", "label": "CHAR ENERGY",  "unit": "km²/s²", "fmt": "{:.2f}", "decimals": 2, "locale": False, "viz_type": "bidir_bar",
+         "bidir_center": 0.0, "bidir_neg_color": ACCENT_RANGE},
+        {"column": "ec",       "label": "ECCENTRICITY", "unit": "—",      "fmt": "{:.4f}", "decimals": 4, "locale": False, "viz_type": "bidir_bar",
+         "bidir_center": 1.0, "bidir_neg_color": ACCENT_VECTORS},
         {"column": "inc_deg",  "label": "INCLINATION",  "unit": "deg",    "fmt": "{:.2f}", "decimals": 2, "locale": False, "viz_type": "dial"},
     ],
     "gravity": [
@@ -187,7 +254,7 @@ TELEMETRY_METRICS: dict[str, list[dict]] = {
 }
 
 KPI_SVG_VIEWBOX_WIDTH  = 100    # internal SVG x range (0 → 100 = full mission)
-KPI_SVG_VIEWBOX_HEIGHT = 40     # internal SVG y range
+KPI_SVG_VIEWBOX_HEIGHT = 80     # internal SVG y range
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -202,7 +269,7 @@ KPI_SVG_VIEWBOX_HEIGHT = 40     # internal SVG y range
 SPARKLINE_PAD_X          = 10     # left/right padding inside sparkline
 SPARKLINE_PAD_Y          = 4      # top/bottom padding inside sparkline
 SPARKLINE_WIDTH          = 100    # usable sparkline width inside tile
-SPARKLINE_HEIGHT         = 40     # usable sparkline height inside tile
+SPARKLINE_HEIGHT         = KPI_SVG_VIEWBOX_HEIGHT     # usable sparkline height inside tile
 SPARKLINE_PATH_OPACITY   = 0.55   # sparkline line opacity
 SPARKLINE_PATH_WIDTH     = 1.5    # sparkline stroke-width (SVG units)
 SPARKLINE_NEEDLE_OPACITY = 0.85   # position needle opacity
@@ -217,7 +284,7 @@ SPARKLINE_DOWNSAMPLE_N   = 200    # points in the SVG polyline (visual fidelity 
 #  sub-viz types occupy the same vertical space in the tile.
 # ═══════════════════════════════════════════════════════════════════════════
 
-BAR_HEIGHT        = 36     # px — filled rect height
+BAR_HEIGHT        = KPI_SVG_VIEWBOX_HEIGHT     # px — filled rect height
 BAR_BORDER_RADIUS = 1     # px — rounded cap on the fill rect
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -240,77 +307,15 @@ BIDIR_NEGATIVE_COLOR = _hsl_rotate(_T["accent_a"], BIDIR_HUE_OFFSET)
 #  Background arc is always full sweep; filled arc shows current value.
 # ═══════════════════════════════════════════════════════════════════════════
 
-DIAL_RADIUS         = 30      # arc radius in SVG units
-DIAL_STROKE_WIDTH   = 16      # arc stroke width
+DIAL_CY_OFFSET      = 8       # dial vertical offset
+DIAL_RADIUS         = 64      # arc radius in SVG units
+DIAL_STROKE_WIDTH   = 36      # arc stroke width
 DIAL_ANGLE_MIN      = 170     # degrees — left endpoint (just inside 9 o'clock)
 DIAL_ANGLE_MAX      = 10      # degrees — right endpoint (just inside 3 o'clock)
 DIAL_VAL_MIN        = 0.0     # data value mapped to DIAL_ANGLE_MIN
-DIAL_VAL_MAX        = 90.0    # data value mapped to DIAL_ANGLE_MAX
+DIAL_VAL_MAX        = 180.0   # data value mapped to DIAL_ANGLE_MAX
 DIAL_STROKE_LINECAP = "butt"  # SVG stroke-linecap: "butt" | "round" | "square"
 
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  COLOR TOKENS
-#
-#  All values unpacked from the active theme. Semantic names here map to
-#  slot names in themes.py — see that file for raw hex values and rationale.
-# ═══════════════════════════════════════════════════════════════════════════
-
-# ── Surfaces ──
-BG_BASE      = _T["page_bg"]
-PANEL_BG     = _T["panel_bg"]
-PANEL_BORDER = _T["panel_border"]
-
-# ── Typography ──
-FONT_PRIMARY = _T["text_hi"]
-FONT_DIM     = _T["text_mid"]
-FONT_FAMILY  = _T["font_family"]
-
-# ── Status ──
-STATUS_LIVE  = _T["status_live"]
-
-# ── Chart support ──
-CHART_GRID_COLOR = _T["chart_grid"]
-PLOTLY_BG        = _T["chart_plot_bg"]
-
-# ── Panel group accents ──
-ACCENT_VECTORS    = _T["accent_a"]   # teal   — velocity & vector panels
-ACCENT_TRAJECTORY = _T["accent_b"]   # cyan   — orbital mechanics panels
-ACCENT_GRAVITY    = _T["accent_c"]   # purple — gravity panels
-ACCENT_RANGE      = _T["accent_d"]   # amber  — range / comms panels
-
-# ── Trajectory visualization ──
-COLOR_TRAJECTORY     = _T["viz_path"]
-COLOR_TRAJECTORY_DIM = _T["viz_path_dim"]
-COLOR_EARTH_FILL     = _T["viz_body_earth"]
-COLOR_MOON_FILL      = _T["viz_body_moon"]
-COLOR_STARFIELD      = _T["viz_starfield"]
-COLOR_SPACECRAFT     = _T["viz_marker"]
-SPACE_BG_COLOR       = _T["space_bg"]
-
-# ── Arc RGB component strings ──
-# Used in trajectory.py rgba() calls. Derived from theme hex so arc colors
-# stay in sync with the palette automatically when a theme changes.
-PAST_ARC_RGB      = _hex_to_rgb(_T["viz_path"])          # "255,255,255"
-TRAJ_DIM_GLOW_RGB = _hex_to_rgb(_T["viz_path"])          # "255,255,255"
-TRAJ_DIM_CORE_RGB = _hex_to_rgb(_T["viz_path"])          # "255,255,255"
-FUTURE_GLOW_RGB   = _hex_to_rgb(_T["arc_future_glow"])   # "80,130,180"
-FUTURE_CORE_RGB   = _hex_to_rgb(_T["arc_future_core"])   # "52,115,232"
-
-# ── Arc marker dot colors ──
-ARC_DOT_BURN  = _T["accent_g"]   # blood orange
-ARC_DOT_COAST = _T["accent_a"]   # teal
-ARC_DOT_OTHER = _T["accent_h"]   # steel silver
-
-# Maps each phase key to its dot color category.
-# Keys not listed fall back to "other".
-ARC_MARKER_CATEGORY: dict[str, str] = {
-    "perigee_raise":  "burn",
-    "tli_burn":       "burn",
-    "otc2_outbound":  "burn",
-    "return_burn_1":  "burn",
-    "return_burn_2":  "burn",
-}
 
 # ── Arc marker dot sizing + label offset ──
 ARC_DOT_SIZE      = 7     # px — dot diameter
@@ -432,7 +437,6 @@ SCRUBBER_DOT_SIZE          = 12
 SCRUBBER_DOT_ACTIVE        = 14
 
 TELEMETRY_MIN_HEIGHT = 360
-SPARKLINE_HEIGHT     = 80
 
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -30,7 +30,7 @@ from app.config import (
     # Bidir tokens
     BIDIR_NEGATIVE_COLOR,
     # Dial tokens
-    DIAL_RADIUS, DIAL_STROKE_WIDTH, DIAL_STROKE_LINECAP,
+    DIAL_CY_OFFSET, DIAL_RADIUS, DIAL_STROKE_WIDTH, DIAL_STROKE_LINECAP,
     DIAL_ANGLE_MIN, DIAL_ANGLE_MAX, DIAL_VAL_MIN, DIAL_VAL_MAX,
 )
 
@@ -145,29 +145,34 @@ def build_bidir_bar_svg(
     series_min: float,
     series_max: float,
     center:     float = 0.0,
+    pos_color:  str = "var(--panel-accent)",
+    neg_color:  str = BIDIR_NEGATIVE_COLOR,
 ) -> str:
     """
     Midline-anchored bar. Bar center represents `center` (default 0.0).
     For eccentricity: center=1.0, left=elliptical, right=hyperbolic.
     Deviation is scaled against max departure from center in each direction
     across the full mission series.
+
+    pos_color / neg_color: concrete hex or CSS var for each side's fill.
+    Background track is split at the midline so each half mirrors its fill.
     JS target: tile-bidir--{column} → x, width, style.fill attributes.
     """
     by   = (_VH - BAR_HEIGHT) / 2
     mid  = _VW / 2   # 50.0 — the anchor point
 
     deviation = value - center
-    dev_pos   = max(series_max - center, 1e-9)   # max rightward range
-    dev_neg   = max(center - series_min, 1e-9)   # max leftward range
+    dev_pos   = max(series_max - center, 1e-9)
+    dev_neg   = max(center - series_min, 1e-9)
 
     if deviation >= 0:
         fill_w     = min((deviation / dev_pos) * mid, mid)
         fill_x     = mid
-        fill_color = "var(--panel-accent)"
+        fill_color = pos_color
     else:
         fill_w     = min((abs(deviation) / dev_neg) * mid, mid)
         fill_x     = mid - fill_w
-        fill_color = BIDIR_NEGATIVE_COLOR
+        fill_color = neg_color
 
     return (
         f'<div style="line-height:0">'
@@ -175,17 +180,20 @@ def build_bidir_bar_svg(
         f'width="100%" height="{SPARKLINE_HEIGHT}" '
         f'preserveAspectRatio="none" style="display:block;">'
 
-        # Background track
-        f'<rect x="0" y="{by:.1f}" width="{_VW}" height="{BAR_HEIGHT}" '
+        # Background track — split at midline so each half mirrors its fill color
+        f'<rect x="0" y="{by:.1f}" width="{mid:.1f}" height="{BAR_HEIGHT}" '
         f'rx="{BAR_BORDER_RADIUS}" '
-        f'style="fill:var(--panel-accent);opacity:0.15;"/>'
+        f'style="fill:{neg_color};opacity:0.15;"/>'
+        f'<rect x="{mid:.1f}" y="{by:.1f}" width="{mid:.1f}" height="{BAR_HEIGHT}" '
+        f'rx="{BAR_BORDER_RADIUS}" '
+        f'style="fill:{pos_color};opacity:0.15;"/>'
 
-        # Center tick — represents `center` value; slightly taller for legibility
+        # Center tick
         f'<rect x="{mid - 0.5:.1f}" y="{by - 2:.1f}" '
         f'width="1" height="{BAR_HEIGHT + 4}" '
         f'style="fill:var(--panel-accent);opacity:0.55;"/>'
 
-        # Fill — id targeted by JS (updates x, width, fill)
+        # Fill — id targeted by JS
         f'<rect id="tile-bidir--{column}" '
         f'x="{fill_x:.2f}" y="{by:.1f}" '
         f'width="{fill_w:.2f}" height="{BAR_HEIGHT}" '
@@ -222,7 +230,7 @@ def build_dial_svg(column: str, value: float) -> str:
     # cy: balance stroke-top padding (at crown) and stroke-bottom padding (at endpoints).
     # Endpoints sit at y = cy - r·sin(ang_max°); crown at y = cy - r.
     ang_max_rad = math.radians(ang_max)
-    cy = (_VH + r + r * math.sin(ang_max_rad)) / 2
+    cy = ((_VH + r + r * math.sin(ang_max_rad)) / 2) + DIAL_CY_OFFSET
 
     val_range = max(DIAL_VAL_MAX - DIAL_VAL_MIN, 1e-9)
     frac      = max(0.0, min(1.0, (value - DIAL_VAL_MIN) / val_range))

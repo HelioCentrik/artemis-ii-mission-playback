@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dash import html, dcc
 
-from app.config import KPI_SVG_VIEWBOX_WIDTH
+from app.config import KPI_SVG_VIEWBOX_WIDTH, BIDIR_NEGATIVE_COLOR
 from app.viz_builders import (
     build_sparkline_svg,
     build_bar_svg,
@@ -40,7 +40,9 @@ def _sub_viz(metric_cfg: dict, column: str, value: float,
             column, value,
             stats.get("min", -1.0),
             stats.get("max",  1.0),
-            center=metric_cfg.get("bidir_center", 0.0),
+            center    = metric_cfg.get("bidir_center", 0.0),
+            pos_color = metric_cfg.get("bidir_pos_color", "var(--panel-accent)"),
+            neg_color = metric_cfg.get("bidir_neg_color", BIDIR_NEGATIVE_COLOR),
         )
 
     if vt == "dial":

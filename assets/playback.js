@@ -39,7 +39,7 @@
     var DIAL_ANG_MIN_RAD = DIAL_ANG_MIN * Math.PI / 180;
     var DIAL_ANG_MAX_RAD = DIAL_ANG_MAX * Math.PI / 180;
     var DIAL_ANG_RANGE   = DIAL_ANG_MIN - DIAL_ANG_MAX;
-    var DIAL_CY          = (_cfg.KPI_SVG_HEIGHT + DIAL_R + DIAL_R * Math.sin(DIAL_ANG_MAX_RAD)) / 2;
+    var DIAL_CY          = (_cfg.KPI_SVG_HEIGHT + DIAL_R + DIAL_R * Math.sin(DIAL_ANG_MAX_RAD)) / 2 + _cfg.DIAL_CY_OFFSET;
 
     // ── rAF timing state ─────────────────────────────────────────────────
     var _lastTs  = null;
@@ -278,7 +278,7 @@
                         if (deviation >= 0) {
                             bFillW     = Math.min((deviation / devPos) * mid, mid);
                             bFillX     = mid;
-                            bFillColor = 'var(--panel-accent)';
+                            bFillColor = meta.pos_color || 'var(--panel-accent)';
                         } else {
                             bFillW     = Math.min((Math.abs(deviation) / devNeg) * mid, mid);
                             bFillX     = mid - bFillW;
