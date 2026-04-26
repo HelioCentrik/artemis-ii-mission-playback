@@ -236,9 +236,9 @@ TELEMETRY_METRICS: dict[str, list[dict]] = {
     ],
     "trajectory": [
         {"column": "c3_km2s2", "label": "CHAR ENERGY",  "unit": "km²/s²", "fmt": "{:.2f}", "decimals": 2, "locale": False, "viz_type": "bidir_bar",
-         "bidir_center": 0.0, "bidir_neg_color": ACCENT_RANGE,   "bidir_mid": 0.9},
+         "bidir_center": 0.0, "bidir_pos_color": ACCENT_RANGE,   "bidir_neg_color": ACCENT_TRAJECTORY, "bidir_mid": 0.9},
         {"column": "ec",       "label": "ECCENTRICITY", "unit": "—",      "fmt": "{:.4f}", "decimals": 4, "locale": False, "viz_type": "bidir_bar",
-         "bidir_center": 1.0, "bidir_neg_color": ACCENT_VECTORS, "bidir_mid": 0.9},
+         "bidir_center": 1.0, "bidir_pos_color": ACCENT_VECTORS, "bidir_neg_color": ACCENT_TRAJECTORY, "bidir_mid": 0.9},
         {"column": "inc_deg",  "label": "INCLINATION",  "unit": "deg",    "fmt": "{:.2f}", "decimals": 2, "locale": False, "viz_type": "dial"},
     ],
     "gravity": [
