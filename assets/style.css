@@ -352,14 +352,21 @@ body {
    KPI TILES
 
    Individual metric tiles inside telemetry panels. Each tile shows
-   a label, unit, current value, and optional sparkline.
+   a label, unit, current value, and a sub-viz slot.
+
+   Sub-viz types all use .tile-sparkline as their container:
+     sparkline  — SVG polyline + needle, preserveAspectRatio="none"
+     bar        — SVG horizontal fill rect, preserveAspectRatio="none"
+     bidir_bar  — SVG midline bar, preserveAspectRatio="none"
+     dial       — SVG arc gauge, preserveAspectRatio="xMidYMid meet"
+     value_only — no .tile-sparkline rendered; tile centers vertically
    ═══════════════════════════════════════════════════════════════════════ */
 
 .tile-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1px;                 /* hairline gap — panel-bg shows through */
-    background: var(--panel-border);    /* the "gap" color */
+    gap: 1px;
+    background: var(--panel-border);
 }
 
 .tile {
@@ -368,6 +375,11 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 120px;
+}
+
+/* value_only tiles have no sub-viz div — center header + value vertically */
+.tile:not(:has(.tile-sparkline)) {
+    justify-content: center;
 }
 
 .tile-header {
@@ -408,15 +420,20 @@ body {
 .tile-sparkline {
     flex: 1;
     min-height: var(--sparkline-h);
+    display: flex;
+    justify-content: center;   /* centers dial arc horizontally within the slot */
+    align-items: stretch;      /* bars and sparklines still fill full height */
 }
+
 .tile-sparkline > div,
 .tile-sparkline p {
+    width: 100%;
     height: 100%;
     margin: 0;
     line-height: 0;
 }
 
-/* Ensure sparkline Plotly chart fills the tile */
+/* Ensure any legacy Plotly sparkline fills the tile */
 .tile-sparkline .js-plotly-plot,
 .tile-sparkline .plot-container {
     width: 100% !important;
