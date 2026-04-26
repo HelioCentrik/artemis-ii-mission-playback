@@ -144,24 +144,28 @@ def build_bidir_bar_svg(
     value:      float,
     series_min: float,
     series_max: float,
+    center:     float = 0.0,
 ) -> str:
     """
-    Midline-anchored bar. Positive → accent color, fills right.
-    Negative → BIDIR_NEGATIVE_COLOR, fills left.
+    Midline-anchored bar. Bar center represents `center` (default 0.0).
+    For eccentricity: center=1.0, left=elliptical, right=hyperbolic.
+    Deviation is scaled against max departure from center in each direction
+    across the full mission series.
     JS target: tile-bidir--{column} → x, width, style.fill attributes.
     """
     by   = (_VH - BAR_HEIGHT) / 2
     mid  = _VW / 2   # 50.0 — the anchor point
 
-    pos_max = max(abs(series_max), 1e-9)
-    neg_max = max(abs(series_min), 1e-9)
+    deviation = value - center
+    dev_pos   = max(series_max - center, 1e-9)   # max rightward range
+    dev_neg   = max(center - series_min, 1e-9)   # max leftward range
 
-    if value >= 0:
-        fill_w     = min((value / pos_max) * mid, mid)
+    if deviation >= 0:
+        fill_w     = min((deviation / dev_pos) * mid, mid)
         fill_x     = mid
         fill_color = "var(--panel-accent)"
     else:
-        fill_w     = min((abs(value) / neg_max) * mid, mid)
+        fill_w     = min((abs(deviation) / dev_neg) * mid, mid)
         fill_x     = mid - fill_w
         fill_color = BIDIR_NEGATIVE_COLOR
 
@@ -176,7 +180,7 @@ def build_bidir_bar_svg(
         f'rx="{BAR_BORDER_RADIUS}" '
         f'style="fill:var(--panel-accent);opacity:0.15;"/>'
 
-        # Center tick — slightly taller than the bar so it reads as a midline
+        # Center tick — represents `center` value; slightly taller for legibility
         f'<rect x="{mid - 0.5:.1f}" y="{by - 2:.1f}" '
         f'width="1" height="{BAR_HEIGHT + 4}" '
         f'style="fill:var(--panel-accent);opacity:0.55;"/>'

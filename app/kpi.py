@@ -40,6 +40,7 @@ def _sub_viz(metric_cfg: dict, column: str, value: float,
             column, value,
             stats.get("min", -1.0),
             stats.get("max",  1.0),
+            center=metric_cfg.get("bidir_center", 0.0),
         )
 
     if vt == "dial":

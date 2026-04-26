@@ -170,9 +170,9 @@ TELEMETRY_METRICS: dict[str, list[dict]] = {
         {"column": "rr_kms",       "label": "RADIAL VEL",  "unit": "km/s",    "fmt": "{:.3f}", "decimals": 3, "locale": False, "viz_type": "bidir_bar"},
     ],
     "trajectory": [
-        {"column": "c3_km2s2", "label": "CHAR ENERGY",  "unit": "km²/s²", "fmt": "{:.2f}",  "decimals": 2, "locale": False, "viz_type": "value_only"},
-        {"column": "ec",       "label": "ECCENTRICITY", "unit": "—",       "fmt": "{:.4f}",  "decimals": 4, "locale": False, "viz_type": "bar"},
-        {"column": "inc_deg",  "label": "INCLINATION",  "unit": "deg",     "fmt": "{:.2f}",  "decimals": 2, "locale": False, "viz_type": "dial"},
+        {"column": "c3_km2s2", "label": "CHAR ENERGY",  "unit": "km²/s²", "fmt": "{:.2f}", "decimals": 2, "locale": False, "viz_type": "bidir_bar", "bidir_center": 0.0},
+        {"column": "ec",       "label": "ECCENTRICITY", "unit": "—",      "fmt": "{:.4f}", "decimals": 4, "locale": False, "viz_type": "bidir_bar", "bidir_center": 1.0},
+        {"column": "inc_deg",  "label": "INCLINATION",  "unit": "deg",    "fmt": "{:.2f}", "decimals": 2, "locale": False, "viz_type": "dial"},
     ],
     "gravity": [
         {"column": "grav_earth_ms2",  "label": "EARTH GRAV", "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False, "viz_type": "bar",       "log_scale": True},

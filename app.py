@@ -195,6 +195,7 @@ def _build_preload_data() -> dict:
             # Bidir negative color — the computed hue-rotated hex from config.
             # Passed here so JS gets the actual resolved value, not a CSS var.
             "neg_color":    BIDIR_NEGATIVE_COLOR if m["viz_type"] == "bidir_bar" else None,
+            "bidir_center": m.get("bidir_center", 0.0) if m["viz_type"] == "bidir_bar" else None,
         }
         for metrics in TELEMETRY_METRICS.values()
         for m in metrics

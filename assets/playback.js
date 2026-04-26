@@ -268,17 +268,19 @@
                 } else if (vt === 'bidir_bar') {
                     var bidirEl = document.getElementById('tile-bidir--' + col);
                     if (bidirEl) {
-                        var mid    = SVG_VW / 2;
-                        var posMax = Math.max(Math.abs(stats.max || 0), 1e-9);
-                        var negMax = Math.max(Math.abs(stats.min || 0), 1e-9);
+                        var mid       = SVG_VW / 2;
+                        var center    = meta.bidir_center != null ? meta.bidir_center : 0;
+                        var deviation = raw - center;
+                        var devPos    = Math.max((stats.max || 0) - center, 1e-9);
+                        var devNeg    = Math.max(center - (stats.min || 0), 1e-9);
                         var bFillW, bFillX, bFillColor;
 
-                        if (raw >= 0) {
-                            bFillW     = Math.min((raw / posMax) * mid, mid);
+                        if (deviation >= 0) {
+                            bFillW     = Math.min((deviation / devPos) * mid, mid);
                             bFillX     = mid;
                             bFillColor = 'var(--panel-accent)';
                         } else {
-                            bFillW     = Math.min((Math.abs(raw) / negMax) * mid, mid);
+                            bFillW     = Math.min((Math.abs(deviation) / devNeg) * mid, mid);
                             bFillX     = mid - bFillW;
                             bFillColor = meta.neg_color || 'var(--panel-accent)';
                         }
