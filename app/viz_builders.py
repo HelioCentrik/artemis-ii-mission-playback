@@ -147,6 +147,7 @@ def build_bidir_bar_svg(
     center:     float = 0.0,
     pos_color:  str = "var(--panel-accent)",
     neg_color:  str = BIDIR_NEGATIVE_COLOR,
+    bidir_mid:  float = 0.5,
 ) -> str:
     """
     Midline-anchored bar. Bar center represents `center` (default 0.0).
@@ -159,14 +160,16 @@ def build_bidir_bar_svg(
     JS target: tile-bidir--{column} → x, width, style.fill attributes.
     """
     by   = (_VH - BAR_HEIGHT) / 2
-    mid  = _VW / 2   # 50.0 — the anchor point
+    mid  = _VW / bidir_mid   # 50.0 — the anchor point
 
     deviation = value - center
     dev_pos   = max(series_max - center, 1e-9)
     dev_neg   = max(center - series_min, 1e-9)
 
+    right_w = _VW - mid
+
     if deviation >= 0:
-        fill_w     = min((deviation / dev_pos) * mid, mid)
+        fill_w     = min((deviation / dev_pos) * right_w, right_w)
         fill_x     = mid
         fill_color = pos_color
     else:
@@ -184,7 +187,7 @@ def build_bidir_bar_svg(
         f'<rect x="0" y="{by:.1f}" width="{mid:.1f}" height="{BAR_HEIGHT}" '
         f'rx="{BAR_BORDER_RADIUS}" '
         f'style="fill:{neg_color};opacity:0.15;"/>'
-        f'<rect x="{mid:.1f}" y="{by:.1f}" width="{mid:.1f}" height="{BAR_HEIGHT}" '
+        f'<rect x="{mid:.1f}" y="{by:.1f}" width="{_VW - mid:.1f}" height="{BAR_HEIGHT}" '
         f'rx="{BAR_BORDER_RADIUS}" '
         f'style="fill:{pos_color};opacity:0.15;"/>'
 

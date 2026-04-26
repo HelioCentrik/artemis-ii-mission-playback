@@ -39,10 +39,11 @@ def _sub_viz(metric_cfg: dict, column: str, value: float,
         return build_bidir_bar_svg(
             column, value,
             stats.get("min", -1.0),
-            stats.get("max",  1.0),
-            center    = metric_cfg.get("bidir_center", 0.0),
-            pos_color = metric_cfg.get("bidir_pos_color", "var(--panel-accent)"),
-            neg_color = metric_cfg.get("bidir_neg_color", BIDIR_NEGATIVE_COLOR),
+            stats.get("max", 1.0),
+            center=metric_cfg.get("bidir_center", 0.0),
+            pos_color=metric_cfg.get("bidir_pos_color", "var(--panel-accent)"),
+            neg_color=metric_cfg.get("bidir_neg_color", BIDIR_NEGATIVE_COLOR),
+            bidir_mid=metric_cfg.get("bidir_mid", 0.5),
         )
 
     if vt == "dial":

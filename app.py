@@ -197,6 +197,7 @@ def _build_preload_data() -> dict:
             "pos_color":    m.get("bidir_pos_color") if m["viz_type"] == "bidir_bar" else None,
             "neg_color":    m.get("bidir_neg_color", BIDIR_NEGATIVE_COLOR) if m["viz_type"] == "bidir_bar" else None,
             "bidir_center": m.get("bidir_center", 0.0) if m["viz_type"] == "bidir_bar" else None,
+            "bidir_mid":    m.get("bidir_mid", 0.5) if m["viz_type"] == "bidir_bar" else None,
         }
         for metrics in TELEMETRY_METRICS.values()
         for m in metrics

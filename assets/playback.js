@@ -268,7 +268,8 @@
                 } else if (vt === 'bidir_bar') {
                     var bidirEl = document.getElementById('tile-bidir--' + col);
                     if (bidirEl) {
-                        var mid       = SVG_VW / 2;
+                        var mid       = SVG_VW * (meta.bidir_mid != null ? meta.bidir_mid : 0.5);
+                        var rightW    = SVG_VW - mid;
                         var center    = meta.bidir_center != null ? meta.bidir_center : 0;
                         var deviation = raw - center;
                         var devPos    = Math.max((stats.max || 0) - center, 1e-9);
@@ -276,7 +277,7 @@
                         var bFillW, bFillX, bFillColor;
 
                         if (deviation >= 0) {
-                            bFillW     = Math.min((deviation / devPos) * mid, mid);
+                            bFillW     = Math.min((deviation / devPos) * rightW, rightW);
                             bFillX     = mid;
                             bFillColor = meta.pos_color || 'var(--panel-accent)';
                         } else {
