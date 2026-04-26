@@ -51,6 +51,8 @@ from app.config import (
     PLAYBACK_SPEED_LABEL,
     LAUNCH_TIME,
     TELEMETRY_METRICS,
+    DIAL_VAL_MIN, DIAL_VAL_MAX,
+    BIDIR_NEGATIVE_COLOR,
 )
 from app.db import get_con
 from app.phases import get_scrubber_phases, get_phases, get_arc_marker_phases
@@ -180,10 +182,18 @@ def _build_preload_data() -> dict:
     # hardcoding column names in playback.js
     telemetry_meta = [
         {
-            "column":   m["column"],
-            "decimals": m["decimals"],
-            "locale":   m["locale"],
-            "viz_type": m["viz_type"],
+            "column":       m["column"],
+            "decimals":     m["decimals"],
+            "locale":       m["locale"],
+            "viz_type":     m["viz_type"],
+            # Dial range — JS uses these to map raw value → arc sweep fraction.
+            # Must match DIAL_VAL_MIN/MAX in config.py or server and client
+            # will render different arc positions on pause vs. playback.
+            "dial_val_min": DIAL_VAL_MIN if m["viz_type"] == "dial" else None,
+            "dial_val_max": DIAL_VAL_MAX if m["viz_type"] == "dial" else None,
+            # Bidir negative color — the computed hue-rotated hex from config.
+            # Passed here so JS gets the actual resolved value, not a CSS var.
+            "neg_color":    BIDIR_NEGATIVE_COLOR if m["viz_type"] == "bidir_bar" else None,
         }
         for metrics in TELEMETRY_METRICS.values()
         for m in metrics
