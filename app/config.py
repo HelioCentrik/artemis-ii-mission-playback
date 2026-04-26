@@ -240,8 +240,8 @@ BIDIR_NEGATIVE_COLOR = _hsl_rotate(_T["accent_a"], BIDIR_HUE_OFFSET)
 #  Background arc is always full sweep; filled arc shows current value.
 # ═══════════════════════════════════════════════════════════════════════════
 
-DIAL_RADIUS         = 32      # arc radius in SVG units
-DIAL_STROKE_WIDTH   = 10      # arc stroke width
+DIAL_RADIUS         = 30      # arc radius in SVG units
+DIAL_STROKE_WIDTH   = 16      # arc stroke width
 DIAL_ANGLE_MIN      = 170     # degrees — left endpoint (just inside 9 o'clock)
 DIAL_ANGLE_MAX      = 10      # degrees — right endpoint (just inside 3 o'clock)
 DIAL_VAL_MIN        = 0.0     # data value mapped to DIAL_ANGLE_MIN

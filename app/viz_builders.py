@@ -30,7 +30,7 @@ from app.config import (
     # Bidir tokens
     BIDIR_NEGATIVE_COLOR,
     # Dial tokens
-    DIAL_RADIUS, DIAL_STROKE_WIDTH,
+    DIAL_RADIUS, DIAL_STROKE_WIDTH, DIAL_STROKE_LINECAP,
     DIAL_ANGLE_MIN, DIAL_ANGLE_MAX, DIAL_VAL_MIN, DIAL_VAL_MAX,
 )
 
@@ -261,12 +261,12 @@ def build_dial_svg(column: str, value: float) -> str:
         # Background arc — dim, full sweep
         f'<path d="{bg_d}" fill="none" '
         f'style="stroke:var(--panel-accent);stroke-width:{sw};opacity:0.2;'
-        f'stroke-linecap:round;"/>'
+        f'stroke-linecap:{DIAL_STROKE_LINECAP};"/>'
 
         # Filled arc — id targeted by JS
         f'<path id="tile-dial--{column}" d="{fill_d}" fill="none" '
         f'style="stroke:var(--panel-accent);stroke-width:{sw};opacity:0.9;'
-        f'stroke-linecap:round;"/>'
+        f'stroke-linecap:{DIAL_STROKE_LINECAP};"/>'
 
         f'</svg></div>'
     )
