@@ -178,14 +178,23 @@
                 : 'scrubber-dot';
         });
 
-                // ── Telemetry tile updates ────────────────────────────────────────
-        var telem     = preloaded.telemetry;
-        var telemMeta = preloaded.telemetry_meta;
+        // ── Telemetry tile updates ────────────────────────────────────────
+        var telem       = preloaded.telemetry;
+        var telemMeta   = preloaded.telemetry_meta;
+        var seriesStats = preloaded.series_stats || {};
 
         if (telem && telemMeta) {
             var totalFrames = preloaded.total_frames || 1;
             var needleX     = ((fi / Math.max(totalFrames - 1, 1)) * 100).toFixed(1);
             var needleXStr  = String(needleX);
+
+            // SVG coordinate constants — mirror config.py tokens.
+            // SPARKLINE_VIEWBOX_WIDTH=100, SPARKLINE_VIEWBOX_HEIGHT=40, DIAL_RADIUS=16.
+            // If those tokens change, update here too.
+            var SVG_VW  = 100;
+            var DIAL_CX = 50;
+            var DIAL_CY = 40 * 0.82;   // 32.8 — matches build_dial_svg cy
+            var DIAL_R  = 16;
 
             for (var t = 0; t < telemMeta.length; t++) {
                 var meta   = telemMeta[t];
@@ -197,7 +206,7 @@
                 var raw = series[fi];
                 if (raw === undefined || raw === null) { continue; }
 
-                // ── Value span ───────────────────────────────────────────
+                // ── Value span (all viz types) ────────────────────────────
                 var valEl = document.getElementById('tile-val--' + col);
                 if (valEl) {
                     var formatted;
@@ -212,12 +221,77 @@
                     valEl.textContent = formatted;
                 }
 
-                // ── Sparkline needle ─────────────────────────────────────
-                var needleEl = document.getElementById('tile-needle--' + col);
-                if (needleEl) {
-                    needleEl.setAttribute('x1', needleXStr);
-                    needleEl.setAttribute('x2', needleXStr);
+                // ── Sub-viz update — branch by viz_type ──────────────────
+                var vt    = meta.viz_type;
+                var stats = seriesStats[col] || {};
+
+                if (vt === 'sparkline') {
+                    var needleEl = document.getElementById('tile-needle--' + col);
+                    if (needleEl) {
+                        needleEl.setAttribute('x1', needleXStr);
+                        needleEl.setAttribute('x2', needleXStr);
+                    }
+
+                } else if (vt === 'bar') {
+                    var barEl = document.getElementById('tile-bar--' + col);
+                    if (barEl) {
+                        var sMax  = Math.max(Math.abs(stats.max || 1), 1e-9);
+                        var fillW = Math.max(0, Math.min(SVG_VW, (raw / sMax) * SVG_VW));
+                        barEl.setAttribute('width', fillW.toFixed(2));
+                    }
+
+                } else if (vt === 'bidir_bar') {
+                    var bidirEl = document.getElementById('tile-bidir--' + col);
+                    if (bidirEl) {
+                        var mid    = SVG_VW / 2;
+                        var posMax = Math.max(Math.abs(stats.max || 0), 1e-9);
+                        var negMax = Math.max(Math.abs(stats.min || 0), 1e-9);
+                        var bFillW, bFillX, bFillColor;
+
+                        if (raw >= 0) {
+                            bFillW     = Math.min((raw / posMax) * mid, mid);
+                            bFillX     = mid;
+                            bFillColor = 'var(--panel-accent)';
+                        } else {
+                            bFillW     = Math.min((Math.abs(raw) / negMax) * mid, mid);
+                            bFillX     = mid - bFillW;
+                            bFillColor = meta.neg_color || 'var(--panel-accent)';
+                        }
+
+                        bidirEl.setAttribute('x',     bFillX.toFixed(2));
+                        bidirEl.setAttribute('width', bFillW.toFixed(2));
+                        bidirEl.style.fill = bFillColor;
+                    }
+
+                } else if (vt === 'dial') {
+                    var dialEl = document.getElementById('tile-dial--' + col);
+                    if (dialEl) {
+                        var valMin  = meta.dial_val_min != null ? meta.dial_val_min : 0;
+                        var valMax  = meta.dial_val_max != null ? meta.dial_val_max : 90;
+                        var dRange  = Math.max(valMax - valMin, 1e-9);
+                        var frac    = Math.max(0, Math.min(1, (raw - valMin) / dRange));
+                        var currDeg = 180 - frac * 180;
+                        var currRad = currDeg * Math.PI / 180;
+
+                        var x0 = DIAL_CX + DIAL_R * Math.cos(Math.PI);
+                        var y0 = DIAL_CY - DIAL_R * Math.sin(Math.PI);
+                        var xc = DIAL_CX + DIAL_R * Math.cos(currRad);
+                        var yc = DIAL_CY - DIAL_R * Math.sin(currRad);
+
+                        var d;
+                        if (frac < 0.005) {
+                            d = 'M ' + x0.toFixed(2) + ',' + y0.toFixed(2) +
+                                ' L ' + x0.toFixed(2) + ',' + y0.toFixed(2);
+                        } else {
+                            d = 'M ' + x0.toFixed(2) + ',' + y0.toFixed(2) +
+                                ' A ' + DIAL_R + ' ' + DIAL_R + ' 0 0 0 ' +
+                                xc.toFixed(2) + ',' + yc.toFixed(2);
+                        }
+                        dialEl.setAttribute('d', d);
+                    }
+
                 }
+                // value_only: no sub-viz element — nothing to update
             }
         }
 
