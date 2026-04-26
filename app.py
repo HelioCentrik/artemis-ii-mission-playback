@@ -58,7 +58,7 @@ from app.utils import rotate_2d
 from app.index_string import INDEX_STRING
 from app.trajectory import build_trajectory_fig, build_starfield_svg, get_moon_preload_data
 from app.telemetry import get_telemetry_preload, get_telemetry_at, get_frame_pct
-from app.sparklines import build_sparkline_points
+from app.viz_builders import build_sparkline_points
 from app.kpi import build_kpi_tile
 
 # Register the artemis2 Plotly template as a side effect of import
