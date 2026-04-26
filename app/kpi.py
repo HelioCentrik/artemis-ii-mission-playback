@@ -27,7 +27,12 @@ def _sub_viz(metric_cfg: dict, column: str, value: float,
 
     if vt == "bar":
         stats = series_stats.get(column, {})
-        return build_bar_svg(column, value, stats.get("max", 1.0))
+        return build_bar_svg(
+            column, value,
+            stats.get("min", 0.0),
+            stats.get("max", 1.0),
+            log_scale=metric_cfg.get("log_scale", False),
+        )
 
     if vt == "bidir_bar":
         stats = series_stats.get(column, {})

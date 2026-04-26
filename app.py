@@ -186,6 +186,7 @@ def _build_preload_data() -> dict:
             "decimals":     m["decimals"],
             "locale":       m["locale"],
             "viz_type":     m["viz_type"],
+            "log_scale":    m.get("log_scale", False),
             # Dial range — JS uses these to map raw value → arc sweep fraction.
             # Must match DIAL_VAL_MIN/MAX in config.py or server and client
             # will render different arc positions on pause vs. playback.

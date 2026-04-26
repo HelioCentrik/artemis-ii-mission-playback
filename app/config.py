@@ -175,9 +175,9 @@ TELEMETRY_METRICS: dict[str, list[dict]] = {
         {"column": "inc_deg",  "label": "INCLINATION",  "unit": "deg",     "fmt": "{:.2f}",  "decimals": 2, "locale": False, "viz_type": "dial"},
     ],
     "gravity": [
-        {"column": "grav_earth_ms2",  "label": "EARTH GRAV", "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False, "viz_type": "bar"},
-        {"column": "grav_moon_ms2",   "label": "MOON GRAV",  "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False, "viz_type": "sparkline"},
-        {"column": "dominance_ratio", "label": "MOON/EARTH", "unit": "—",    "fmt": "{:.6f}", "decimals": 6, "locale": False, "viz_type": "bar"},
+        {"column": "grav_earth_ms2",  "label": "EARTH GRAV", "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False, "viz_type": "bar",       "log_scale": True},
+        {"column": "grav_moon_ms2",   "label": "MOON GRAV",  "unit": "m/s²", "fmt": "{:.6f}", "decimals": 6, "locale": False, "viz_type": "bar",       "log_scale": True},
+        {"column": "dominance_ratio", "label": "MOON/EARTH", "unit": "—",    "fmt": "{:.6f}", "decimals": 6, "locale": False, "viz_type": "sparkline", "log_scale": False},
     ],
     "range": [
         {"column": "rg_km",     "label": "EARTH DIST", "unit": "km", "fmt": "{:,.1f}", "decimals": 1, "locale": True,  "viz_type": "sparkline"},

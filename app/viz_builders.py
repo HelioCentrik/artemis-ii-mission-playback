@@ -93,14 +93,30 @@ def build_sparkline_svg(column: str, sparkline_points: str, needle_x: str) -> st
 
 # ── Standard bar ──────────────────────────────────────────────────────────
 
-def build_bar_svg(column: str, value: float, series_max: float) -> str:
+def build_bar_svg(
+    column:     str,
+    value:      float,
+    series_min: float,
+    series_max: float,
+    log_scale:  bool = False,
+) -> str:
     """
-    Horizontal fill bar, left-anchored, 0 → series_max range.
+    Horizontal fill bar, left-anchored.
+    log_scale=False : linear 0 → series_max
+    log_scale=True  : log10 series_min → series_max (left edge = min, not zero)
     JS target: tile-bar--{column} → width attribute (SVG user units, 0–100).
     """
-    by      = (_VH - BAR_HEIGHT) / 2          # vertical center
-    max_val = max(abs(series_max), 1e-9)
-    fill_w  = max(0.0, min(_VW, (value / max_val) * _VW))
+    by = (_VH - BAR_HEIGHT) / 2
+
+    if log_scale:
+        log_min = math.log10(max(series_min, 1e-300))
+        log_max = math.log10(max(series_max, 1e-300))
+        log_val = math.log10(max(value,      1e-300))
+        log_range = max(log_max - log_min, 1e-9)
+        fill_w = max(0.0, min(_VW, ((log_val - log_min) / log_range) * _VW))
+    else:
+        max_val = max(abs(series_max), 1e-9)
+        fill_w  = max(0.0, min(_VW, (value / max_val) * _VW))
 
     return (
         f'<div style="line-height:0">'
@@ -108,12 +124,10 @@ def build_bar_svg(column: str, value: float, series_max: float) -> str:
         f'width="100%" height="{SPARKLINE_HEIGHT}" '
         f'preserveAspectRatio="none" style="display:block;">'
 
-        # Background track
         f'<rect x="0" y="{by:.1f}" width="{_VW}" height="{BAR_HEIGHT}" '
         f'rx="{BAR_BORDER_RADIUS}" '
         f'style="fill:var(--panel-accent);opacity:0.15;"/>'
 
-        # Fill — id targeted by JS
         f'<rect id="tile-bar--{column}" '
         f'x="0" y="{by:.1f}" width="{fill_w:.2f}" height="{BAR_HEIGHT}" '
         f'rx="{BAR_BORDER_RADIUS}" '
