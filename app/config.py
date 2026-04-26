@@ -213,8 +213,8 @@ SPARKLINE_DOWNSAMPLE_N   = 200    # points in the SVG polyline (visual fidelity 
 #  sub-viz types occupy the same vertical space in the tile.
 # ═══════════════════════════════════════════════════════════════════════════
 
-BAR_HEIGHT        = 6     # px — filled rect height
-BAR_BORDER_RADIUS = 3     # px — rounded cap on the fill rect
+BAR_HEIGHT        = 36     # px — filled rect height
+BAR_BORDER_RADIUS = 1     # px — rounded cap on the fill rect
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  BI-DIRECTIONAL BAR VIZ
@@ -224,7 +224,7 @@ BAR_BORDER_RADIUS = 3     # px — rounded cap on the fill rect
 #  regardless of which panel accent is active.
 # ═══════════════════════════════════════════════════════════════════════════
 
-BIDIR_HUE_OFFSET     = 180
+BIDIR_HUE_OFFSET     = 100
 BIDIR_NEGATIVE_COLOR = _hsl_rotate(_T["accent_a"], BIDIR_HUE_OFFSET)
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -236,12 +236,12 @@ BIDIR_NEGATIVE_COLOR = _hsl_rotate(_T["accent_a"], BIDIR_HUE_OFFSET)
 #  Background arc is always full sweep; filled arc shows current value.
 # ═══════════════════════════════════════════════════════════════════════════
 
-DIAL_RADIUS       = 16    # px — arc radius in SVG units
-DIAL_STROKE_WIDTH = 3     # px — arc stroke width
-DIAL_ANGLE_MIN    = 180   # degrees — leftmost position (9 o'clock = min value)
-DIAL_ANGLE_MAX    = 0     # degrees — rightmost position (3 o'clock = max value)
-DIAL_VAL_MIN      = 0.0   # data minimum mapped to DIAL_ANGLE_MIN
-DIAL_VAL_MAX      = 90.0  # data maximum mapped to DIAL_ANGLE_MAX
+DIAL_RADIUS       = 32    # arc radius in SVG units
+DIAL_STROKE_WIDTH = 10    # arc stroke width
+DIAL_ANGLE_MIN    = 170   # degrees — left endpoint (just inside 9 o'clock)
+DIAL_ANGLE_MAX    = 10    # degrees — right endpoint (just inside 3 o'clock)
+DIAL_VAL_MIN      = 0.0   # data value mapped to DIAL_ANGLE_MIN
+DIAL_VAL_MAX      = 90.0  # data value mapped to DIAL_ANGLE_MAX
 
 
 # ═══════════════════════════════════════════════════════════════════════════

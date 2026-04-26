@@ -26,15 +26,12 @@ from app.config import (
     SPARKLINE_NEEDLE_OPACITY,
     SPARKLINE_NEEDLE_WIDTH,
     # Bar tokens
-    BAR_HEIGHT,
-    BAR_BORDER_RADIUS,
+    BAR_HEIGHT, BAR_BORDER_RADIUS,
     # Bidir tokens
     BIDIR_NEGATIVE_COLOR,
     # Dial tokens
-    DIAL_RADIUS,
-    DIAL_STROKE_WIDTH,
-    DIAL_VAL_MIN,
-    DIAL_VAL_MAX,
+    DIAL_RADIUS, DIAL_STROKE_WIDTH,
+    DIAL_ANGLE_MIN, DIAL_ANGLE_MAX, DIAL_VAL_MIN, DIAL_VAL_MAX,
 )
 
 # Shared shorthand — used by all builders
@@ -185,45 +182,56 @@ def build_bidir_bar_svg(
 
 def build_dial_svg(column: str, value: float) -> str:
     """
-    Semicircle arc gauge. Sweeps 9 o'clock → 12 o'clock → 3 o'clock.
-    DIAL_VAL_MIN maps to leftmost position; DIAL_VAL_MAX to rightmost.
+    Arc gauge sweeping DIAL_ANGLE_MIN → crown → DIAL_ANGLE_MAX.
+    DIAL_VAL_MIN maps to leftmost; DIAL_VAL_MAX to rightmost.
     JS target: tile-dial--{column} → d attribute (SVG arc path string).
 
-    preserveAspectRatio="xMidYMid meet" keeps the arc circular — "none"
-    would squash it into an oval as the tile width varies.
+    cy is computed from the actual angle endpoints so the arc (including
+    stroke) stays vertically centered in the viewBox regardless of the
+    offset. Formula: cy = (_VH + r + r·sin(ang_max°)) / 2.
+    The stroke terms cancel, so this holds for any stroke width.
+
+    preserveAspectRatio="xMidYMid meet" keeps the arc circular.
     """
     r  = DIAL_RADIUS
     sw = DIAL_STROKE_WIDTH
-    cx = _VW / 2           # 50 — horizontal center
-    cy = _VH * 0.82        # ~33 — low enough that arc crown clears the top
+    cx = _VW / 2  # 50 — horizontal center
+
+    ang_min   = float(DIAL_ANGLE_MIN)         # e.g. 170
+    ang_max   = float(DIAL_ANGLE_MAX)         # e.g. 10
+    ang_range = ang_min - ang_max             # e.g. 160
+
+    # cy: balance stroke-top padding (at crown) and stroke-bottom padding (at endpoints).
+    # Endpoints sit at y = cy - r·sin(ang_max°); crown at y = cy - r.
+    ang_max_rad = math.radians(ang_max)
+    cy = (_VH + r + r * math.sin(ang_max_rad)) / 2
 
     val_range = max(DIAL_VAL_MAX - DIAL_VAL_MIN, 1e-9)
     frac      = max(0.0, min(1.0, (value - DIAL_VAL_MIN) / val_range))
 
-    # Angle: 180° at frac=0 (9 o'clock), 0° at frac=1 (3 o'clock), through 90° (top).
-    # y = cy - r*sin(θ) because SVG y increases downward.
     def arc_pt(deg: float) -> tuple[float, float]:
         rad = math.radians(deg)
         return cx + r * math.cos(rad), cy - r * math.sin(rad)
 
-    x0, y0       = arc_pt(180)                          # leftmost (always start)
-    x_full, y_full = arc_pt(0)                          # rightmost (full fill end)
-    curr_deg     = 180.0 - frac * 180.0
+    x0,     y0     = arc_pt(ang_min)                  # left endpoint
+    x_full, y_full = arc_pt(ang_max)                  # right endpoint
+    curr_deg       = ang_min - frac * ang_range        # frac 0→1 maps to ang_min→ang_max
     x_curr, y_curr = arc_pt(curr_deg)
 
-    # sweep-flag=0 → counterclockwise in SVG screen space → routes through top ✓
+    # sweep-flag=1 routes upward through 12 o'clock in SVG screen space ✓
+    # large-arc-flag=0: ang_range ≤ 180° so the filled arc is always the minor arc
     bg_d = (
         f"M {x0:.2f},{y0:.2f} "
-        f"A {r} {r} 0 0 0 {x_full:.2f},{y_full:.2f}"
+        f"A {r} {r} 0 0 1 {x_full:.2f},{y_full:.2f}"
     )
 
     if frac < 0.005:
-        # Near-zero: emit a degenerate move so the element exists for JS targeting
+        # Near-zero: degenerate path so the element exists for JS targeting
         fill_d = f"M {x0:.2f},{y0:.2f} L {x0:.2f},{y0:.2f}"
     else:
         fill_d = (
             f"M {x0:.2f},{y0:.2f} "
-            f"A {r} {r} 0 0 0 {x_curr:.2f},{y_curr:.2f}"
+            f"A {r} {r} 0 0 1 {x_curr:.2f},{y_curr:.2f}"
         )
 
     return (

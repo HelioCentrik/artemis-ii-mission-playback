@@ -188,13 +188,19 @@
             var needleX     = ((fi / Math.max(totalFrames - 1, 1)) * 100).toFixed(1);
             var needleXStr  = String(needleX);
 
-            // SVG coordinate constants — mirror config.py tokens.
-            // SPARKLINE_VIEWBOX_WIDTH=100, SPARKLINE_VIEWBOX_HEIGHT=40, DIAL_RADIUS=16.
+            // ── Dial constants — mirror config.py ────────────────────────
+            // SPARKLINE_VIEWBOX_HEIGHT=40, DIAL_RADIUS=28, DIAL_ANGLE_MIN=170, DIAL_ANGLE_MAX=10.
             // If those tokens change, update here too.
-            var SVG_VW  = 100;
-            var DIAL_CX = 50;
-            var DIAL_CY = 40 * 0.82;   // 32.8 — matches build_dial_svg cy
-            var DIAL_R  = 16;
+            var SVG_VW           = 100;
+            var DIAL_CX          = 50;
+            var DIAL_R           = 32;
+            var DIAL_ANG_MIN     = 170;
+            var DIAL_ANG_MIN_RAD = DIAL_ANG_MIN * Math.PI / 180;
+            var DIAL_ANG_MAX     = 10;
+            var DIAL_ANG_RANGE   = DIAL_ANG_MIN - DIAL_ANG_MAX;          // 160
+            // cy formula mirrors build_dial_svg: (_VH + r + r·sin(ang_max_rad)) / 2
+            var _angMaxRad       = DIAL_ANG_MAX * Math.PI / 180;
+            var DIAL_CY          = (40 + DIAL_R + DIAL_R * Math.sin(_angMaxRad)) / 2;
 
             for (var t = 0; t < telemMeta.length; t++) {
                 var meta   = telemMeta[t];
@@ -270,11 +276,11 @@
                         var valMax  = meta.dial_val_max != null ? meta.dial_val_max : 90;
                         var dRange  = Math.max(valMax - valMin, 1e-9);
                         var frac    = Math.max(0, Math.min(1, (raw - valMin) / dRange));
-                        var currDeg = 180 - frac * 180;
+                        var currDeg = DIAL_ANG_MIN - frac * DIAL_ANG_RANGE;
                         var currRad = currDeg * Math.PI / 180;
 
-                        var x0 = DIAL_CX + DIAL_R * Math.cos(Math.PI);
-                        var y0 = DIAL_CY - DIAL_R * Math.sin(Math.PI);
+                        var x0 = DIAL_CX + DIAL_R * Math.cos(DIAL_ANG_MIN_RAD);
+                        var y0 = DIAL_CY - DIAL_R * Math.sin(DIAL_ANG_MIN_RAD);
                         var xc = DIAL_CX + DIAL_R * Math.cos(currRad);
                         var yc = DIAL_CY - DIAL_R * Math.sin(currRad);
 
@@ -284,7 +290,7 @@
                                 ' L ' + x0.toFixed(2) + ',' + y0.toFixed(2);
                         } else {
                             d = 'M ' + x0.toFixed(2) + ',' + y0.toFixed(2) +
-                                ' A ' + DIAL_R + ' ' + DIAL_R + ' 0 0 0 ' +
+                                ' A ' + DIAL_R + ' ' + DIAL_R + ' 0 0 1 ' +
                                 xc.toFixed(2) + ',' + yc.toFixed(2);
                         }
                         dialEl.setAttribute('d', d);
