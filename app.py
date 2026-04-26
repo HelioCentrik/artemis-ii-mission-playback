@@ -154,23 +154,36 @@ def _build_preload_data() -> dict:
         })
 
     # ── Telemetry series + sparkline paths ───────────────────────────────
-    # get_telemetry_preload() is cached at module level in telemetry.py —
-    # safe to call here without worrying about double-execution.
     telem = get_telemetry_preload()
+
+    sparkline_cols = {
+        m["column"]
+        for metrics in TELEMETRY_METRICS.values()
+        for m in metrics
+        if m["viz_type"] == "sparkline"
+    }
 
     sparklines = {
         col: build_sparkline_points(series)
         for col, series in telem.items()
+        if col in sparkline_cols
     }
 
-    # Flat ordered list of JS format metadata — one entry per metric,
-    # in TELEMETRY_METRICS group/metric order. playback.js iterates this
-    # to know which DOM id to write and how to format the value.
+    # Min/max per column — sent to JS so bar/bidir widths can be computed
+    # relative to full-mission range without a separate query.
+    series_stats = {
+        col: {"min": float(min(series)), "max": float(max(series))}
+        for col, series in telem.items()
+    }
+
+    # viz_type added so JS update loop can branch per metric without
+    # hardcoding column names in playback.js
     telemetry_meta = [
         {
             "column":   m["column"],
             "decimals": m["decimals"],
             "locale":   m["locale"],
+            "viz_type": m["viz_type"],
         }
         for metrics in TELEMETRY_METRICS.values()
         for m in metrics
@@ -194,14 +207,31 @@ def _build_preload_data() -> dict:
         "telemetry":                telem,
         "telemetry_sparklines":     sparklines,
         "telemetry_meta":           telemetry_meta,
+        "series_stats":             series_stats,
         **get_moon_preload_data(),
     }
 
 
-# Runs at import time — before any callback or layout is evaluated.
 _PRELOAD_DATA = _build_preload_data()
-_SPARKLINE_POINTS = {
+
+# Only build polyline strings for sparkline-typed metrics — bars/dials don't use them
+_SPARKLINE_COLS: set[str] = {
+    m["column"]
+    for metrics in TELEMETRY_METRICS.values()
+    for m in metrics
+    if m["viz_type"] == "sparkline"
+}
+
+_SPARKLINE_POINTS: dict[str, str] = {
     col: build_sparkline_points(series)
+    for col, series in get_telemetry_preload().items()
+    if col in _SPARKLINE_COLS
+}
+
+# Min/max per column — used by bar and bidir builders on server-side tile rebuilds.
+# Computed here so _build_telemetry_panel doesn't re-derive it on every callback.
+_SERIES_STATS: dict[str, dict] = {
+    col: {"min": float(min(series)), "max": float(max(series))}
     for col, series in get_telemetry_preload().items()
 }
 
@@ -260,16 +290,16 @@ def _build_telemetry_panel(
     group:        dict,
     values_dict:  dict | None = None,
     current_pct:  float       = 0.0,
+    series_stats: dict        = {},
 ) -> html.Div:
     """
     Build one telemetry panel with 3 KPI tiles.
 
     values_dict  : {column: float} from get_telemetry_at(); None → stub tiles
     current_pct  : SVG x-coord for sparkline needle (0–SPARKLINE_VIEWBOX_WIDTH)
+    series_stats : {column: {min, max}} for bar/bidir range scaling
     """
     if values_dict is None:
-        # Stub tiles — shown only during the initial layout render before the
-        # update_telemetry callback fires. Three stubs to match 3-col grid.
         stub_tile = html.Div([
             html.Div([
                 html.Span("---", className="tile-label"),
@@ -286,6 +316,7 @@ def _build_telemetry_panel(
             build_kpi_tile(
                 metric_cfg       = m,
                 value            = values_dict.get(m["column"], 0.0),
+                series_stats     = series_stats,
                 sparkline_points = _SPARKLINE_POINTS.get(m["column"], ""),
                 current_pct      = current_pct,
             )
@@ -606,10 +637,20 @@ def update_telemetry(phase_idx, pause_data):
     values      = get_telemetry_at(dt_utc)
     current_pct = get_frame_pct(dt_utc)
 
-    return [
-        _build_telemetry_panel(key, grp, values, current_pct)
-        for key, grp in PANEL_GROUPS.items()
-    ]
+    return html.Div(
+        id="telemetry-grid",
+        className="telemetry-grid",
+        children=[
+            _build_telemetry_panel(
+                group_key    = key,
+                group        = grp,
+                values_dict  = values,
+                current_pct  = current_pct,
+                series_stats = _SERIES_STATS,
+            )
+            for key, grp in PANEL_GROUPS.items()
+        ],
+    )
 
 
 
