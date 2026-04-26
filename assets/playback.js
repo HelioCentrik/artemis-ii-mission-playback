@@ -19,6 +19,14 @@
 (function () {
     "use strict";
 
+    // Cancel any loop left over from a previous script evaluation.
+    // Dash can re-evaluate this IIFE when preload data changes — without
+    // this guard a second loop starts alongside the first.
+    if (window._artemisRafId) {
+        cancelAnimationFrame(window._artemisRafId);
+        window._artemisRafId = null;
+    }
+
     // ── rAF timing state ─────────────────────────────────────────────────
     var _lastTs  = null;
     var _elapsed = 0;
@@ -243,16 +251,16 @@
                     if (barEl) {
                         var fillW;
                         if (meta.log_scale) {
-                            var sMin   = Math.max(stats.min || 1e-300, 1e-300);
-                            var sMax   = Math.max(stats.max || 1,      1e-9);
-                            var logMin = Math.log10(sMin);
-                            var logMax = Math.log10(sMax);
-                            var logVal = Math.log10(Math.max(raw, 1e-300));
+                            var sMinL    = Math.max(stats.min || 1e-300, 1e-300);
+                            var sMaxL    = Math.max(stats.max || 1,      1e-9);
+                            var logMin   = Math.log(sMinL) / Math.LN10;
+                            var logMax   = Math.log(sMaxL) / Math.LN10;
+                            var logVal   = Math.log(Math.max(raw, 1e-300)) / Math.LN10;
                             var logRange = Math.max(logMax - logMin, 1e-9);
                             fillW = Math.max(0, Math.min(SVG_VW, ((logVal - logMin) / logRange) * SVG_VW));
                         } else {
-                            var sMax  = Math.max(Math.abs(stats.max || 1), 1e-9);
-                            fillW = Math.max(0, Math.min(SVG_VW, (raw / sMax) * SVG_VW));
+                            var sMaxL = Math.max(Math.abs(stats.max || 1), 1e-9);
+                            fillW = Math.max(0, Math.min(SVG_VW, (raw / sMaxL) * SVG_VW));
                         }
                         barEl.setAttribute('width', fillW.toFixed(2));
                     }
@@ -354,7 +362,7 @@
 
     // ── rAF loop ──────────────────────────────────────────────────────────
     function loop(ts) {
-        requestAnimationFrame(loop);
+        window._artemisRafId = requestAnimationFrame(loop);
 
         var state = window._artemisState;
 
@@ -408,6 +416,6 @@
     }
 
     // Kick the loop immediately. No-ops until _artemisState.running = true.
-    requestAnimationFrame(loop);
+    window._artemisRafId = requestAnimationFrame(loop);
 
 }());
