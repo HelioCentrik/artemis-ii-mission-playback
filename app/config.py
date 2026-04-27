@@ -236,9 +236,9 @@ TELEMETRY_METRICS: dict[str, list[dict]] = {
     ],
     "trajectory": [
         {"column": "c3_km2s2", "label": "CHAR ENERGY",  "unit": "km²/s²", "fmt": "{:.2f}", "decimals": 2, "locale": False, "viz_type": "bidir_bar",
-         "bidir_center": 0.0, "bidir_pos_color": ACCENT_RANGE,   "bidir_neg_color": ACCENT_TRAJECTORY, "bidir_mid": 0.9},
+         "bidir_center": 0.0, "bidir_pos_color": ACCENT_RANGE,   "bidir_neg_color": ACCENT_TRAJECTORY, "bidir_mid": 0.85},
         {"column": "ec",       "label": "ECCENTRICITY", "unit": "—",      "fmt": "{:.4f}", "decimals": 4, "locale": False, "viz_type": "bidir_bar",
-         "bidir_center": 1.0, "bidir_pos_color": ACCENT_VECTORS, "bidir_neg_color": ACCENT_TRAJECTORY, "bidir_mid": 0.9},
+         "bidir_center": 1.0, "bidir_pos_color": ACCENT_VECTORS, "bidir_neg_color": ACCENT_TRAJECTORY, "bidir_mid": 0.85},
         {"column": "inc_deg",  "label": "INCLINATION",  "unit": "deg",    "fmt": "{:.2f}", "decimals": 2, "locale": False, "viz_type": "dial"},
     ],
     "gravity": [
@@ -254,7 +254,7 @@ TELEMETRY_METRICS: dict[str, list[dict]] = {
 }
 
 KPI_SVG_VIEWBOX_WIDTH  = 100    # internal SVG x range (0 → 100 = full mission)
-KPI_SVG_VIEWBOX_HEIGHT = 80     # internal SVG y range
+KPI_SVG_VIEWBOX_HEIGHT = 84     # internal SVG y range
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -284,7 +284,7 @@ SPARKLINE_DOWNSAMPLE_N   = 200    # points in the SVG polyline (visual fidelity 
 #  sub-viz types occupy the same vertical space in the tile.
 # ═══════════════════════════════════════════════════════════════════════════
 
-BAR_HEIGHT        = KPI_SVG_VIEWBOX_HEIGHT     # px — filled rect height
+BAR_HEIGHT        = KPI_SVG_VIEWBOX_HEIGHT - 4     # px — filled rect height
 BAR_BORDER_RADIUS = 1     # px — rounded cap on the fill rect
 
 # ═══════════════════════════════════════════════════════════════════════════
