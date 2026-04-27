@@ -522,6 +522,15 @@ app.clientside_callback(
         window._artemisState.needsRender = true;
         window._artemisState.resetTiming = true;
 
+        // Update dot immediately — don't wait for renderFrame round-trip.
+        // React may reset the class during reconciliation; renderFrame will
+        // re-correct it, but this ensures the highlight lands on click.
+        document.querySelectorAll('.scrubber-dot').forEach(function(dot, idx) {
+            dot.className = (idx === phaseIdx)
+                ? 'scrubber-dot active'
+                : 'scrubber-dot';
+        });
+
         return {frame_idx: fi};
     }""",
     Output("playback-frame-store", "data", allow_duplicate=True),

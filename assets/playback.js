@@ -62,7 +62,7 @@
     }
 
     // ── Per-frame Plotly update ───────────────────────────────────────────
-    function renderFrame(fi, preloaded) {
+    function renderFrame(fi, preloaded, running) {
 
         var graphDiv = document.querySelector('.js-plotly-plot');
         if (!graphDiv || !graphDiv.layout || !graphDiv.layout.meta) return;
@@ -119,10 +119,10 @@
             'annotations[1].y':       eventY
         });
 
-        // ── Future arc — hidden during playback ──────────────────────────
+        // ── Future arc — hidden during playback only ──────────────────────
         var futureStart = meta.trace_idx.future_start;
         var futureEnd   = meta.trace_idx.future_end;
-        if (futureEnd > futureStart) {
+        if (running && futureEnd > futureStart) {
             var futureIndices = [];
             for (var k = futureStart; k < futureEnd; k++) {
                 futureIndices.push(k);
@@ -458,7 +458,8 @@
             }
             if (state.needsRender) {
                 state.needsRender = false;
-                renderFrame(state.frame_idx, state.preloaded);
+                // ── Paused branch call site ───────────────────────────────────────
+                renderFrame(state.frame_idx, state.preloaded, false);
             }
             _lastTs  = null;
             _elapsed = 0;
@@ -491,7 +492,8 @@
         state.frame_idx      = fi;
         window._artemisFrame = fi;
 
-        renderFrame(fi, state.preloaded);
+        // ── Running branch call site ──────────────────────────────────────
+        renderFrame(fi, state.preloaded, true);
     }
 
     // Kick the loop immediately. No-ops until _artemisState.running = true.
