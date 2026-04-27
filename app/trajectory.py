@@ -18,13 +18,14 @@
 #   fill whatever width Plotly computes for the panel.
 
 import numpy as np
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import plotly.graph_objects as go
 
 from app.config import (
     FONT_SIZE_LABEL,
     FONT_FAMILY, FONT_PRIMARY, FONT_DIM, PANEL_BORDER,
+    LAUNCH_TIME,
     VIEW_ROTATION_DEG, VIEW_ZOOM, VIEW_X_OFFSET_KM, VIEW_Y_OFFSET_KM,
     STAR_SEED, STAR_COUNT,
     STAR_DIM_FRACTION,
@@ -51,11 +52,14 @@ from app.db import get_con
 from app.phases import get_phases, get_arc_marker_phases
 
 
+
 # ── Module-level caches ───────────────────────────────────────────────────
 _BODY_RADII:   dict | None = None
 _FIXED_RANGES: dict | None = None
 
 _STARFIELD_SVG: str | None = None
+
+_LAUNCH_DT = datetime.fromisoformat(LAUNCH_TIME)
 
 
 def build_starfield_svg() -> str:
@@ -253,13 +257,13 @@ def _build_arc_marker_traces(
         timestamps   = [p["datetime_utc"] for p in past_phases]
         placeholders = ", ".join(["?" for _ in timestamps])
         rows = con.execute(
-            f"SELECT datetime_utc, x_km, y_km FROM orion_trajectory "
+            f"SELECT datetime_utc, x_km, y_km, rg_km FROM orion_trajectory "
             f"WHERE datetime_utc IN ({placeholders})",
             timestamps,
         ).fetchall()
-        for dt, x, y in rows:
+        for dt, x, y, rg in rows:
             rx, ry = rotate_2d(float(x), float(y), rotation_rad)
-            coord_map[dt] = (float(rx), float(ry))
+            coord_map[dt] = (float(rx), float(ry), float(rg))
 
     _PALETTE = {
         "burn":  ARC_DOT_BURN,
@@ -273,7 +277,14 @@ def _build_arc_marker_traces(
         if coords is None:
             continue
         cat = ARC_MARKER_CATEGORY.get(phase["key"], "other")
-        groups[cat].append({"phase": phase, "x": coords[0], "y": coords[1]})
+        met_sec = int((phase["datetime_utc"] - _LAUNCH_DT).total_seconds())
+        groups[cat].append({
+            "phase":  phase,
+            "x":      coords[0],
+            "y":      coords[1],
+            "rg_km":  coords[2],
+            "met":    fmt_met(met_sec),
+        })
 
     traces = []
     for cat in ("burn", "coast", "other"):   # fixed order — indices must be stable
@@ -288,14 +299,14 @@ def _build_arc_marker_traces(
                 line=dict(color="rgba(0,0,0,0)", width=0),
             ),
             customdata=[
-                [it["phase"]["short"], it["phase"]["label"]]
+                [it["phase"]["short"], it["phase"]["label"], it["met"], it["rg_km"]]
                 for it in items
             ] or None,
-            hovertemplate="<b>%{customdata[0]}</b> · %{customdata[1]}<extra></extra>",
-            hoverlabel=dict(
-                bgcolor="#0a1628",
-                bordercolor="#1a2f4a",
-                font=dict(family=FONT_FAMILY, color="#c8e8ff", size=FONT_SIZE_LABEL),
+            hovertemplate=(
+                "<b>%{customdata[0]}</b>  %{customdata[1]}<br>"
+                "MET  %{customdata[2]}<br>"
+                "DIST  %{customdata[3]:,.0f} km"
+                "<extra></extra>"
             ),
             showlegend=False,
         ))
@@ -510,7 +521,7 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
             autorange=False,
             fixedrange=True,
         ),
-        hovermode=False,
+        hovermode="closest",
         dragmode=False,
     )
 
