@@ -385,6 +385,7 @@ def _trajectory_content(fig) -> html.Div:
             id="trajectory-graph",
             figure=fig,
             config=dict(displayModeBar=False),
+            responsive=False,  # resize_handler.js drives relayout; no competing ResizeObserver
             style={
                 "position": "absolute",
                 "inset": "0",
