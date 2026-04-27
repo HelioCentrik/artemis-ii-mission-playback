@@ -419,24 +419,46 @@ PLAYBACK_BTN_FONT_SIZE = 20   # px
 # ═══════════════════════════════════════════════════════════════════════════
 #  LAYOUT DIMENSIONS
 #
-#  All values in px unless noted. Injected as CSS custom properties.
+#  Responsive triplets: (min_px, preferred_unit, max_px)
+#  index_string.py assembles these into clamp() expressions.
+#  CSS syntax never appears here.
+#
+#  Flat aliases kept for any existing code that imports the old names.
 # ═══════════════════════════════════════════════════════════════════════════
 
-HEADER_BRAND_HEIGHT  = 44
+HEADER_BRAND_HEIGHT = 44
 
-PANEL_BORDER_RADIUS = 4
-PANEL_GAP           = 10
-PANEL_PADDING       = 16
+PANEL_BORDER_RADIUS = 4   # fixed — no scaling
 
-TRAJECTORY_MIN_HEIGHT = 540
+# Gap between panels
+PANEL_GAP_MIN = 6
+PANEL_GAP_VW  = 0.75   # 0.75vw ≈ 10px at 1333px wide
+PANEL_GAP_MAX = 12
+PANEL_GAP     = PANEL_GAP_MIN   # alias — pixel floor used for Python layout math
 
-SCRUBBER_HEIGHT            = 44
-SCRUBBER_BORDER_RADIUS     = 20
-SCRUBBER_HORIZONTAL_MARGIN = 112
-SCRUBBER_DOT_SIZE          = 12
-SCRUBBER_DOT_ACTIVE        = 14
+# Padding inside panels
+PANEL_PADDING_MIN = 10
+PANEL_PADDING_VW  = 1.2    # 1.2vw ≈ 16px at 1333px wide
+PANEL_PADDING_MAX = 18
+PANEL_PADDING     = PANEL_PADDING_MIN   # alias
 
-TELEMETRY_MIN_HEIGHT = 360
+# Trajectory panel height
+TRAJECTORY_HEIGHT_MIN = 400
+TRAJECTORY_HEIGHT_VH  = 50     # 50vh = 540px at 1080p
+TRAJECTORY_HEIGHT_MAX = 640
+TRAJECTORY_MIN_HEIGHT = TRAJECTORY_HEIGHT_MIN   # alias
+
+SCRUBBER_HEIGHT            = 44   # fixed
+SCRUBBER_BORDER_RADIUS     = 20   # fixed
+SCRUBBER_HORIZONTAL_MARGIN = 112  # fixed
+SCRUBBER_DOT_SIZE          = 12   # fixed
+SCRUBBER_DOT_ACTIVE        = 14   # fixed
+
+# Telemetry grid height
+TELEMETRY_HEIGHT_MIN = 280
+TELEMETRY_HEIGHT_VH  = 33     # 33vh ≈ 356px at 1080p
+TELEMETRY_HEIGHT_MAX = 480
+TELEMETRY_MIN_HEIGHT = TELEMETRY_HEIGHT_MIN   # alias
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -479,7 +501,11 @@ GOOGLE_FONTS_URL = (
     "family=Space+Mono:wght@400;700&display=swap"
 )
 
-FONT_SIZE_KPI    = 28
+FONT_SIZE_KPI_MIN = 20
+FONT_SIZE_KPI_VW  = 1.8    # clamp(20px, 1.8vw, 28px) as specified
+FONT_SIZE_KPI_MAX = 28
+FONT_SIZE_KPI     = FONT_SIZE_KPI_MAX   # alias — used for Python-side sizing math
+
 FONT_SIZE_LABEL  = 11
 FONT_SIZE_HEADER = 14
 FONT_SIZE_STATUS = 12

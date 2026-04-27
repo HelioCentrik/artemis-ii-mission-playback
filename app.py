@@ -652,20 +652,16 @@ def update_telemetry(phase_idx, pause_data):
     values      = get_telemetry_at(dt_utc)
     current_pct = get_frame_pct(dt_utc)
 
-    return html.Div(
-        id="telemetry-grid",
-        className="telemetry-grid",
-        children=[
-            _build_telemetry_panel(
-                group_key    = key,
-                group        = grp,
-                values_dict  = values,
-                current_pct  = current_pct,
-                series_stats = _SERIES_STATS,
-            )
-            for key, grp in PANEL_GROUPS.items()
-        ],
-    )
+    return [
+        _build_telemetry_panel(
+            group_key    = key,
+            group        = grp,
+            values_dict  = values,
+            current_pct  = current_pct,
+            series_stats = _SERIES_STATS,
+        )
+        for key, grp in PANEL_GROUPS.items()
+    ]
 
 
 

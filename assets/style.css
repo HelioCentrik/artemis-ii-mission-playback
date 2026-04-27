@@ -284,15 +284,15 @@ body {
 /* ═══════════════════════════════════════════════════════════════════════
    TELEMETRY GRID
 
-   2×2 layout below the trajectory. Uses minmax() so panels flex
-   between ~480px and 1fr across the 1200–1400px range without
-   breakpoints. Below 960px it stacks to single column.
+   Fixed 2×2 layout — two equal columns, always. No collapsing at
+   supported widths (1280px minimum). Column width compresses with
+   the viewport; panels never wrap or stack.
    ═══════════════════════════════════════════════════════════════════════ */
 
 .telemetry-grid {
     display: grid;
     min-height: var(--telem-min-h);
-    grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--panel-gap);
 }
 

@@ -11,17 +11,21 @@ from app.config import (
     BG_BASE, PANEL_BG, PANEL_BORDER,
     # Typography
     FONT_PRIMARY, FONT_DIM, FONT_FAMILY, GOOGLE_FONTS_URL,
-    FONT_SIZE_KPI, FONT_SIZE_LABEL, FONT_SIZE_HEADER, FONT_SIZE_STATUS,
+    FONT_SIZE_KPI_MIN, FONT_SIZE_KPI_VW, FONT_SIZE_KPI_MAX,
+    FONT_SIZE_LABEL, FONT_SIZE_HEADER, FONT_SIZE_STATUS,
     # Status
     STATUS_LIVE,
     # Accents
     ACCENT_VECTORS, ACCENT_TRAJECTORY, ACCENT_GRAVITY, ACCENT_RANGE,
     # Layout
     HEADER_BRAND_HEIGHT,
-    TRAJECTORY_MIN_HEIGHT,
+    TRAJECTORY_HEIGHT_MIN, TRAJECTORY_HEIGHT_VH, TRAJECTORY_HEIGHT_MAX,
     SCRUBBER_HEIGHT, SCRUBBER_BORDER_RADIUS, SCRUBBER_HORIZONTAL_MARGIN,
     SCRUBBER_DOT_SIZE, SCRUBBER_DOT_ACTIVE,
-    TELEMETRY_MIN_HEIGHT, PANEL_BORDER_RADIUS, PANEL_GAP, PANEL_PADDING,
+    TELEMETRY_HEIGHT_MIN, TELEMETRY_HEIGHT_VH, TELEMETRY_HEIGHT_MAX,
+    PANEL_BORDER_RADIUS,
+    PANEL_GAP_MIN, PANEL_GAP_VW, PANEL_GAP_MAX,
+    PANEL_PADDING_MIN, PANEL_PADDING_VW, PANEL_PADDING_MAX,
     # Trajectory viz
     COLOR_TRAJECTORY, COLOR_TRAJECTORY_DIM,
     # Playback
@@ -81,7 +85,7 @@ INDEX_STRING = f"""<!DOCTYPE html>
             --font-family:        {FONT_FAMILY};
             --font-primary:       {FONT_PRIMARY};
             --font-dim:           {FONT_DIM};
-            --font-size-kpi:      {FONT_SIZE_KPI}px;
+            --font-size-kpi:      clamp({FONT_SIZE_KPI_MIN}px, {FONT_SIZE_KPI_VW}vw, {FONT_SIZE_KPI_MAX}px);
             --font-size-label:    {FONT_SIZE_LABEL}px;
             --font-size-header:   {FONT_SIZE_HEADER}px;
             --font-size-status:   {FONT_SIZE_STATUS}px;
@@ -97,16 +101,16 @@ INDEX_STRING = f"""<!DOCTYPE html>
 
             /* ── Layout ── */
             --header-brand-h:      {HEADER_BRAND_HEIGHT}px;
-            --traj-min-h:          {TRAJECTORY_MIN_HEIGHT}px;
+            --traj-min-h:          clamp({TRAJECTORY_HEIGHT_MIN}px, {TRAJECTORY_HEIGHT_VH}vh, {TRAJECTORY_HEIGHT_MAX}px);
             --scrubber-h:          {SCRUBBER_HEIGHT}px;
             --scrubber-radius:     {SCRUBBER_BORDER_RADIUS}px;
             --scrubber-h-margin:   {SCRUBBER_HORIZONTAL_MARGIN}px;
             --scrubber-dot:        {SCRUBBER_DOT_SIZE}px;
             --scrubber-dot-active: {SCRUBBER_DOT_ACTIVE}px;
-            --telem-min-h:         {TELEMETRY_MIN_HEIGHT}px;
+            --telem-min-h:         clamp({TELEMETRY_HEIGHT_MIN}px, {TELEMETRY_HEIGHT_VH}vh, {TELEMETRY_HEIGHT_MAX}px);
             --panel-radius:        {PANEL_BORDER_RADIUS}px;
-            --panel-gap:           {PANEL_GAP}px;
-            --panel-padding:       {PANEL_PADDING}px;
+            --panel-gap:           clamp({PANEL_GAP_MIN}px, {PANEL_GAP_VW}vw, {PANEL_GAP_MAX}px);
+            --panel-padding:       clamp({PANEL_PADDING_MIN}px, {PANEL_PADDING_VW}vw, {PANEL_PADDING_MAX}px);
             --sparkline-h:         {SPARKLINE_HEIGHT}px;
 
             /* ── Trajectory colors (for CSS-side use) ── */
