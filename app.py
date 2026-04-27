@@ -418,6 +418,7 @@ app.layout = html.Div([
     dcc.Store(id="phase-store",            data=0),
     dcc.Store(id="playback-running-store", data={"running": False}),
     dcc.Store(id="playback-frame-store",   data={"frame_idx": 0}),
+    dcc.Store(id="resize-store",           data=0),
 
     # Preload baked in at startup — immediately available, no callback needed.
     dcc.Store(id="traj-preload-store",     data=_PRELOAD_DATA),
@@ -595,8 +596,9 @@ def on_playback_pause(running_state, frame_state, phase_idx):
     Output("trajectory-content", "children"),
     Input("phase-store",         "data"),   # scrubber dot click
     Input("pause-rebuild-store", "data"),   # playback paused
+    Input("resize-store",        "data"),
 )
-def update_trajectory(phase_idx, pause_data):
+def update_trajectory(phase_idx, pause_data, _resize):
     """
     Rebuilds the full-quality trajectory figure on phase click or pause.
 
