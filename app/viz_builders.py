@@ -23,8 +23,9 @@ from app.config import (
     SPARKLINE_DOWNSAMPLE_N,
     SPARKLINE_PATH_OPACITY,
     SPARKLINE_PATH_WIDTH,
-    SPARKLINE_NEEDLE_OPACITY,
-    SPARKLINE_NEEDLE_WIDTH,
+    SPARKLINE_FUTURE_OPACITY,
+    SPARKLINE_STAR_RADIUS,
+    SPARKLINE_STAR_GLOW_BLUR,
     # Bar tokens
     BAR_HEIGHT, BAR_BORDER_RADIUS,
     # Bidir tokens
@@ -46,7 +47,7 @@ def build_sparkline_points(series: list[float]) -> str:
     Normalize a full-mission metric series into an SVG polyline points string.
 
     X axis : frame index → 0..KPI_SVG_VIEWBOX_WIDTH  (left = mission start)
-    Y axis : min–max     → Y_PAD..HEIGHT-Y_PAD          (inverted: high = top)
+    Y axis : min–max     → Y_PAD..HEIGHT-Y_PAD        (inverted: high = top)
 
     Downsamples to SPARKLINE_DOWNSAMPLE_N evenly-spaced frames to keep
     the SVG payload small without visible loss of fidelity.
@@ -71,21 +72,145 @@ def build_sparkline_points(series: list[float]) -> str:
     return " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(x_vals, y_vals))
 
 
+# ── Sparkline ─────────────────────────────────────────────────────────────
+
+def build_sparkline_points(series: list[float]) -> str:
+    """
+    Normalize a full-mission metric series into an SVG polyline points string.
+
+    X axis : frame index → 0..KPI_SVG_VIEWBOX_WIDTH  (left = mission start)
+    Y axis : min–max     → Y_PAD..HEIGHT-Y_PAD        (inverted: high = top)
+
+    Downsamples to SPARKLINE_DOWNSAMPLE_N evenly-spaced frames to keep
+    the SVG payload small without visible loss of fidelity.
+    """
+    if not series:
+        return ""
+
+    arr = np.array(series, dtype=float)
+
+    n       = min(SPARKLINE_DOWNSAMPLE_N, len(arr))
+    indices = np.linspace(0, len(arr) - 1, n, dtype=int)
+    arr     = arr[indices]
+
+    v_min, v_max = arr.min(), arr.max()
+    v_range      = v_max - v_min if v_max != v_min else 1.0
+    usable_h     = _VH - 2 * SPARKLINE_PAD_Y
+
+    x_vals = np.linspace(0, _VW, n)
+    y_norm = (arr - v_min) / v_range
+    y_vals = (_VH - SPARKLINE_PAD_Y) - y_norm * usable_h
+
+    return " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(x_vals, y_vals))
+
+
+def _parse_sparkline_points(points_str: str) -> list[tuple[float, float]]:
+    """Parse 'x1,y1 x2,y2 ...' into a list of (x, y) tuples."""
+    pts = []
+    for token in points_str.split():
+        x, y = token.split(",")
+        pts.append((float(x), float(y)))
+    return pts
+
+
+def _approx_path_length(pts: list[tuple[float, float]]) -> float:
+    """Euclidean sum of polyline segment lengths — approximates getTotalLength()."""
+    total = 0.0
+    for i in range(1, len(pts)):
+        dx = pts[i][0] - pts[i - 1][0]
+        dy = pts[i][1] - pts[i - 1][1]
+        total += math.sqrt(dx * dx + dy * dy)
+    return total if total > 0 else 9999.0
+
+
+def _star_and_offset(
+    pts: list[tuple[float, float]],
+    tlen: float,
+    needle_x: float,
+) -> tuple[float, float, float]:
+    """
+    Return (star_cx, star_cy, reveal_len) computed from the same source.
+
+    Finds the point in pts closest to needle_x, accumulates Euclidean path
+    length up to that point, and returns it as reveal_len. This matches what
+    SVG's getTotalLength()/getPointAtLength() computes for a polyline, so
+    dashoffset and star position are derived consistently.
+
+    Using x-fraction (needle_x / _VW * tlen) is wrong when y varies —
+    path length is not proportional to x unless the line is horizontal.
+    """
+    if not pts:
+        return needle_x, _VH / 2.0, tlen * needle_x / _VW
+
+    cumlen   = 0.0
+    best_idx = 0
+    best_dist = abs(pts[0][0] - needle_x)
+    cumulative: list[float] = [0.0]
+
+    for i in range(1, len(pts)):
+        dx = pts[i][0] - pts[i - 1][0]
+        dy = pts[i][1] - pts[i - 1][1]
+        cumlen += math.sqrt(dx * dx + dy * dy)
+        cumulative.append(cumlen)
+        dist = abs(pts[i][0] - needle_x)
+        if dist < best_dist:
+            best_dist = dist
+            best_idx  = i
+
+    return pts[best_idx][0], pts[best_idx][1], cumulative[best_idx]
+
+
 def build_sparkline_svg(column: str, sparkline_points: str, needle_x: str) -> str:
+    """
+    Two-polyline sparkline with a traveling star marker.
+
+    Dim polyline  — full path at SPARKLINE_FUTURE_OPACITY; static, no id.
+    Bright polyline — same path, stroke-dasharray reveal; id tile-sparkline-past--{col}.
+                      JS drives dashoffset each tick via getPointAtLength().
+    Star circle   — CSS drop-shadow glow; id tile-star--{col}.
+                      Python bakes an approximate initial cx/cy from the points array.
+                      JS corrects to exact geometry on the first tick.
+
+    stroke-dasharray/dashoffset survive dcc.Markdown sanitization (kebab-case).
+    CSS filter: drop-shadow() in a style attribute also survives.
+    No clipPath, no feGaussianBlur — nothing for the sanitizer to mangle.
+    """
+    nx   = float(needle_x)
+    pts  = _parse_sparkline_points(sparkline_points) if sparkline_points else []
+    tlen = _approx_path_length(pts)
+
+    star_x, star_y, reveal_len = _star_and_offset(pts, tlen, nx)
+    dash_offset = tlen - reveal_len
+
+    glow = f"drop-shadow(0 0 {SPARKLINE_STAR_GLOW_BLUR}px var(--panel-accent))"
+
     return (
         f'<div style="line-height:0">'
         f'<svg viewBox="0 0 {_VW} {_VH}" '
         f'width="100%" height="{SPARKLINE_HEIGHT}" '
         f'preserveAspectRatio="none" style="display:block;">'
 
+        # Dim future trace — static, no id
         f'<polyline points="{sparkline_points}" fill="none" '
-        f'style="stroke:var(--panel-accent);stroke-width:{SPARKLINE_PATH_WIDTH};'
-        f'opacity:{SPARKLINE_PATH_OPACITY};"/>'
+        f'stroke="var(--panel-accent)" '
+        f'stroke-width="{SPARKLINE_PATH_WIDTH}" '
+        f'opacity="{SPARKLINE_FUTURE_OPACITY}"/>'
 
-        f'<line id="tile-needle--{column}" '
-        f'x1="{needle_x}" y1="0" x2="{needle_x}" y2="{_VH}" '
-        f'style="stroke:var(--panel-accent);stroke-width:{SPARKLINE_NEEDLE_WIDTH};'
-        f'opacity:{SPARKLINE_NEEDLE_OPACITY};"/>'
+        # Bright past trace — dashoffset derived from cumulative path length
+        f'<polyline id="tile-sparkline-past--{column}" '
+        f'points="{sparkline_points}" fill="none" '
+        f'stroke="var(--panel-accent)" '
+        f'stroke-width="{SPARKLINE_PATH_WIDTH}" '
+        f'opacity="{SPARKLINE_PATH_OPACITY}" '
+        f'stroke-dasharray="{tlen:.1f}" '
+        f'stroke-dashoffset="{dash_offset:.1f}"/>'
+
+        # Star — ellipse so JS can correct ry for preserveAspectRatio="none" distortion
+        f'<ellipse id="tile-star--{column}" '
+        f'cx="{star_x:.1f}" cy="{star_y:.1f}" '
+        f'rx="{SPARKLINE_STAR_RADIUS}" ry="{SPARKLINE_STAR_RADIUS}" '
+        f'fill="var(--panel-accent)" '
+        f'style="filter:{glow};"/>'
 
         f'</svg></div>'
     )
