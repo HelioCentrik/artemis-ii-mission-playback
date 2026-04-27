@@ -32,6 +32,7 @@
     // Computed once at IIFE init — not per-frame.
     var _cfg             = window._artemisConfig;
     var SVG_VW           = _cfg.KPI_SVG_WIDTH;
+    var SVG_VH = _cfg.KPI_SVG_HEIGHT;
     var DIAL_R           = _cfg.DIAL_RADIUS;
     var DIAL_CX          = SVG_VW / 2;
     var DIAL_ANG_MIN     = _cfg.DIAL_ANGLE_MIN;
@@ -240,10 +241,63 @@
                 var stats = seriesStats[col] || {};
 
                 if (vt === 'sparkline') {
-                    var needleEl = document.getElementById('tile-needle--' + col);
-                    if (needleEl) {
-                        needleEl.setAttribute('x1', needleXStr);
-                        needleEl.setAttribute('x2', needleXStr);
+                    var pastEl = document.getElementById('tile-sparkline-past--' + col);
+                    var starEl = document.getElementById('tile-star--' + col);
+                    if (pastEl && starEl) {
+
+                        // ── One-time init ─────────────────────────────────
+                        // Skipped if _totalLen already set — re-runs automatically
+                        // after a Dash rebuild since new elements carry no _totalLen.
+                        if (!pastEl._totalLen) {
+                            var tl = pastEl.getTotalLength();
+                            if (tl > 0) {
+                                pastEl._totalLen = tl;
+                                pastEl.setAttribute('stroke-dasharray', tl.toFixed(2));
+
+                                // Parse points string — avoids SVGPointList API.
+                                // Produces same cumulative lengths as Python's
+                                // _approx_path_length / _star_and_offset.
+                                var tokens  = (pastEl.getAttribute('points') || '').trim().split(/\s+/);
+                                var cum     = [0.0];
+                                var prevX   = null, prevY = null;
+                                for (var k = 0; k < tokens.length; k++) {
+                                    var xy = tokens[k].split(',');
+                                    var bx = parseFloat(xy[0]);
+                                    var by = parseFloat(xy[1]);
+                                    if (prevX !== null) {
+                                        var ddx = bx - prevX, ddy = by - prevY;
+                                        cum.push(cum[cum.length - 1] + Math.sqrt(ddx * ddx + ddy * ddy));
+                                    }
+                                    prevX = bx; prevY = by;
+                                }
+                                pastEl._cumLengths = cum;
+
+                                // Correct ry: preserveAspectRatio="none" scales x and y
+                                // independently. Height is a fixed CSS px value == SVG_VH
+                                // so y-scale is 1.0 — only x-scale varies with tile width.
+                                var svgRect = pastEl.ownerSVGElement.getBoundingClientRect();
+                                if (svgRect.width > 0) {
+                                    var rx = parseFloat(starEl.getAttribute('rx'));
+                                    starEl.setAttribute('ry',
+                                        (rx * svgRect.width / SVG_VW).toFixed(3));
+                                }
+                            }
+                        }
+
+                        // ── Per-tick ──────────────────────────────────────
+                        if (pastEl._totalLen && pastEl._cumLengths) {
+                            var cum2      = pastEl._cumLengths;
+                            var pct2      = parseFloat(needleX) / SVG_VW;
+                            var idx2      = Math.min(Math.round(pct2 * (cum2.length - 1)), cum2.length - 1);
+                            var revealLen = cum2[idx2];
+
+                            pastEl.setAttribute('stroke-dashoffset',
+                                (pastEl._totalLen - revealLen).toFixed(2));
+
+                            var pt = pastEl.getPointAtLength(revealLen);
+                            starEl.setAttribute('cx', pt.x.toFixed(2));
+                            starEl.setAttribute('cy', pt.y.toFixed(2));
+                        }
                     }
 
                 } else if (vt === 'bar') {
@@ -385,9 +439,23 @@
             _elapsed = 0;
         }
 
-        // Paused — drain any forced render request (e.g. scrubber click),
-        // then bail. Keeps the view responsive without running the full loop.
+        // Paused — if Dash rebuilt any sparkline tile, re-init on the next
+        // tick by forcing needsRender. Detects stale refs via missing _totalLen.
+        // Then drain any forced render request and bail.
         if (!state.running) {
+            if (!state.needsRender && state.preloaded && state.preloaded.telemetry_meta) {
+                var tmeta = state.preloaded.telemetry_meta;
+                for (var si = 0; si < tmeta.length; si++) {
+                    if (tmeta[si].viz_type === 'sparkline') {
+                        var sEl = document.getElementById(
+                            'tile-sparkline-past--' + tmeta[si].column);
+                        if (sEl && !sEl._totalLen) {
+                            state.needsRender = true;
+                            break;
+                        }
+                    }
+                }
+            }
             if (state.needsRender) {
                 state.needsRender = false;
                 renderFrame(state.frame_idx, state.preloaded);

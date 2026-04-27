@@ -273,11 +273,11 @@ SPARKLINE_HEIGHT         = KPI_SVG_VIEWBOX_HEIGHT     # usable sparkline height 
 SPARKLINE_PATH_OPACITY   = 0.65   # sparkline line opacity
 SPARKLINE_PATH_WIDTH     = 1.5    # sparkline stroke-width (SVG units)
 SPARKLINE_NEEDLE_OPACITY = 0.85   # position needle opacity
-SPARKLINE_NEEDLE_WIDTH   = 1.5    # needle stroke-width (SVG units)
+SPARKLINE_NEEDLE_WIDTH   = 1.8    # needle stroke-width (SVG units)
 SPARKLINE_DOWNSAMPLE_N   = 200    # points in the SVG polyline (visual fidelity vs payload size)
 
-SPARKLINE_FUTURE_OPACITY = 0.1    # unplayed-portion polyline opacity (dimmed, not hidden)
-SPARKLINE_STAR_RADIUS    = 2.5    # star marker radius (SVG viewBox units, 0–100 x-axis)
+SPARKLINE_FUTURE_OPACITY = 0.05   # unplayed-portion polyline opacity (dimmed, not hidden)
+SPARKLINE_STAR_RADIUS    = 1.5    # star marker radius (SVG viewBox units, 0–100 x-axis)
 SPARKLINE_STAR_GLOW_BLUR = 4.0    # feGaussianBlur stdDeviation for star glow filter
 
 # ═══════════════════════════════════════════════════════════════════════════
