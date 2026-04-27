@@ -5,6 +5,8 @@
 venv/
 env/
 
+.claude/
+
 # --- Data & Tests ---
 data/
 source/
