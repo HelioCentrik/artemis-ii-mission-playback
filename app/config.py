@@ -206,7 +206,7 @@ PHASE_REGISTRY = (
     {"key": "return_burn_2",    "label": "Return Burn 2",          "short": "RB2",  "scrubber": False, "arc_marker": True,  "status_bar": False},
     # ── Scrubber dot 5 ────────────────────────────────────────────────────
     {"key": "earth_approach",   "label": "Earth Approach",         "short": "EA",   "scrubber": True,  "arc_marker": True,  "status_bar": True,  "status_label": "EARTH APPROACH"},
-    {"key": "dataset_close",    "label": "Last Known Pos.",        "short": "LKP",  "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "LAST KNOWN POSITION"},
+    {"key": "dataset_close",    "label": "Last Available Pos.",    "short": "LKP",  "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "LAST AVAILABLE POSITION"},
 )
 
 
@@ -513,3 +513,5 @@ FONT_SIZE_KPI     = FONT_SIZE_KPI_MAX   # alias — used for Python-side sizing 
 FONT_SIZE_LABEL  = 11
 FONT_SIZE_HEADER = 14
 FONT_SIZE_STATUS = 12
+
+FONT_SIZE_TOOLTIP = 13

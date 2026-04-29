@@ -32,7 +32,7 @@
     // Computed once at IIFE init — not per-frame.
     var _cfg             = window._artemisConfig;
     var SVG_VW           = _cfg.KPI_SVG_WIDTH;
-    var SVG_VH = _cfg.KPI_SVG_HEIGHT;
+    var SVG_VH           = _cfg.KPI_SVG_HEIGHT;
     var DIAL_R           = _cfg.DIAL_RADIUS;
     var DIAL_CX          = SVG_VW / 2;
     var DIAL_ANG_MIN     = _cfg.DIAL_ANGLE_MIN;

@@ -13,7 +13,7 @@ from app.config import (
     FONT_FAMILY, FONT_PRIMARY, FONT_DIM,
     CHART_GRID_COLOR,
     ACCENT_VECTORS, ACCENT_TRAJECTORY, ACCENT_GRAVITY, ACCENT_RANGE,
-    FONT_SIZE_LABEL,
+    FONT_SIZE_LABEL, FONT_SIZE_TOOLTIP,
 )
 
 
@@ -63,7 +63,7 @@ _layout = go.Layout(
         font=dict(
             family=FONT_FAMILY,
             color=FONT_PRIMARY,
-            size=FONT_SIZE_LABEL,
+            size=FONT_SIZE_TOOLTIP,
         ),
     ),
 
