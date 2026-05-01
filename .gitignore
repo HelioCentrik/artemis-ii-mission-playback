@@ -8,7 +8,8 @@ env/
 .claude/
 
 # --- Data & Tests ---
-data/
+data/*
+!data/artemis2.duckdb
 source/
 test/
 scripts/probe_horizons.py
