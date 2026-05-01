@@ -85,6 +85,47 @@ R_MOON   = 1_737.4
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  LAYOUT DIMENSIONS
+#
+#  Responsive triplets: (min_px, preferred_unit, max_px)
+#  index_string.py assembles these into clamp() expressions.
+#  CSS syntax never appears here.
+#
+#  Flat aliases kept for any existing code that imports the old names.
+# ═══════════════════════════════════════════════════════════════════════════
+
+HEADER_BRAND_HEIGHT = 44
+
+PANEL_BORDER_RADIUS = 4   # fixed — no scaling
+
+# Gap between panels
+PANEL_GAP_MIN = 6
+PANEL_GAP_VW  = 0.75   # 0.75vw ≈ 10px at 1333px wide
+PANEL_GAP_MAX = 12
+
+# Padding inside panels
+PANEL_PADDING_MIN = 10
+PANEL_PADDING_VW  = 1.2    # 1.2vw ≈ 16px at 1333px wide
+PANEL_PADDING_MAX = 18
+
+# Trajectory panel height
+TRAJECTORY_HEIGHT_MIN = 400
+TRAJECTORY_HEIGHT_VH  = 50     # 50vh = 540px at 1080p
+TRAJECTORY_HEIGHT_MAX = 640
+
+SCRUBBER_HEIGHT            = 44   # fixed
+SCRUBBER_BORDER_RADIUS     = 20   # fixed
+SCRUBBER_HORIZONTAL_MARGIN = 112  # fixed
+SCRUBBER_DOT_SIZE          = 12   # fixed
+SCRUBBER_DOT_ACTIVE        = 14   # fixed
+
+# Telemetry grid height
+TELEMETRY_HEIGHT_MIN = 280
+TELEMETRY_HEIGHT_VH  = 33     # 33vh ≈ 356px at 1080p
+TELEMETRY_HEIGHT_MAX = 480
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  COLOR TOKENS
 #
 #  All values unpacked from the active theme. Semantic names here map to
@@ -418,51 +459,6 @@ PLAYBACK_SPEED_LABEL              = f"PLAYBACK · {PLAYBACK_SPEED_MULT}×"
 
 PLAYBACK_BTN_SIZE      = 32   # px — play/pause button diameter
 PLAYBACK_BTN_FONT_SIZE = 20   # px
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-#  LAYOUT DIMENSIONS
-#
-#  Responsive triplets: (min_px, preferred_unit, max_px)
-#  index_string.py assembles these into clamp() expressions.
-#  CSS syntax never appears here.
-#
-#  Flat aliases kept for any existing code that imports the old names.
-# ═══════════════════════════════════════════════════════════════════════════
-
-HEADER_BRAND_HEIGHT = 44
-
-PANEL_BORDER_RADIUS = 4   # fixed — no scaling
-
-# Gap between panels
-PANEL_GAP_MIN = 6
-PANEL_GAP_VW  = 0.75   # 0.75vw ≈ 10px at 1333px wide
-PANEL_GAP_MAX = 12
-PANEL_GAP     = PANEL_GAP_MIN   # alias — pixel floor used for Python layout math
-
-# Padding inside panels
-PANEL_PADDING_MIN = 10
-PANEL_PADDING_VW  = 1.2    # 1.2vw ≈ 16px at 1333px wide
-PANEL_PADDING_MAX = 18
-PANEL_PADDING     = PANEL_PADDING_MIN   # alias
-
-# Trajectory panel height
-TRAJECTORY_HEIGHT_MIN = 400
-TRAJECTORY_HEIGHT_VH  = 50     # 50vh = 540px at 1080p
-TRAJECTORY_HEIGHT_MAX = 640
-TRAJECTORY_MIN_HEIGHT = TRAJECTORY_HEIGHT_MIN   # alias
-
-SCRUBBER_HEIGHT            = 44   # fixed
-SCRUBBER_BORDER_RADIUS     = 20   # fixed
-SCRUBBER_HORIZONTAL_MARGIN = 112  # fixed
-SCRUBBER_DOT_SIZE          = 12   # fixed
-SCRUBBER_DOT_ACTIVE        = 14   # fixed
-
-# Telemetry grid height
-TELEMETRY_HEIGHT_MIN = 280
-TELEMETRY_HEIGHT_VH  = 33     # 33vh ≈ 356px at 1080p
-TELEMETRY_HEIGHT_MAX = 480
-TELEMETRY_MIN_HEIGHT = TELEMETRY_HEIGHT_MIN   # alias
 
 
 # ═══════════════════════════════════════════════════════════════════════════
