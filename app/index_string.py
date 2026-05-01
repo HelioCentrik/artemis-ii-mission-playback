@@ -35,7 +35,7 @@ from app.config import (
     KPI_SVG_VIEWBOX_WIDTH, KPI_SVG_VIEWBOX_HEIGHT,
     SPARKLINE_PAD_X, SPARKLINE_PAD_Y, SPARKLINE_WIDTH, SPARKLINE_HEIGHT,
     DIAL_RADIUS, DIAL_ANGLE_MIN, DIAL_ANGLE_MAX, DIAL_STROKE_WIDTH,
-    DIAL_STROKE_LINECAP, DIAL_CY_OFFSET,
+    DIAL_STROKE_LINECAP, DIAL_CY_OFFSET, DASHBOARD_WIDTH_MAX, DASHBOARD_WIDTH_MIN, DASHBOARD_WIDTH_VW,
 )
 
 
@@ -124,7 +124,7 @@ INDEX_STRING = f"""<!DOCTYPE html>
             --playback-btn-font-size: {PLAYBACK_BTN_FONT_SIZE}px;
 
             /* ── Dashboard bounds ── */
-            --dashboard-max-w:    1280px;
+            --dashboard-width:    clamp({DASHBOARD_WIDTH_MIN}px, {DASHBOARD_WIDTH_VW}vw, {DASHBOARD_WIDTH_MAX}px);
         }}
     </style>
 

@@ -95,6 +95,10 @@ R_MOON   = 1_737.4
 # ═══════════════════════════════════════════════════════════════════════════
 
 
+DASHBOARD_WIDTH_MIN = 1080
+DASHBOARD_WIDTH_VW  = 66.67
+DASHBOARD_WIDTH_MAX = 1600
+
 HEADER_BRAND_HEIGHT = 40
 
 PANEL_BORDER_RADIUS = 4   # fixed — no scaling
@@ -354,7 +358,7 @@ BIDIR_NEGATIVE_COLOR = _hsl_rotate(_T["accent_a"], BIDIR_HUE_OFFSET)
 # ═══════════════════════════════════════════════════════════════════════════
 
 DIAL_CY_OFFSET      = 8       # dial vertical offset
-DIAL_RADIUS         = 64      # arc radius in SVG units
+DIAL_RADIUS         = 56      # arc radius in SVG units
 DIAL_STROKE_WIDTH   = 36      # arc stroke width
 DIAL_ANGLE_MIN      = 170     # degrees — left endpoint (just inside 9 o'clock)
 DIAL_ANGLE_MAX      = 10      # degrees — right endpoint (just inside 3 o'clock)

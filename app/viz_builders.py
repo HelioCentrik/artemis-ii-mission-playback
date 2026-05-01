@@ -246,7 +246,7 @@ def build_bar_svg(
     return (
         f'<div style="line-height:0">'
         f'<svg viewBox="0 0 {_VW} {_VH}" '
-        f'width="100%" height="{SPARKLINE_HEIGHT}" '
+        f'width="100%" height="100%" '
         f'preserveAspectRatio="none" style="display:block;">'
 
         f'<rect x="0" y="{by:.1f}" width="{_VW}" height="{BAR_HEIGHT}" '
@@ -305,7 +305,7 @@ def build_bidir_bar_svg(
     return (
         f'<div style="line-height:0">'
         f'<svg viewBox="0 0 {_VW} {_VH}" '
-        f'width="100%" height="{SPARKLINE_HEIGHT}" '
+        f'width="100%" height="100%" '
         f'preserveAspectRatio="none" style="display:block;">'
 
         # Background track — split at midline so each half mirrors its fill color
@@ -391,8 +391,10 @@ def build_dial_svg(column: str, value: float) -> str:
     return (
         f'<div style="line-height:0">'
         f'<svg viewBox="0 0 {_VW} {_VH}" '
-        f'width="100%" height="{SPARKLINE_HEIGHT}" '
-        f'preserveAspectRatio="xMidYMid meet" style="display:block;">'
+        f'width="100%" height="100%" '
+        f'preserveAspectRatio="xMidYMid meet" '
+        f'overflow="visible" '
+        f'style="display:block;">'
 
         # Background arc — dim, full sweep
         f'<path d="{bg_d}" fill="none" '
