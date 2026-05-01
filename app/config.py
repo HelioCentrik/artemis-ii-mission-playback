@@ -270,13 +270,13 @@ SPARKLINE_PAD_X          = 10     # left/right padding inside sparkline
 SPARKLINE_PAD_Y          = 4      # top/bottom padding inside sparkline
 SPARKLINE_WIDTH          = 100    # usable sparkline width inside tile
 SPARKLINE_HEIGHT         = KPI_SVG_VIEWBOX_HEIGHT     # usable sparkline height inside tile
-SPARKLINE_PATH_OPACITY   = 0.65   # sparkline line opacity
+SPARKLINE_PATH_OPACITY   = 0.85   # sparkline line opacity
 SPARKLINE_PATH_WIDTH     = 1.5    # sparkline stroke-width (SVG units)
 SPARKLINE_NEEDLE_OPACITY = 0.85   # position needle opacity
 SPARKLINE_NEEDLE_WIDTH   = 1.8    # needle stroke-width (SVG units)
 SPARKLINE_DOWNSAMPLE_N   = 200    # points in the SVG polyline (visual fidelity vs payload size)
 
-SPARKLINE_FUTURE_OPACITY = 0.05   # unplayed-portion polyline opacity (dimmed, not hidden)
+SPARKLINE_FUTURE_OPACITY = 0.075  # unplayed-portion polyline opacity (dimmed, not hidden)
 SPARKLINE_STAR_RADIUS    = 1.5    # star marker radius (SVG viewBox units, 0–100 x-axis)
 SPARKLINE_STAR_GLOW_BLUR = 4.0    # feGaussianBlur stdDeviation for star glow filter
 
@@ -505,13 +505,16 @@ GOOGLE_FONTS_URL = (
     "family=Space+Mono:wght@400;700&display=swap"
 )
 
+FONT_SIZE_TITLE_MIN = 16
+FONT_SIZE_TITLE_VW  = 1.4
+FONT_SIZE_TITLE_MAX = 28
+
+FONT_SIZE_HEADER  = 14
+FONT_SIZE_LABEL   = 11
+FONT_SIZE_STATUS  = 14
+FONT_SIZE_TOOLTIP = 13
+
 FONT_SIZE_KPI_MIN = 20
 FONT_SIZE_KPI_VW  = 1.8    # clamp(20px, 1.8vw, 28px) as specified
 FONT_SIZE_KPI_MAX = 28
 FONT_SIZE_KPI     = FONT_SIZE_KPI_MAX   # alias — used for Python-side sizing math
-
-FONT_SIZE_LABEL  = 11
-FONT_SIZE_HEADER = 14
-FONT_SIZE_STATUS = 12
-
-FONT_SIZE_TOOLTIP = 13

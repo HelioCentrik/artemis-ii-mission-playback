@@ -11,6 +11,7 @@ from app.config import (
     BG_BASE, PANEL_BG, PANEL_BORDER,
     # Typography
     FONT_PRIMARY, FONT_DIM, FONT_FAMILY, GOOGLE_FONTS_URL,
+    FONT_SIZE_TITLE_MIN, FONT_SIZE_TITLE_VW, FONT_SIZE_TITLE_MAX,
     FONT_SIZE_KPI_MIN, FONT_SIZE_KPI_VW, FONT_SIZE_KPI_MAX,
     FONT_SIZE_LABEL, FONT_SIZE_HEADER, FONT_SIZE_STATUS,
     # Status
@@ -86,6 +87,7 @@ INDEX_STRING = f"""<!DOCTYPE html>
             --font-primary:       {FONT_PRIMARY};
             --font-dim:           {FONT_DIM};
             --font-size-kpi:      clamp({FONT_SIZE_KPI_MIN}px, {FONT_SIZE_KPI_VW}vw, {FONT_SIZE_KPI_MAX}px);
+            --font-size-title:    clamp({FONT_SIZE_TITLE_MIN}px, {FONT_SIZE_TITLE_VW}vw, {FONT_SIZE_TITLE_MAX}px);
             --font-size-label:    {FONT_SIZE_LABEL}px;
             --font-size-header:   {FONT_SIZE_HEADER}px;
             --font-size-status:   {FONT_SIZE_STATUS}px;
