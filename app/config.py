@@ -358,8 +358,8 @@ BIDIR_NEGATIVE_COLOR = _hsl_rotate(_T["accent_a"], BIDIR_HUE_OFFSET)
 # ═══════════════════════════════════════════════════════════════════════════
 
 DIAL_CY_OFFSET      = 8       # dial vertical offset
-DIAL_RADIUS         = 56      # arc radius in SVG units
-DIAL_STROKE_WIDTH   = 36      # arc stroke width
+DIAL_RADIUS         = 36      # arc radius in SVG units
+DIAL_STROKE_WIDTH   = 28      # arc stroke width
 DIAL_ANGLE_MIN      = 170     # degrees — left endpoint (just inside 9 o'clock)
 DIAL_ANGLE_MAX      = 10      # degrees — right endpoint (just inside 3 o'clock)
 DIAL_VAL_MIN        = 0.0     # data value mapped to DIAL_ANGLE_MIN

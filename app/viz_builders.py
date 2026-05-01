@@ -187,7 +187,7 @@ def build_sparkline_svg(column: str, sparkline_points: str, needle_x: str) -> st
     return (
         f'<div style="line-height:0">'
         f'<svg viewBox="0 0 {_VW} {_VH}" '
-        f'width="100%" height="{SPARKLINE_HEIGHT}" '
+        f'width="100%" height="100%" '
         f'preserveAspectRatio="none" style="display:block;">'
 
         # Dim future trace — static, no id
