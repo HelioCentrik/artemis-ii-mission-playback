@@ -109,9 +109,9 @@ PANEL_GAP_VW  = 0.75   # 0.75vw ≈ 10px at 1333px wide
 PANEL_GAP_MAX = 12
 
 # Padding inside panels
-PANEL_PADDING_MIN = 10
-PANEL_PADDING_VW  = 1.2    # 1.2vw ≈ 16px at 1333px wide
-PANEL_PADDING_MAX = 18
+PANEL_PADDING_MIN = 6
+PANEL_PADDING_VW  = 0.6    # 1.2vw ≈ 16px at 1333px wide
+PANEL_PADDING_MAX = 14
 
 # Trajectory panel height
 TRAJECTORY_HEIGHT_MIN = 320
@@ -358,8 +358,8 @@ BIDIR_NEGATIVE_COLOR = _hsl_rotate(_T["accent_a"], BIDIR_HUE_OFFSET)
 # ═══════════════════════════════════════════════════════════════════════════
 
 DIAL_CY_OFFSET      = 4       # dial vertical offset
-DIAL_RADIUS         = 36      # arc radius in SVG units
-DIAL_STROKE_WIDTH   = 28      # arc stroke width
+DIAL_RADIUS         = 40      # arc radius in SVG units
+DIAL_STROKE_WIDTH   = 24      # arc stroke width
 DIAL_ANGLE_MIN      = 170     # degrees — left endpoint (just inside 9 o'clock)
 DIAL_ANGLE_MAX      = 10      # degrees — right endpoint (just inside 3 o'clock)
 DIAL_VAL_MIN        = 0.0     # data value mapped to DIAL_ANGLE_MIN

@@ -276,10 +276,10 @@
                                 // independently. Height is a fixed CSS px value == SVG_VH
                                 // so y-scale is 1.0 — only x-scale varies with tile width.
                                 var svgRect = pastEl.ownerSVGElement.getBoundingClientRect();
-                                if (svgRect.width > 0) {
+                                if (svgRect.width > 0 && svgRect.height > 0) {
                                     var rx = parseFloat(starEl.getAttribute('rx'));
                                     starEl.setAttribute('ry',
-                                        (rx * svgRect.width / SVG_VW).toFixed(3));
+                                        (rx * svgRect.width * SVG_VH / (svgRect.height * SVG_VW)).toFixed(3));
                                 }
                             }
                         }
