@@ -124,7 +124,7 @@ INDEX_STRING = f"""<!DOCTYPE html>
             --playback-btn-font-size: {PLAYBACK_BTN_FONT_SIZE}px;
 
             /* ── Dashboard bounds ── */
-            --dashboard-max-w:    1400px;
+            --dashboard-max-w:    1280px;
         }}
     </style>
 

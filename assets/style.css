@@ -24,6 +24,7 @@ body {
     line-height: 1.4;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    height: 100%;
 }
 
 
@@ -466,4 +467,11 @@ body {
 /* Dash loading spinners — match theme */
 ._dash-loading {
     color: var(--font-dim) !important;
+}
+
+
+/* Target resolution: lock to viewport, no scroll */
+@media (min-height: 800px) {
+    html, body { overflow: hidden; }
+    .dashboard  { height: 100vh; overflow: hidden; }
 }

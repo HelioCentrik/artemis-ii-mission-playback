@@ -94,7 +94,8 @@ R_MOON   = 1_737.4
 #  Flat aliases kept for any existing code that imports the old names.
 # ═══════════════════════════════════════════════════════════════════════════
 
-HEADER_BRAND_HEIGHT = 44
+
+HEADER_BRAND_HEIGHT = 40
 
 PANEL_BORDER_RADIUS = 4   # fixed — no scaling
 
@@ -109,7 +110,7 @@ PANEL_PADDING_VW  = 1.2    # 1.2vw ≈ 16px at 1333px wide
 PANEL_PADDING_MAX = 18
 
 # Trajectory panel height
-TRAJECTORY_HEIGHT_MIN = 400
+TRAJECTORY_HEIGHT_MIN = 320
 TRAJECTORY_HEIGHT_VH  = 50     # 50vh = 540px at 1080p
 TRAJECTORY_HEIGHT_MAX = 640
 
@@ -120,7 +121,7 @@ SCRUBBER_DOT_SIZE          = 12   # fixed
 SCRUBBER_DOT_ACTIVE        = 14   # fixed
 
 # Telemetry grid height
-TELEMETRY_HEIGHT_MIN = 280
+TELEMETRY_HEIGHT_MIN = 240
 TELEMETRY_HEIGHT_VH  = 33     # 33vh ≈ 356px at 1080p
 TELEMETRY_HEIGHT_MAX = 480
 
@@ -295,7 +296,7 @@ TELEMETRY_METRICS: dict[str, list[dict]] = {
 }
 
 KPI_SVG_VIEWBOX_WIDTH  = 100    # internal SVG x range (0 → 100 = full mission)
-KPI_SVG_VIEWBOX_HEIGHT = 84     # internal SVG y range
+KPI_SVG_VIEWBOX_HEIGHT = 68      # internal SVG y range
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -502,15 +503,15 @@ GOOGLE_FONTS_URL = (
 )
 
 FONT_SIZE_TITLE_MIN = 16
-FONT_SIZE_TITLE_VW  = 1.4
-FONT_SIZE_TITLE_MAX = 28
+FONT_SIZE_TITLE_VW  = 1.25
+FONT_SIZE_TITLE_MAX = 25
 
-FONT_SIZE_HEADER  = 14
-FONT_SIZE_LABEL   = 11
-FONT_SIZE_STATUS  = 14
-FONT_SIZE_TOOLTIP = 13
+FONT_SIZE_HEADER  = 13
+FONT_SIZE_LABEL   = 10
+FONT_SIZE_STATUS  = 13
+FONT_SIZE_TOOLTIP = 12
 
-FONT_SIZE_KPI_MIN = 20
+FONT_SIZE_KPI_MIN = 16
 FONT_SIZE_KPI_VW  = 1.8    # clamp(20px, 1.8vw, 28px) as specified
-FONT_SIZE_KPI_MAX = 28
+FONT_SIZE_KPI_MAX = 25
 FONT_SIZE_KPI     = FONT_SIZE_KPI_MAX   # alias — used for Python-side sizing math
