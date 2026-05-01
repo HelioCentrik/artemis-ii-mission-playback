@@ -536,9 +536,15 @@ app.clientside_callback(
         window._artemisState.needsRender = true;
         window._artemisState.resetTiming = true;
 
+        // If the mission ended and the button is showing ↺, restore it to ▶.
+        // Scrubber navigation after end-of-mission should return to paused/ready state.
+        var btn = document.getElementById('playback-btn');
+        if (btn && btn.textContent === '\u21ba') {
+            btn.textContent = '\u25b6';
+            btn.className   = 'playback-btn';
+        }
+    
         // Update dot immediately — don't wait for renderFrame round-trip.
-        // React may reset the class during reconciliation; renderFrame will
-        // re-correct it, but this ensures the highlight lands on click.
         document.querySelectorAll('.scrubber-dot').forEach(function(dot, idx) {
             dot.className = (idx === phaseIdx)
                 ? 'scrubber-dot active'
