@@ -485,8 +485,15 @@
         var total = state.preloaded.total_frames;
 
         if (fi >= total) {
-            fi            = total - 1;
-            state.running = false;     // auto-stop at end of mission
+            fi                = total - 1;
+            state.running     = false;        // auto-stop at end of mission
+            state.needsRender = true;         // drain into paused-branch render
+
+            var endBtn = document.getElementById('playback-btn');
+            if (endBtn) {
+                endBtn.textContent = '\u21ba'; // ↺
+                endBtn.className   = 'playback-btn ended';
+            }
         }
 
         state.frame_idx      = fi;

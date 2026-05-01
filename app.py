@@ -485,17 +485,31 @@ app.clientside_callback(
 app.clientside_callback(
     """function(n_clicks, state) {
         if (!n_clicks || !state) return window.dash_clientside.no_update;
-        var nowRunning = !state.running;
-
+        var currentRunning = (window._artemisState && window._artemisState.preloaded)
+                             ? window._artemisState.running
+                             : state.running;
+        var nowRunning = !currentRunning;
+    
         if (!window._artemisState) window._artemisState = {};
+    
+        // If resuming from the end of mission, restart from frame 0.
+        if (nowRunning) {
+            var total = window._artemisState.preloaded
+                        && window._artemisState.preloaded.total_frames;
+            if (total && window._artemisState.frame_idx >= total - 1) {
+                window._artemisState.frame_idx  = 0;
+                window._artemisState.resetTiming = true;
+            }
+        }
+    
         window._artemisState.running = nowRunning;
-
+    
         var btn = document.getElementById('playback-btn');
         if (btn) {
             btn.textContent = nowRunning ? '\u23f8' : '\u25b6';
             btn.className   = nowRunning ? 'playback-btn playing' : 'playback-btn';
         }
-
+    
         return {running: nowRunning};
     }""",
     Output("playback-running-store", "data"),
