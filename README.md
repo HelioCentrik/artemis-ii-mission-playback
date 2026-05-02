@@ -1,7 +1,15 @@
 # Artemis II Mission Tracker
 
 A mission control-style dashboard visualizing the Artemis II lunar flyby trajectory
-in real time. Built with Python and Dash.
+in real time. Built with Python, Dash, Plotly, and DuckDB.
+
+![Dashboard screenshot](assets/artemis-ii.png)
+
+---
+
+## Live Demo
+
+[artemis-ii-mission-playback.onrender.com](https://artemis-ii-mission-playback.onrender.com)
 
 ---
 
@@ -9,8 +17,8 @@ in real time. Built with Python and Dash.
 
 ```bash
 # Clone and create virtual environment
-git clone <repo-url>
-cd Artemis-II-Mission-Tracker
+git clone https://github.com/HelioCentrik/artemis-ii-mission-playback
+cd artemis-ii-mission-playback
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 
