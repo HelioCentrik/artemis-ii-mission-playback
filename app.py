@@ -35,6 +35,8 @@
 #     update-trajectory  : phase-store | pause-rebuild-store → trajectory-content
 #                          (Full-quality rebuild on phase click or pause)
 
+import os
+
 import dash
 from dash import html, dcc, Input, Output, State, ctx
 from dash.dependencies import ALL
@@ -701,4 +703,8 @@ def update_telemetry(phase_idx, pause_data):
 # ═══════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8050, threaded=False)
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8050)),
+        debug=os.environ.get("DASH_DEBUG", "false").lower() == "true"
+    )
