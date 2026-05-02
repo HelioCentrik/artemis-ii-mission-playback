@@ -67,6 +67,17 @@ body {
     text-align: right;
 }
 
+.header-credit {
+    font-size: var(--font-size-label);
+    color: var(--font-dim);
+    text-decoration: none;
+    letter-spacing: 1px;
+}
+
+.header-credit:hover {
+    color: var(--font-primary);
+}
+
 .header-title {
     font-size: var(--font-size-title);
     font-weight: 700;
