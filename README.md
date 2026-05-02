@@ -1,4 +1,4 @@
-# Artemis II Mission Tracker
+# Artemis II • Mission Tracker
 
 A mission control-style dashboard visualizing the Artemis II lunar flyby trajectory
 in real time. Built with Python, Dash, Plotly, and DuckDB.
