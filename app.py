@@ -259,7 +259,7 @@ _SERIES_STATS: dict[str, dict] = {
 
 app = dash.Dash(
     __name__,
-    title="Artemis II · Mission Playback",
+    title="Artemis II • Mission Playback",
     update_title=None,
     index_string=INDEX_STRING,
 )
