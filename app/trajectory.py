@@ -215,8 +215,8 @@ def _get_fixed_ranges() -> dict:
 
 def get_moon_preload_data() -> dict:
     """
-    Return Moon rendering constants needed by _build_preload_data() in app.py.
-    Body radii and viewport range live here — this keeps them out of app.py.
+    Return Moon rendering constants needed by _build_preload_data() in main.py.
+    Body radii and viewport range live here — this keeps them out of main.py.
 
     Keys
     ----

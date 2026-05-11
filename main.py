@@ -1,4 +1,4 @@
-# app.py
+# main.py
 #
 # Dash application entry point. Layout structure and callback wiring only.
 # Business logic lives in dedicated modules under app/.

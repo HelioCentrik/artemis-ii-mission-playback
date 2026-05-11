@@ -29,7 +29,7 @@ pip install -r requirements.txt
 python scripts/init_db.py
 
 # Launch the dashboard
-python app.py
+python main.py
 ```
 
 Then open `http://127.0.0.1:8050`.
