@@ -1,4 +1,4 @@
-# Artemis II Mission Playback WITH WET FARTS
+# Artemis II Mission Playback
 ### A Mission Control Dashboard
 
 9 days. 12,836 state vectors. One lunar flyby. Visualized at mission control fidelity from real NASA JPL ephemeris data.
