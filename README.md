@@ -7,35 +7,6 @@ in real time. Built with Python, Dash, Plotly, and DuckDB.
 
 ---
 
-## Live Demo
-
-[artemis-ii-mission-playback.onrender.com](https://artemis-ii-mission-playback.onrender.com)
-
----
-
-## Setup
-
-```bash
-# Clone and create virtual environment
-git clone https://github.com/HelioCentrik/artemis-ii-mission-playback
-cd artemis-ii-mission-playback
-python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Build the database (fetches from JPL Horizons)
-python scripts/init_db.py
-
-# Launch the dashboard
-python main.py
-```
-
-Then open `http://127.0.0.1:8050`.
-
----
-
 ## What It Is
 
 Animates Orion's 9-day Earth-Moon-Earth trajectory at 3600× speed (1 hour per second), driven by 12,836 state vectors at 1-minute resolution from NASA JPL Horizons.
@@ -52,11 +23,56 @@ Animates Orion's 9-day Earth-Moon-Earth trajectory at 3600× speed (1 hour per s
 
 ---
 
+## Live Demo
+
+[artemis-ii-mission-playback.deanallton.com](https://artemis-ii-mission-playback.deanallton.com)
+
+---
+
 ## Mission window
 
 `2026-Apr-02 01:59 UTC` → `2026-Apr-10 23:54 UTC`
 
 The dataset does not begin at launch. JPL Horizons only has trajectory data for Orion once DSN ground stations acquired the signal after orbital insertion - approximately T+3.5 hours after SLS liftoff. The final ~13 minutes of the mission (reentry through splashdown) are also absent: the plasma sheath surrounding the capsule during atmospheric reentry blocks all radio communication, cutting off tracking data before the vehicle reaches Earth's surface.
+
+---
+
+## Setup
+
+```bash
+# Clone and create virtual environment
+git clone https://github.com/HelioCentrik/artemis-ii-mission-playback
+cd artemis-ii-mission-playback
+python -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Launch the dashboard
+python main.py
+```
+
+Then open `http://127.0.0.1:8050`.
+
+> The database (`data/artemis2.duckdb`) is included in the repo — no build step required. To rebuild it from JPL Horizons, run `python scripts/init_db.py`.
+
+Then open `http://127.0.0.1:8050`.
+
+---
+
+## Deployment
+
+Serve with Gunicorn:
+
+```bash
+pip install gunicorn
+gunicorn main:server --workers 2 --bind 0.0.0.0:8050 --timeout 120
+```
+
+No environment variables are required. The DuckDB file is committed to the repo and loaded into memory at startup — there are no external API dependencies at runtime.
+
+The live demo runs behind a Cloudflare tunnel on a self-hosted Linux server, managed as a systemd service. Any reverse proxy or tunnel setup that can forward HTTP to the Gunicorn port will work.
 
 ---
 
@@ -90,7 +106,7 @@ Ephemeris data retrieved from the [JPL Horizons REST API](https://ssd.jpl.nasa.g
 | Moon | `301` | VECTORS |
 | Sun | `10` | VECTORS |
 
-All data is geocentric ICRF, 1-minute step size. The database is not committed to the repo - rebuild it locally with the init script above.
+All data is geocentric ICRF, 1-minute step size.
 
 ---
 
