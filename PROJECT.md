@@ -44,7 +44,7 @@ Ephemeris data from the JPL Horizons REST API (state vectors + orbital elements 
 → DuckDB (four tables sharing a common timestamp spine, with precomputed SQL views for all derived metrics)  
 → in-memory load at startup  
 → clientside animation hot path via Plotly restyle API for real-time playback at 10 fps  
-→ Dash/Plotly frontend with a CSS token pipeline for theming. Deployed on Render.
+→ Dash/Plotly frontend with a CSS token pipeline for theming. Self-hosted.
 
 ---
 
