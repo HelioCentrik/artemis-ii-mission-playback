@@ -13,12 +13,13 @@ from app.config import (
     FONT_PRIMARY, FONT_DIM, FONT_FAMILY, GOOGLE_FONTS_URL,
     FONT_SIZE_TITLE_MIN, FONT_SIZE_TITLE_VW, FONT_SIZE_TITLE_MAX,
     FONT_SIZE_KPI_MIN, FONT_SIZE_KPI_VW, FONT_SIZE_KPI_MAX,
-    FONT_SIZE_LABEL, FONT_SIZE_HEADER, FONT_SIZE_STATUS,
+    FONT_SIZE_LABEL, FONT_SIZE_HEADER, FONT_SIZE_STATUS, FONT_SIZE_TOOLTIP, FONT_SIZE_SIDE_PANEL,
     # Status
     STATUS_LIVE,
     # Accents
     ACCENT_VECTORS, ACCENT_TRAJECTORY, ACCENT_GRAVITY, ACCENT_RANGE,
     # Layout
+    SIDE_PANEL_WIDTH, SIDE_PANEL_TRANSITION,
     HEADER_BRAND_HEIGHT,
     TRAJECTORY_HEIGHT_MIN, TRAJECTORY_HEIGHT_VH, TRAJECTORY_HEIGHT_MAX,
     SCRUBBER_HEIGHT, SCRUBBER_BORDER_RADIUS, SCRUBBER_HORIZONTAL_MARGIN,
@@ -77,20 +78,27 @@ INDEX_STRING = f"""<!DOCTYPE html>
 
     <style>
         :root {{
+        
+            /* ── Side panel ── */
+            --side-panel-width:      {SIDE_PANEL_WIDTH}px;
+            --side-panel-transition: {SIDE_PANEL_TRANSITION};
+
             /* ── Surfaces ── */
             --bg-base:            {BG_BASE};
             --panel-bg:           {PANEL_BG};
             --panel-border:       {PANEL_BORDER};
 
             /* ── Typography ── */
-            --font-family:        {FONT_FAMILY};
-            --font-primary:       {FONT_PRIMARY};
-            --font-dim:           {FONT_DIM};
-            --font-size-kpi:      clamp({FONT_SIZE_KPI_MIN}px, {FONT_SIZE_KPI_VW}vw, {FONT_SIZE_KPI_MAX}px);
-            --font-size-title:    clamp({FONT_SIZE_TITLE_MIN}px, {FONT_SIZE_TITLE_VW}vw, {FONT_SIZE_TITLE_MAX}px);
-            --font-size-label:    {FONT_SIZE_LABEL}px;
-            --font-size-header:   {FONT_SIZE_HEADER}px;
-            --font-size-status:   {FONT_SIZE_STATUS}px;
+            --font-family:          {FONT_FAMILY};
+            --font-primary:         {FONT_PRIMARY};
+            --font-dim:             {FONT_DIM};
+            --font-size-kpi:        clamp({FONT_SIZE_KPI_MIN}px, {FONT_SIZE_KPI_VW}vw, {FONT_SIZE_KPI_MAX}px);
+            --font-size-title:      clamp({FONT_SIZE_TITLE_MIN}px, {FONT_SIZE_TITLE_VW}vw, {FONT_SIZE_TITLE_MAX}px);
+            --font-size-label:      {FONT_SIZE_LABEL}px;
+            --font-size-header:     {FONT_SIZE_HEADER}px;
+            --font-size-status:     {FONT_SIZE_STATUS}px;
+            --font-size-tooltip:    {FONT_SIZE_TOOLTIP}px;
+            --font-size-side-panel: {FONT_SIZE_SIDE_PANEL}px;
 
             /* ── Status ── */
             --status-live:        {STATUS_LIVE};

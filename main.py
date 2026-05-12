@@ -36,9 +36,10 @@
 #                          (Full-quality rebuild on phase click or pause)
 
 import os
+from pathlib import Path
 
 import dash
-from dash import html, dcc, Input, Output, State, ctx
+from dash import html, dcc, Input, Output, State, ctx, no_update
 from dash.dependencies import ALL
 from dash.exceptions import PreventUpdate
 from datetime import datetime as _datetime
@@ -432,37 +433,70 @@ app.layout = html.Div([
     dcc.Store(id="playback-frame-store",   data={"frame_idx": 0}),
     dcc.Store(id="resize-store",           data=0),
 
+    # ── Panel mode stores ────────────────────────────────────────────────
+    dcc.Store(id="panel-mode", data=None),
+    dcc.Store(id="last-panel-mode", data="project"),
+
     # Preload baked in at startup — immediately available, no callback needed.
     dcc.Store(id="traj-preload-store",     data=_PRELOAD_DATA),
 
     # Written on pause → triggers full-quality figure rebuild.
     dcc.Store(id="pause-rebuild-store"),
 
-    # ── Dummy outputs for clientside callbacks ───────────────────────────
-    html.Div(id="artemis-init-dummy",  style={"display": "none"}),
-
-    # ── Header ───────────────────────────────────────────────────────────
-    _build_header(),
-
-    # ── Trajectory panel ─────────────────────────────────────────────────
+    # ── Main dashboard ───────────────────────────────────────────────────
     html.Div([
-        html.Div(
-            "FDO · TRAJECTORY · ORION / UPPER STAGE · EARTH-MOON",
-            className="panel-trajectory-header",
-        ),
+
+        # ── Dummy outputs for clientside callbacks ───────────────────────────
+        html.Div(id="artemis-init-dummy",  style={"display": "none"}),
+
+        # ── Header ───────────────────────────────────────────────────────────
+        _build_header(),
+
+        # ── Trajectory panel ─────────────────────────────────────────────────
         html.Div([
             html.Div(
-                id="trajectory-content",
-                style={"position": "absolute", "inset": "0"},
+                "FDO · TRAJECTORY · ORION / UPPER STAGE · EARTH-MOON",
+                className="panel-trajectory-header",
             ),
-            _build_scrubber(),
-        ], className="panel-trajectory-viz"),
-    ], className="panel panel-trajectory"),
+            html.Div([
+                html.Div(
+                    id="trajectory-content",
+                    style={"position": "absolute", "inset": "0"},
+                ),
+                _build_scrubber(),
+            ], className="panel-trajectory-viz"),
+        ], className="panel panel-trajectory"),
 
-    # ── Telemetry panels ─────────────────────────────────────────────────
-    _build_telemetry_grid(),
+        # ── Telemetry panels ─────────────────────────────────────────────────
+        _build_telemetry_grid(),
 
-], className="dashboard")
+    ], className="dashboard"),
+
+    # ── Side panel controls strip ────────────────────────────────────────
+    html.Div([
+        html.Button(
+            "‹",
+            id="side-panel-toggle-btn",
+            className="side-panel-btn",
+            n_clicks=0,
+            title="Project info",
+        ),
+    ], className="side-panel-controls"),
+
+    # ── Side panel ───────────────────────────────────────────────────────
+    html.Div(
+        id="side-panel",
+        className="side-panel",
+        children=[
+            html.Div(
+                id="side-panel-inner",
+                className="side-panel-inner",
+                children=[html.Div(id="side-panel-content")],
+            )
+        ],
+    ),
+
+], className="page-root")
 
 
 
@@ -576,6 +610,45 @@ app.clientside_callback(
 # ═══════════════════════════════════════════════════════════════════════════
 #  SERVER CALLBACKS
 # ═══════════════════════════════════════════════════════════════════════════
+
+@app.callback(
+    Output("panel-mode", "data"),
+    Output("last-panel-mode", "data"),
+    Input("side-panel-toggle-btn", "n_clicks"),
+    State("panel-mode", "data"),
+    State("last-panel-mode", "data"),
+    prevent_initial_call=True,
+)
+def update_panel_mode(n_clicks, current_mode, last_mode):
+    if current_mode is not None:
+        return None, no_update      # collapse — remember last mode
+    return last_mode, no_update     # reopen to last mode
+
+
+@app.callback(
+    Output("side-panel", "className"),
+    Output("side-panel-toggle-btn", "children"),
+    Output("side-panel-toggle-btn", "className"),
+    Input("panel-mode", "data"),
+)
+def update_panel_state(mode):
+    panel_cls  = "side-panel open" if mode is not None else "side-panel"
+    chevron    = "›" if mode is not None else "‹"
+    toggle_cls = "side-panel-btn active" if mode == "project" else "side-panel-btn"
+    return panel_cls, chevron, toggle_cls
+
+
+_PROJECT_MD = Path("PROJECT.md").read_text(encoding="utf-8")
+
+@app.callback(
+    Output("side-panel-content", "children"),
+    Input("panel-mode", "data"),
+)
+def render_panel_content(mode):
+    if mode == "project":
+        return dcc.Markdown(_PROJECT_MD, link_target="_blank")
+    return None
+
 
 @app.callback(
     Output("phase-store", "data"),

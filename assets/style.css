@@ -32,7 +32,22 @@ body {
    DASHBOARD SHELL
    ═══════════════════════════════════════════════════════════════════════ */
 
+/* ── Page root — flex row: dashboard + controls strip + side panel ── */
+
+.page-root {
+    display          : flex;
+    flex-direction   : row;
+    width            : 100vw;
+    height           : 100vh;
+    overflow         : hidden;
+    background-color : var(--bg-base);
+}
+
 .dashboard {
+    flex: 1;
+    min-width: 0;
+    height: 100vh;
+    overflow-y: auto;
     max-width: var(--dashboard-width);
     margin: 0 auto;
     padding: var(--panel-gap);
@@ -40,7 +55,134 @@ body {
     grid-template-rows: auto auto 1fr auto;
     grid-template-columns: 1fr;
     gap: var(--panel-gap);
-    min-height: 100vh;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SIDE PANEL
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.side-panel-controls {
+    display         : flex;
+    flex-direction  : column;
+    align-items     : center;
+    gap             : 6px;
+    padding-top     : 6px;
+    width           : 40px;
+    flex-shrink     : 0;
+    z-index         : 100;
+}
+
+.side-panel-btn {
+    width            : 32px;
+    height           : 32px;
+    background       : var(--panel-bg);
+    border           : 1px solid var(--panel-border);
+    border-radius    : var(--panel-radius);
+    color            : var(--font-dim);
+    cursor           : pointer;
+    display          : flex;
+    align-items      : center;
+    justify-content  : center;
+    font-size        : 28px;
+    line-height      : 1;
+    padding          : 0;
+    transition       : background 0.15s, color 0.15s;
+}
+
+.side-panel-btn:hover {
+    background   : var(--panel-border);
+    color        : var(--font-primary);
+}
+
+.side-panel-btn.active {
+    color        : var(--accent-trajectory);
+}
+
+
+/* ── Side panel ── */
+
+.side-panel {
+    width       : 0;
+    flex-shrink : 0;
+    overflow    : hidden;
+    transition  : width var(--side-panel-transition);
+    background  : var(--panel-bg);
+    height      : 100vh;
+    box-sizing  : border-box;
+}
+
+.side-panel.open {
+    width       : var(--side-panel-width);
+    border-left : 1px solid var(--panel-border);
+}
+
+.side-panel-inner {
+    width      : var(--side-panel-width);
+    height     : 100%;
+    color      : var(--font-dim);
+    overflow-y : auto;
+    padding    : 1rem 1.1rem;
+    box-sizing : border-box;
+    font-family: var(--font-family);
+    font-size  : var(--font-size-side-panel);
+    line-height: 1.6;
+}
+
+.side-panel-inner h1,
+.side-panel-inner h2,
+.side-panel-inner h3,
+.side-panel-inner h4,
+.side-panel-inner h5,
+.side-panel-inner h6 {
+    color          : var(--font-primary);
+    letter-spacing : 1px;
+    margin-bottom  : 0.4em;
+}
+
+.side-panel-inner p {
+    color          : var(--font-dim);
+    margin-bottom  : 0.75em;
+}
+
+.side-panel-inner a {
+    color           : var(--accent-trajectory);
+    text-decoration : underline;
+}
+
+.side-panel-inner a:hover {
+    color           : var(--font-primary);
+}
+
+.side-panel-inner code {
+    font-family    : var(--font-family);
+    font-size      : 0.9em;
+    background     : var(--panel-border);
+    border-radius  : 2px;
+    padding        : 0.1em 0.3em;
+}
+
+.side-panel-inner hr {
+    border         : none;
+    border-top     : 1px solid var(--panel-border);
+    margin         : 1rem 0;
+}
+
+.side-panel-inner table {
+    width          : 100%;
+    border-collapse: collapse;
+    font-size      : 0.9em;
+}
+
+.side-panel-inner th,
+.side-panel-inner td {
+    text-align  : left;
+    padding     : 4px 8px;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.side-panel-inner th {
+    color: var(--font-primary);
 }
 
 
