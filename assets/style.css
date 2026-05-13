@@ -413,7 +413,25 @@ body {
     flex: 1;
     height: 2px;
     background: var(--panel-border);
+    background-clip: content-box;
     position: relative;
+    padding: 8px 0;
+    margin: -8px 0;
+    box-sizing: content-box;
+    cursor: pointer;
+}
+
+.scrubber-seek-indicator {
+    width: 2px;
+    height: 14px;
+    background: var(--font-primary);
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0.7;
 }
 
 .scrubber-dot {

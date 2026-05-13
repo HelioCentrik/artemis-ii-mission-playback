@@ -415,7 +415,15 @@
             statusEl.textContent =
                 'GMT ' + gmtStr + ' \u00b7 MET ' + metStr + ' \u00b7 ' + phaseLabel;
         }
+
+        // ── Seek indicator — tracks current frame position on scrubber track ──
+        var indicator = document.getElementById('scrubber-seek-indicator');
+        if (indicator) {
+            var pct = fi / (preloaded.total_frames - 1) * 100;
+            indicator.style.left = pct.toFixed(2) + '%';
+        }
     }
+
 
     // ── rAF loop ──────────────────────────────────────────────────────────
     function loop(ts) {
@@ -505,5 +513,101 @@
 
     // Kick the loop immediately. No-ops until _artemisState.running = true.
     window._artemisRafId = requestAnimationFrame(loop);
+
+
+        // ── Scrubber drag/click seek ──────────────────────────────────────────
+    //
+    // mousedown on .scrubber-track starts a seek. mousemove/mouseup are
+    // registered on document so the drag doesn't break if the cursor leaves
+    // the track bounds. renderFrame runs live during drag (rAF only — no
+    // server round-trip). set_props fires once on mouseup to trigger the
+    // full-quality server rebuild.
+
+    var _isDragging = false;
+
+    function _pctFromEvent(e, track) {
+        var rect = track.getBoundingClientRect();
+        return Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    }
+
+    function _frameIdxFromPct(pct, totalFrames) {
+        return Math.round(pct * (totalFrames - 1));
+    }
+
+    function _activeDotFromFrame(fi, scrubberFrameIndices) {
+        // Walk forward, keep the last index whose frame is <= fi.
+        var active = 0;
+        for (var i = 0; i < scrubberFrameIndices.length; i++) {
+            if (scrubberFrameIndices[i] <= fi) active = i;
+        }
+        return active;
+    }
+
+    function _applySeek(fi) {
+        var state = window._artemisState;
+        if (!state || !state.preloaded) return;
+
+        state.frame_idx   = fi;
+        state.resetTiming = true;   // prevents frame-jump when drag ends + play resumes
+
+        // Restore play button if mission had ended.
+        var btn = document.getElementById('playback-btn');
+        if (btn && btn.textContent === '\u21ba') {
+            btn.textContent = '\u25b6';
+            btn.className   = 'playback-btn';
+        }
+
+        // Update dot highlight.
+        var dotActive = _activeDotFromFrame(
+            fi, state.preloaded.scrubber_frame_indices || []
+        );
+        document.querySelectorAll('.scrubber-dot').forEach(function(dot, idx) {
+            dot.className = idx === dotActive ? 'scrubber-dot active' : 'scrubber-dot';
+        });
+
+        renderFrame(fi, state.preloaded, false);
+    }
+
+    function _fireSeekStore() {
+        var btn = document.getElementById('seek-trigger-btn');
+        if (btn) btn.click();
+    }
+
+    document.addEventListener('mousedown', function(e) {
+        var track = e.target.closest('.scrubber-track');
+        if (!track) return;
+
+        var state = window._artemisState;
+        if (!state || !state.preloaded) return;
+
+        _isDragging = true;
+        var pct = _pctFromEvent(e, track);
+        var fi  = _frameIdxFromPct(pct, state.preloaded.total_frames);
+        _applySeek(fi);
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!_isDragging) return;
+
+        var track = document.querySelector('.scrubber-track');
+        if (!track) return;
+
+        var state = window._artemisState;
+        if (!state || !state.preloaded) return;
+
+        var pct = _pctFromEvent(e, track);
+        var fi  = _frameIdxFromPct(pct, state.preloaded.total_frames);
+        _applySeek(fi);
+    });
+
+    document.addEventListener('mouseup', function(e) {
+        if (!_isDragging) return;
+        _isDragging = false;
+
+        var state = window._artemisState;
+        if (!state || !state.preloaded) return;
+
+        _fireSeekStore();
+    });
 
 }());

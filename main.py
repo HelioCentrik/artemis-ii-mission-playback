@@ -6,15 +6,18 @@
 # ── Playback architecture ─────────────────────────────────────────────────
 #
 #   Stores (all client-side JSON blobs):
-#     phase-store            int          scrubber dot index; written by dot clicks
-#     playback-running-store {running}    bool; toggled exclusively by play/pause btn
-#     playback-frame-store   {frame_idx}  int; advanced exclusively by interval tick
-#     traj-preload-store     {rx,ry,…}    full rotated trajectory + arc marker data;
-#                                         computed ONCE at server startup, baked into
-#                                         Store initial data — available immediately
-#                                         on page load with zero callback latency
-#     pause-rebuild-store    {dt_str,…}   written when playback stops; triggers
-#                                         server-side full-quality figure rebuild
+#     phase-store            int            scrubber dot index; written by dot clicks
+#     playback-running-store {running}      bool; toggled exclusively by play/pause btn
+#     playback-frame-store   {frame_idx}    int; advanced exclusively by interval tick
+#     traj-preload-store     {rx,ry,…}      full rotated trajectory + arc marker data;
+#                                           computed ONCE at server startup, baked into
+#                                           Store initial data — available immediately
+#                                           on page load with zero callback latency
+#     pause-rebuild-store    {dt_str,…}     written when playback stops; triggers
+#                                           server-side full-quality figure rebuild
+#     scrubber-seek-store    {dt_str,…}     written by drag/click seek in playback.js
+#                                           via set_props; triggers full-quality rebuild
+#                                           on mouseup — same shape as pause-rebuild-store
 #
 #   Clientside callbacks (zero round-trips):
 #     init-artemis-state : traj-preload-store load → window._artemisState init
@@ -26,14 +29,15 @@
 #   Hot path (React-free):
 #     playback.js rAF loop reads window._artemisState each frame, advances
 #     frame_idx on wall-clock elapsed time, calls Plotly directly.
-#     Writes window._artemisFrame each tick for telemetry hooks (Phase 5).
+#     Writes window._artemisFrame each tick for telemetry hooks.
 #
 #   Server callbacks:
 #     update-phase       : scrubber dot click  → phase-store
-#     update-scrubber    : phase-store → scrubber-dot classNames
 #     on-pause           : playback-running-store → pause-rebuild-store
-#     update-trajectory  : phase-store | pause-rebuild-store → trajectory-content
-#                          (Full-quality rebuild on phase click or pause)
+#     update-trajectory  : phase-store | pause-rebuild-store | scrubber-seek-store
+#                          → trajectory-content (full-quality rebuild)
+#     update-telemetry   : phase-store | pause-rebuild-store | scrubber-seek-store
+#                          → telemetry-grid
 
 import os
 from pathlib import Path
@@ -305,7 +309,10 @@ def _build_scrubber():
         )
     return html.Div([
         html.Div("▶", id="playback-btn", className="playback-btn"),
-        html.Div(dots, className="scrubber-track"),
+        html.Div([
+            *dots,
+            html.Div(id="scrubber-seek-indicator", className="scrubber-seek-indicator"),
+        ], className="scrubber-track"),
     ], className="scrubber")
 
 
@@ -439,6 +446,14 @@ app.layout = html.Div([
 
     # Written on pause → triggers full-quality figure rebuild.
     dcc.Store(id="pause-rebuild-store"),
+
+    # Written by scrubber drag/click in playback.js via set_props → triggers rebuild.
+    dcc.Store(id="scrubber-seek-store"),
+
+    # Programmatically clicked by playback.js on mouseup to trigger the
+    # scrubber-seek clientside callback. More reliable than set_props across
+    # Dash versions.
+    html.Button(id="seek-trigger-btn", style={"display": "none"}),
 
     # ── Main dashboard ───────────────────────────────────────────────────
     html.Div([
@@ -604,6 +619,30 @@ app.clientside_callback(
 )
 
 
+# ── Scrubber seek → scrubber-seek-store ──────────────────────────────────────
+# Fired by playback.js clicking #seek-trigger-btn on mouseup.
+# Reads _artemisState.frame_idx directly — the live source of truth.
+app.clientside_callback(
+    """function(n) {
+        if (!n) return window.dash_clientside.no_update;
+        var state = window._artemisState;
+        if (!state || !state.preloaded) return window.dash_clientside.no_update;
+        var fi             = state.frame_idx;
+        var scrubberFrames = state.preloaded.scrubber_frame_indices || [];
+        var phaseIdx       = 0;
+        for (var i = 0; i < scrubberFrames.length; i++) {
+            if (scrubberFrames[i] <= fi) phaseIdx = i;
+        }
+        return {
+            dt_str:    state.preloaded.timestamps[fi],
+            phase_idx: phaseIdx,
+        };
+    }""",
+    Output("scrubber-seek-store", "data"),
+    Input("seek-trigger-btn", "n_clicks"),
+    prevent_initial_call=True,
+)
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  SERVER CALLBACKS
@@ -708,33 +747,30 @@ def on_playback_pause(running_state, frame_state, phase_idx):
     Output("trajectory-content", "children"),
     Input("phase-store",         "data"),   # scrubber dot click
     Input("pause-rebuild-store", "data"),   # playback paused
+    Input("scrubber-seek-store", "data"),   # drag/click seek
     Input("resize-store",        "data"),
 )
-def update_trajectory(phase_idx, pause_data, _resize):
-    """
-    Rebuilds the full-quality trajectory figure on phase click or pause.
-
-    phase-store         → rebuild at the phase's canonical timestamp
-    pause-rebuild-store → rebuild at the exact frame where playback stopped
-    Initial load (trigger=None) → treated as phase-store, phase 0
-    """
+def update_trajectory(phase_idx, pause_data, seek_data, _resize):
     trigger = ctx.triggered_id
 
     scrubber_phases = get_scrubber_phases()
     all_phases      = get_phases()
 
-    if trigger == "pause-rebuild-store" and pause_data:
-        scrubber_idx = pause_data.get("phase_idx", 0)
-        phase_key    = scrubber_phases[scrubber_idx]["key"]
-        global_idx   = next(i for i, p in enumerate(all_phases) if p["key"] == phase_key)
-        override_dt  = _datetime.fromisoformat(pause_data["dt_str"])
-        fig = build_trajectory_fig(global_idx, override_dt=override_dt)
-    else:
-        scrubber_idx = phase_idx or 0
-        phase_key    = scrubber_phases[scrubber_idx]["key"]
-        global_idx   = next(i for i, p in enumerate(all_phases) if p["key"] == phase_key)
-        fig = build_trajectory_fig(global_idx)
+    if trigger in ("pause-rebuild-store", "scrubber-seek-store"):
+        payload = pause_data if trigger == "pause-rebuild-store" else seek_data
+        if payload and payload.get("dt_str"):
+            scrubber_idx = payload.get("phase_idx", 0)
+            phase_key    = scrubber_phases[scrubber_idx]["key"]
+            global_idx   = next(i for i, p in enumerate(all_phases) if p["key"] == phase_key)
+            override_dt  = _datetime.fromisoformat(payload["dt_str"])
+            fig = build_trajectory_fig(global_idx, override_dt=override_dt)
+            return _trajectory_content(fig)
 
+    # phase-store, resize, or initial load
+    scrubber_idx = phase_idx or 0
+    phase_key    = scrubber_phases[scrubber_idx]["key"]
+    global_idx   = next(i for i, p in enumerate(all_phases) if p["key"] == phase_key)
+    fig = build_trajectory_fig(global_idx)
     return _trajectory_content(fig)
 
 
@@ -742,26 +778,34 @@ def update_trajectory(phase_idx, pause_data, _resize):
     Output("telemetry-grid", "children"),
     Input("phase-store",         "data"),
     Input("pause-rebuild-store", "data"),
+    Input("scrubber-seek-store", "data"),
     prevent_initial_call=False,
 )
-def update_telemetry(phase_idx, pause_data):
-    """
-    Rebuild all four telemetry panels on phase-click or playback pause.
+def update_telemetry(phase_idx, pause_data, seek_data):
+    trigger = ctx.triggered_id
 
-    Trigger priority:
-      pause-rebuild-store — uses exact paused dt_str for frame accuracy
-      phase-store         — uses canonical phase timestamp
-      initial load        — falls through to phase 0
-    """
-    triggered = ctx.triggered_id
+    if trigger in ("pause-rebuild-store", "scrubber-seek-store"):
+        payload = pause_data if trigger == "pause-rebuild-store" else seek_data
+        if payload and payload.get("dt_str"):
+            dt_utc = _datetime.fromisoformat(payload["dt_str"])
+            values      = get_telemetry_at(dt_utc)
+            current_pct = get_frame_pct(dt_utc)
+            return [
+                _build_telemetry_panel(
+                    group_key    = key,
+                    group        = grp,
+                    values_dict  = values,
+                    current_pct  = current_pct,
+                    series_stats = _SERIES_STATS,
+                )
+                for key, grp in PANEL_GROUPS.items()
+            ]
 
-    if triggered == "pause-rebuild-store" and pause_data and pause_data.get("dt_str"):
-        dt_utc = _datetime.fromisoformat(pause_data["dt_str"])
-    else:
-        phases = get_scrubber_phases()
-        idx = phase_idx if phase_idx is not None else 0
-        idx = max(0, min(idx, len(phases) - 1))
-        dt_utc = phases[idx]["datetime_utc"]
+    # phase-store or initial load
+    phases = get_scrubber_phases()
+    idx    = phase_idx if phase_idx is not None else 0
+    idx    = max(0, min(idx, len(phases) - 1))
+    dt_utc = phases[idx]["datetime_utc"]
 
     values      = get_telemetry_at(dt_utc)
     current_pct = get_frame_pct(dt_utc)
