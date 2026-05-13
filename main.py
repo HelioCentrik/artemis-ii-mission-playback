@@ -280,15 +280,12 @@ def _build_header():
                 html.Div("ARTEMIS II • MISSION PLAYBACK", className="header-title"),
             ], className="header-brand-left"),
             html.Div([
-                html.Span([
-                    "Dean Trester • ",
-                    html.A(
-                        "deanallton.com",
-                        href="https://deanallton.com",
-                        target="_blank",
-                        className="header-credit",
-                    ),
-                ], className="header-credit-text"),
+                html.A(
+                    "deanallton.com",
+                    href="https://deanallton.com",
+                    target="_blank",
+                    className="header-credit",
+                ),
             ], className="header-brand-right"),
         ], className="header-brand"),
     ])
