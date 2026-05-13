@@ -28,7 +28,7 @@ def _build_dark_theme() -> dict:
 
     text = {
         "hi":   "#c8e8ff",   # primary — light blue-white
-        "mid":  "#5686a7",   # secondary — muted steel blue
+        "mid":  "#578fb5",   # secondary — muted steel blue
         "lo":   "#2d5473",   # tertiary — dim steel blue
         "hint": "#1e3a52",   # near-invisible — structural hints only
     }
