@@ -79,7 +79,7 @@ body {
     background       : var(--panel-bg);
     border           : 1px solid var(--panel-border);
     border-radius    : var(--panel-radius);
-    color            : var(--font-dim);
+    color            : var(--font-primary);
     cursor           : pointer;
     display          : flex;
     align-items      : center;
@@ -92,7 +92,6 @@ body {
 
 .side-panel-btn:hover {
     background   : var(--panel-border);
-    color        : var(--font-primary);
 }
 
 .side-panel-btn.active {
@@ -207,6 +206,7 @@ body {
 
 .header-brand-right {
     text-align: right;
+    align-self: flex-start;
 }
 
 .header-credit {
