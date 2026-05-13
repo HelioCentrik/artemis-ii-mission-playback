@@ -471,6 +471,7 @@ app.layout = html.Div([
 
     # ── Side panel controls strip ────────────────────────────────────────
     html.Div([
+        html.Div("READ ME →", className="side-panel-hint"),
         html.Button(
             "‹",
             id="side-panel-toggle-btn",

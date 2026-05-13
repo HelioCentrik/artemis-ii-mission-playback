@@ -71,6 +71,25 @@ body {
     width           : 40px;
     flex-shrink     : 0;
     z-index         : 100;
+    position        : relative;
+}
+
+.side-panel-hint {
+    position        : absolute;
+    right           : calc(100% + 6px);
+    top             : calc(6px + 16px);   /* padding-top + half button height */
+    transform       : translateY(-50%);
+    white-space     : nowrap;
+    color           : var(--font-primary);
+    font-size       : calc(var(--font-size-side-panel) + 2px);
+    letter-spacing  : 1px;
+    pointer-events  : none;
+    opacity         : 1;
+    animation       : hint-fade 2s ease-in 5s forwards;
+}
+@keyframes hint-fade {
+    from { opacity: 1; }
+    to   { opacity: 0; }
 }
 
 .side-panel-btn {
