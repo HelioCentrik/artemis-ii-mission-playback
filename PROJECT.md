@@ -15,7 +15,7 @@ Artemis II is NASA's first crewed lunar flyby since Apollo 17 in 1972. Four astr
 
 ## The Visuals
 
-**Trajectory Panel** - A top-down view of the Earth-Moon system showing Orion's full path. Earth and Moon are rendered as shaded circles with atmospheric glow. The solid arc traces where the capsule has been; a dashed arc shows the return path. Colored event markers appear along the arc at key mission moments, distinguishing propulsive burns (orange) from physics events (silver). A live spacecraft marker updates continuously during playback.
+**Trajectory Panel** - A top-down view of the Earth-Moon system showing Orion's full path. Earth and Moon are rendered as shaded circles with atmospheric glow. Shadow terminators on Earth and Moon are derived from actual JPL Sun ephemeris data and account for the Sun's position above the ecliptic plane, producing a physically accurate crescent rather than a simple half-disc. The solid arc traces where the capsule has been; a dashed arc shows the return path. Colored event markers appear along the arc at key mission moments, distinguishing propulsive burns (orange) from physics events (silver). A live spacecraft marker updates continuously during playback.
 
 **Phase Scrubber** - A horizontal track at the bottom of the trajectory panel with six clickable phase dots, spaced according to actual mission elapsed time. Clicking any dot jumps the entire dashboard to that phase of the mission. A play/pause button runs real-time animation from any position.
 
