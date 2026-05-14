@@ -146,7 +146,7 @@ def _shadow_halfdisc(cx, cy, r, sun_angle_deg, n=60, opacity=1.0):
     ys = np.concatenate([[cy], cy + r * np.sin(angles), [cy]])
     return go.Scatter(
         x=xs.tolist(), y=ys.tolist(), mode="lines",
-        fill="toself", fillcolor="rgba(0,0,0,0.75)",
+        fill="toself", fillcolor="rgba(0,0,0,0.80)",
         line=dict(color="rgba(0,0,0,0)", width=0),
         hoverinfo="skip", showlegend=False,
         opacity=opacity,
@@ -172,7 +172,7 @@ def _get_body_radii() -> dict:
     er = float(row[0]) * 0.65
     mr = er * (1_737.4 / 6_371.0)
     _BODY_RADII = dict(
-        ER=er,  EG2=er*1.45, EG3=er*2.1, EG4=er*3.1, EG5=er*4.5,
+        ER=er,  EG2=er*1.45, EG3=er*2.1, EG4=er*3.1,
         MR=mr,  MG2=mr*1.625, MG3=mr*2.75, MG4=mr*4.5,
     )
     return _BODY_RADII
@@ -348,10 +348,10 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
     R      = _get_body_radii()
     fr     = _get_fixed_ranges()
 
-    ER, EG2, EG3, EG4, EG5 = R["ER"], R["EG2"], R["EG3"], R["EG4"], R["EG5"]
-    MR, MG2, MG3, MG4      = R["MR"], R["MG2"], R["MG3"], R["MG4"]
-    y0, y1                  = fr["y_range"]
-    xc, xh                  = fr["x_center"], fr["x_half"]
+    ER, EG2, EG3, EG4 = R["ER"], R["EG2"], R["EG3"], R["EG4"]
+    MR, MG2, MG3, MG4 = R["MR"], R["MG2"], R["MG3"], R["MG4"]
+    y0, y1            = fr["y_range"]
+    xc, xh            = fr["x_center"], fr["x_half"]
 
     # ── Trajectory ────────────────────────────────────────────────────────
     full = con.execute(
@@ -425,7 +425,7 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
     # Earth: glow layers + fill + specular highlight
     T.append(_filled(0, 0, EG4, "rgba(25,100,220,0.025)"))
     T.append(_filled(0, 0, EG3, "rgba(28,120,240,0.05)"))
-    T.append(_filled(0, 0, EG2, "rgba(30,144,255,0.09)"))
+    T.append(_filled(0, 0, EG2, "rgba(30,144,255,0.10)"))
     T.append(_filled(0, 0, ER,  "rgba(22,100,210,0.96)"))
     hx, hy = circle_xy(ER * 0.25, ER * 0.25, ER * 0.45, n=80)
     T.append(go.Scatter(
@@ -444,7 +444,7 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
     # Clientside restyles x/y + opacity every tick during playback.
     IDX_MOON_START = len(T)
     moon_opacity = 1.0 if moon_visible else 0.0
-    T.append(_filled(fmx, fmy, MG4, "rgba(160,160,160,0.03)", opacity=moon_opacity))
+    T.append(_filled(fmx, fmy, MG4, "rgba(160,160,160,0.025)", opacity=moon_opacity))
     T.append(_filled(fmx, fmy, MG3, "rgba(170,170,170,0.06)", opacity=moon_opacity))
     T.append(_filled(fmx, fmy, MG2, "rgba(185,185,185,0.12)", opacity=moon_opacity))
     T.append(_filled(fmx, fmy, MR, "rgba(155,155,165,0.92)", opacity=moon_opacity))
