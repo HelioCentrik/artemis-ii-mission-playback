@@ -124,8 +124,7 @@ TRAJECTORY_HEIGHT_MAX = 640
 SCRUBBER_HEIGHT            = 44   # fixed
 SCRUBBER_BORDER_RADIUS     = 20   # fixed
 SCRUBBER_HORIZONTAL_MARGIN = 112  # fixed
-SCRUBBER_DOT_SIZE          = 12   # fixed
-SCRUBBER_DOT_ACTIVE        = 14   # fixed
+SCRUBBER_DOT_SIZE          = 14   # fixed
 
 # Telemetry grid height
 TELEMETRY_HEIGHT_MIN = 240

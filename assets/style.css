@@ -422,16 +422,17 @@ body {
 }
 
 .scrubber-seek-indicator {
-    width: 2px;
-    height: 14px;
-    background: var(--font-primary);
+    width: calc(var(--scrubber-dot) - 2px);
+    height: calc(var(--scrubber-dot) - 2px);
+    background: var(--accent-trajectory);
+    border-radius: 50%;
     position: absolute;
     top: 50%;
     left: 0%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 3;
-    opacity: 0.7;
+    opacity: 0.9;
 }
 
 .scrubber-dot {
@@ -451,13 +452,6 @@ body {
 .scrubber-dot:hover {
     border-color: var(--font-primary);
     background: var(--font-dim);
-}
-
-.scrubber-dot.active {
-    width: var(--scrubber-dot-active);
-    height: var(--scrubber-dot-active);
-    border-color: var(--accent-trajectory);
-    background: var(--accent-trajectory);
 }
 
 /* Vertical tick at the active phase */
