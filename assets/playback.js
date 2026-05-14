@@ -46,19 +46,28 @@
     var _lastTs  = null;
     var _elapsed = 0;
 
-    function _shadowHalfDisc(cx, cy, r, sunAngleDeg) {
+    function _shadowHalfDisc(cx, cy, r, sunAngleDeg, sunNz) {
         var n     = 60;
         var theta = sunAngleDeg * Math.PI / 180;
-        var xs    = [cx];
-        var ys    = [cy];
+        var sz    = sunNz;
+
+        var termX = [];
+        var termY = [];
         for (var i = 0; i <= n; i++) {
-            var ang = theta + Math.PI / 2 + (i / n) * Math.PI;
-            xs.push(cx + r * Math.cos(ang));
-            ys.push(cy + r * Math.sin(ang));
+            var t = (i / n) * Math.PI;
+            termX.push(cx + r * (-Math.sin(theta) * Math.cos(t) - sz * Math.cos(theta) * Math.sin(t)));
+            termY.push(cy + r * ( Math.cos(theta) * Math.cos(t) - sz * Math.sin(theta) * Math.sin(t)));
         }
-        xs.push(cx);
-        ys.push(cy);
-        return [xs, ys];
+
+        var discX = [];
+        var discY = [];
+        for (var i = 0; i <= n; i++) {
+            var ang = (theta - Math.PI / 2) - (i / n) * Math.PI;
+            discX.push(cx + r * Math.cos(ang));
+            discY.push(cy + r * Math.sin(ang));
+        }
+
+        return [termX.concat(discX), termY.concat(discY)];
     }
 
     // ── Moon circle helper ────────────────────────────────────────────────
@@ -189,8 +198,9 @@
 
         if (earthShadowIdx !== undefined && preloaded.sun_angles) {
             var sunAngle = preloaded.sun_angles[fi];
+            var sunNz    = preloaded.sun_nz[fi];
 
-            var esd = _shadowHalfDisc(0, 0, preloaded.earth_radius, sunAngle);
+            var esd = _shadowHalfDisc(0, 0, preloaded.earth_radius, sunAngle, sunNz);
             Plotly.restyle(graphDiv, {x: [esd[0]], y: [esd[1]]}, [earthShadowIdx]);
 
             if (moonShadowIdx !== undefined) {
@@ -200,7 +210,7 @@
                 var yRange = preloaded.moon_y_range;
                 var inView = moonY >= (yRange[0] - preloaded.moon_radii[0])
                           && moonY <= (yRange[1] + preloaded.moon_radii[0]);
-                var msd = _shadowHalfDisc(moonX, moonY, MR, sunAngle);
+                var msd = _shadowHalfDisc(moonX, moonY, MR, sunAngle, sunNz);
                 Plotly.restyle(graphDiv,
                     {x: [msd[0]], y: [msd[1]], opacity: inView ? 1 : 0},
                     [moonShadowIdx]

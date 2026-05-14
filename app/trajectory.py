@@ -138,15 +138,30 @@ def _line(xs, ys, color, width, dash=None):
     )
 
 
-def _shadow_halfdisc(cx, cy, r, sun_angle_deg, n=60, opacity=1.0):
-    """Dark half-disc on the shadow side of a body (opposite the Sun)."""
-    theta  = np.radians(sun_angle_deg)
-    angles = np.linspace(theta + np.pi / 2, theta + 3 * np.pi / 2, n)
-    xs = np.concatenate([[cx], cx + r * np.cos(angles), [cx]])
-    ys = np.concatenate([[cy], cy + r * np.sin(angles), [cy]])
+def _shadow_halfdisc(cx, cy, r, sun_angle_deg, sun_nz, n=60, opacity=1.0):
+    """
+    Physically accurate shadow polygon for a 2D top-down view.
+    The terminator is the projection of the 3D great circle perpendicular
+    to the sun direction. sun_nz is the normalized Z component of the sun
+    unit vector — nonzero values curve the terminator inward or outward.
+    """
+    theta = np.radians(sun_angle_deg)
+    sz    = sun_nz
+
+    t       = np.linspace(0, np.pi, n)
+    term_x  = cx + r * (-np.sin(theta) * np.cos(t) - sz * np.cos(theta) * np.sin(t))
+    term_y  = cy + r * ( np.cos(theta) * np.cos(t) - sz * np.sin(theta) * np.sin(t))
+
+    disc_a  = np.linspace(theta - np.pi / 2, theta - 3 * np.pi / 2, n)
+    disc_x  = cx + r * np.cos(disc_a)
+    disc_y  = cy + r * np.sin(disc_a)
+
+    xs = np.concatenate([term_x, disc_x])
+    ys = np.concatenate([term_y, disc_y])
+
     return go.Scatter(
         x=xs.tolist(), y=ys.tolist(), mode="lines",
-        fill="toself", fillcolor="rgba(0,0,0,0.80)",
+        fill="toself", fillcolor="rgba(0,0,0,0.62)",
         line=dict(color="rgba(0,0,0,0)", width=0),
         hoverinfo="skip", showlegend=False,
         opacity=opacity,
@@ -397,14 +412,16 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
 
     # ── Sun direction ─────────────────────────────────────────────────────────
     sun_row = con.execute(
-        "SELECT x_km, y_km FROM sun_trajectory "
+        "SELECT x_km, y_km, z_km FROM sun_trajectory "
         "WHERE datetime_utc <= ? ORDER BY datetime_utc DESC LIMIT 1", [pt]
     ).fetchone()
-    sun_rx_, sun_ry_ = rotate_2d(
-        np.float64(sun_row[0] if sun_row else 1.0),
-        np.float64(sun_row[1] if sun_row else 0.0), a,
-    )
+    _sx = float(sun_row[0]) if sun_row else 1.0
+    _sy = float(sun_row[1]) if sun_row else 0.0
+    _sz = float(sun_row[2]) if sun_row else 0.0
+    _sun_mag = np.sqrt(_sx ** 2 + _sy ** 2 + _sz ** 2) or 1.0
+    sun_rx_, sun_ry_ = rotate_2d(np.float64(_sx), np.float64(_sy), a)
     sun_angle_deg = float(np.degrees(np.arctan2(sun_ry_, sun_rx_)))
+    sun_nz = float(_sz / _sun_mag)
 
     # ── Traces ────────────────────────────────────────────────────────────
     T = []
@@ -437,7 +454,7 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
 
     # Earth shadow — darkens the hemisphere facing away from the Sun.
     IDX_EARTH_SHADOW = len(T)
-    T.append(_shadow_halfdisc(0, 0, ER, sun_angle_deg))
+    T.append(_shadow_halfdisc(0,   0,   ER, sun_angle_deg, sun_nz))
 
 
     # Moon: always emitted at stable indices; opacity=0 when out of viewport.
@@ -451,7 +468,7 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
 
     # Moon shadow — opacity matches Moon glow so it vanishes when Moon is off-screen.
     IDX_MOON_SHADOW = len(T)
-    T.append(_shadow_halfdisc(fmx, fmy, MR, sun_angle_deg, opacity=moon_opacity))
+    T.append(_shadow_halfdisc(fmx, fmy, MR, sun_angle_deg, sun_nz, opacity=moon_opacity))
 
     # Past arc — always emitted so trace indices are stable across all phases.
     # Empty lists render nothing; playback will restyle x/y each tick.
