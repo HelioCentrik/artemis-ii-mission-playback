@@ -46,6 +46,21 @@
     var _lastTs  = null;
     var _elapsed = 0;
 
+    function _shadowHalfDisc(cx, cy, r, sunAngleDeg) {
+        var n     = 60;
+        var theta = sunAngleDeg * Math.PI / 180;
+        var xs    = [cx];
+        var ys    = [cy];
+        for (var i = 0; i <= n; i++) {
+            var ang = theta + Math.PI / 2 + (i / n) * Math.PI;
+            xs.push(cx + r * Math.cos(ang));
+            ys.push(cy + r * Math.sin(ang));
+        }
+        xs.push(cx);
+        ys.push(cy);
+        return [xs, ys];
+    }
+
     // ── Moon circle helper ────────────────────────────────────────────────
     // Parametric circle: 120 segments, closed (first == last point).
     function circleXY(cx, cy, r) {
@@ -166,6 +181,31 @@
                 {x: [[0.0, mlx]], y: [[preloaded.earth_label_y, mly]]},
                 [labelIdx]
             );
+        }
+
+        // ── Shadow casting — Earth + Moon ────────────────────────────────────
+        var earthShadowIdx = meta.trace_idx.earth_shadow;
+        var moonShadowIdx  = meta.trace_idx.moon_shadow;
+
+        if (earthShadowIdx !== undefined && preloaded.sun_angles) {
+            var sunAngle = preloaded.sun_angles[fi];
+
+            var esd = _shadowHalfDisc(0, 0, preloaded.earth_radius, sunAngle);
+            Plotly.restyle(graphDiv, {x: [esd[0]], y: [esd[1]]}, [earthShadowIdx]);
+
+            if (moonShadowIdx !== undefined) {
+                var moonX  = preloaded.moon_rx[fi];
+                var moonY  = preloaded.moon_ry[fi];
+                var MR     = preloaded.moon_radii[3];
+                var yRange = preloaded.moon_y_range;
+                var inView = moonY >= (yRange[0] - preloaded.moon_radii[0])
+                          && moonY <= (yRange[1] + preloaded.moon_radii[0]);
+                var msd = _shadowHalfDisc(moonX, moonY, MR, sunAngle);
+                Plotly.restyle(graphDiv,
+                    {x: [msd[0]], y: [msd[1]], opacity: inView ? 1 : 0},
+                    [moonShadowIdx]
+                );
+            }
         }
 
         // ── Arc marker dots — filter to past events per frame ─────────────

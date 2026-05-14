@@ -101,6 +101,9 @@ def _build_preload_data() -> dict:
                                the event badge is shown
     total_frames             : total row count
     frames_per_tick          : from config
+    sun_angles               : Sun direction angle [degrees] in display-frame coords,
+                               one value per frame; used for shadow half-disc geometry
+
     """
     con = get_con()
     a   = np.radians(VIEW_ROTATION_DEG)
@@ -123,6 +126,12 @@ def _build_preload_data() -> dict:
     moon_rx, moon_ry = rotate_2d(
         moon_df["m_x_km"].values, moon_df["m_y_km"].values, a
     )
+
+    sun_df = con.execute("""
+        SELECT x_km, y_km FROM sun_trajectory ORDER BY datetime_utc
+    """).df()
+    sun_rx_, sun_ry_ = rotate_2d(sun_df["x_km"].values, sun_df["y_km"].values, a)
+    sun_angles = np.degrees(np.arctan2(sun_ry_, sun_rx_)).tolist()
 
     arc_markers = []
     for phase in get_arc_marker_phases():
@@ -223,6 +232,7 @@ def _build_preload_data() -> dict:
         "target_ms_per_frame":      PLAYBACK_INTERVAL_MS / PLAYBACK_FRAMES_PER_TICK,
         "moon_rx":                  moon_rx.tolist(),
         "moon_ry":                  moon_ry.tolist(),
+        "sun_angles":               sun_angles,
         "status_phases":            status_phases,
         "launch_iso":               LAUNCH_TIME.replace(" ", "T"),
         "telemetry":                telem,

@@ -138,6 +138,21 @@ def _line(xs, ys, color, width, dash=None):
     )
 
 
+def _shadow_halfdisc(cx, cy, r, sun_angle_deg, n=60, opacity=1.0):
+    """Dark half-disc on the shadow side of a body (opposite the Sun)."""
+    theta  = np.radians(sun_angle_deg)
+    angles = np.linspace(theta + np.pi / 2, theta + 3 * np.pi / 2, n)
+    xs = np.concatenate([[cx], cx + r * np.cos(angles), [cx]])
+    ys = np.concatenate([[cy], cy + r * np.sin(angles), [cy]])
+    return go.Scatter(
+        x=xs.tolist(), y=ys.tolist(), mode="lines",
+        fill="toself", fillcolor="rgba(0,0,0,0.75)",
+        line=dict(color="rgba(0,0,0,0)", width=0),
+        hoverinfo="skip", showlegend=False,
+        opacity=opacity,
+    )
+
+
 # ═════════════════════════════════════════════════════════════════════════
 #  Startup caches
 # ═════════════════════════════════════════════════════════════════════════
@@ -224,6 +239,7 @@ def get_moon_preload_data() -> dict:
     moon_y_range      : [y_lo, y_hi] — viewport y bounds for visibility check
     moon_label_y_mult : MOON_LABEL_Y_MULT constant (avoids hardcoding in JS)
     earth_label_y     : fixed y position of the EARTH label (constant across phases)
+    earth_radius      : ER display-km — needed by JS shadow restyle
     """
     R  = _get_body_radii()
     fr = _get_fixed_ranges()
@@ -232,6 +248,7 @@ def get_moon_preload_data() -> dict:
         "moon_y_range":      fr["y_range"],
         "moon_label_y_mult": MOON_LABEL_Y_MULT,
         "earth_label_y":     float(-R["ER"] * EARTH_LABEL_Y_MULT),
+        "earth_radius":      float(R["ER"]),
     }
 
 
@@ -378,6 +395,17 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
     spd      = float(sr[2]) if sr else 0.0
     callout  = f"ORION<br>{spd:.3f} km/s"
 
+    # ── Sun direction ─────────────────────────────────────────────────────────
+    sun_row = con.execute(
+        "SELECT x_km, y_km FROM sun_trajectory "
+        "WHERE datetime_utc <= ? ORDER BY datetime_utc DESC LIMIT 1", [pt]
+    ).fetchone()
+    sun_rx_, sun_ry_ = rotate_2d(
+        np.float64(sun_row[0] if sun_row else 1.0),
+        np.float64(sun_row[1] if sun_row else 0.0), a,
+    )
+    sun_angle_deg = float(np.degrees(np.arctan2(sun_ry_, sun_rx_)))
+
     # ── Traces ────────────────────────────────────────────────────────────
     T = []
 
@@ -395,10 +423,9 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
     ))
 
     # Earth: glow layers + fill + specular highlight
-    T.append(_filled(0, 0, EG5, "rgba(20,80,200,0.025)"))
-    T.append(_filled(0, 0, EG4, "rgba(25,100,220,0.05)"))
-    T.append(_filled(0, 0, EG3, "rgba(28,120,240,0.09)"))
-    T.append(_filled(0, 0, EG2, "rgba(30,144,255,0.16)"))
+    T.append(_filled(0, 0, EG4, "rgba(25,100,220,0.025)"))
+    T.append(_filled(0, 0, EG3, "rgba(28,120,240,0.05)"))
+    T.append(_filled(0, 0, EG2, "rgba(30,144,255,0.09)"))
     T.append(_filled(0, 0, ER,  "rgba(22,100,210,0.96)"))
     hx, hy = circle_xy(ER * 0.25, ER * 0.25, ER * 0.45, n=80)
     T.append(go.Scatter(
@@ -408,6 +435,11 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
         hoverinfo="skip", showlegend=False,
     ))
 
+    # Earth shadow — darkens the hemisphere facing away from the Sun.
+    IDX_EARTH_SHADOW = len(T)
+    T.append(_shadow_halfdisc(0, 0, ER, sun_angle_deg))
+
+
     # Moon: always emitted at stable indices; opacity=0 when out of viewport.
     # Clientside restyles x/y + opacity every tick during playback.
     IDX_MOON_START = len(T)
@@ -416,6 +448,10 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
     T.append(_filled(fmx, fmy, MG3, "rgba(170,170,170,0.06)", opacity=moon_opacity))
     T.append(_filled(fmx, fmy, MG2, "rgba(185,185,185,0.12)", opacity=moon_opacity))
     T.append(_filled(fmx, fmy, MR, "rgba(155,155,165,0.92)", opacity=moon_opacity))
+
+    # Moon shadow — opacity matches Moon glow so it vanishes when Moon is off-screen.
+    IDX_MOON_SHADOW = len(T)
+    T.append(_shadow_halfdisc(fmx, fmy, MR, sun_angle_deg, opacity=moon_opacity))
 
     # Past arc — always emitted so trace indices are stable across all phases.
     # Empty lists render nothing; playback will restyle x/y each tick.
@@ -527,14 +563,16 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
 
     fig.update_layout(meta={
         "trace_idx": {
-            "past_glow":        IDX_PAST_GLOW,
-            "past_core":        IDX_PAST_CORE,
-            "marker":           IDX_MARKER,
-            "future_start":     IDX_FUTURE_START,
-            "future_end":       IDX_FUTURE_END,
-            "moon_start":       IDX_MOON_START,
-            "label":            IDX_LABEL,
-            "arc_markers_start": IDX_ARC_MARKERS_START,  # ← add; +0=burn +1=coast +2=other
+            "past_glow":         IDX_PAST_GLOW,
+            "past_core":         IDX_PAST_CORE,
+            "marker":            IDX_MARKER,
+            "future_start":      IDX_FUTURE_START,
+            "future_end":        IDX_FUTURE_END,
+            "moon_start":        IDX_MOON_START,
+            "label":             IDX_LABEL,
+            "arc_markers_start": IDX_ARC_MARKERS_START,
+            "earth_shadow":      IDX_EARTH_SHADOW,
+            "moon_shadow":       IDX_MOON_SHADOW,
         }
     })
 
