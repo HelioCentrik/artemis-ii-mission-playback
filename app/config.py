@@ -94,7 +94,11 @@ R_MOON   = 1_737.4
 #  Flat aliases kept for any existing code that imports the old names.
 # ═══════════════════════════════════════════════════════════════════════════
 
+# ── Home page layout ──────────────────────────────────────────────────────
+HOME_MEDIA_ROW_HEIGHT = 460   # px — video / ignition / carousel row height
+HOME_CREW_CARD_HEIGHT = 340   # px — crew card collapsed height
 
+# ── Playback page layout ──────────────────────────────────────────────────
 DASHBOARD_WIDTH_MIN = 1080
 DASHBOARD_WIDTH_VW  = 66.67
 DASHBOARD_WIDTH_MAX = 1600

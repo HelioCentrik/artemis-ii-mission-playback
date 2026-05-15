@@ -77,10 +77,11 @@ The live demo runs behind a Cloudflare tunnel on a self-hosted Linux server, man
 ---
 
 ## Project Structure
-app/              Python modules - config, data layer, figures, telemetry
-assets/           CSS and clientside JS (playback animation hot path)
-scripts/          Horizons client, DB init, validation probes
-app.py            Dash entrypoint - layout and callback wiring only
+app/              Python modules - config, data layer, figures, telemetry  
+assets/           CSS and clientside JS (playback animation hot path)  
+components/       `[ needs description ]`  
+scripts/          Horizons client, DB init, validation probes  
+main.py           Dash entrypoint - layout and callback wiring only
 
 ---
 

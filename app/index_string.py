@@ -19,6 +19,7 @@ from app.config import (
     # Accents
     ACCENT_VECTORS, ACCENT_TRAJECTORY, ACCENT_GRAVITY, ACCENT_RANGE,
     # Layout
+    HOME_MEDIA_ROW_HEIGHT, HOME_CREW_CARD_HEIGHT,
     SIDE_PANEL_WIDTH, SIDE_PANEL_TRANSITION,
     HEADER_BRAND_HEIGHT,
     TRAJECTORY_HEIGHT_MIN, TRAJECTORY_HEIGHT_VH, TRAJECTORY_HEIGHT_MAX,
@@ -109,6 +110,8 @@ INDEX_STRING = f"""<!DOCTYPE html>
             --accent-range:       {ACCENT_RANGE};
 
             /* ── Layout ── */
+            --home-media-height:   {HOME_MEDIA_ROW_HEIGHT}px;
+            --home-crew-height:    {HOME_CREW_CARD_HEIGHT}px;
             --header-brand-h:      {HEADER_BRAND_HEIGHT}px;
             --traj-min-h:          clamp({TRAJECTORY_HEIGHT_MIN}px, {TRAJECTORY_HEIGHT_VH}vh, {TRAJECTORY_HEIGHT_MAX}px);
             --scrubber-h:          {SCRUBBER_HEIGHT}px;
