@@ -1,11 +1,11 @@
-# app/kpi.py
+# viz/kpi.py
 
 from __future__ import annotations
 
 from dash import html, dcc
 
 from app.config import KPI_SVG_VIEWBOX_WIDTH, BIDIR_NEGATIVE_COLOR
-from app.viz_builders import (
+from viz.builders import (
     build_sparkline_svg,
     build_bar_svg,
     build_bidir_bar_svg,
