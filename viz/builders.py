@@ -1,4 +1,4 @@
-# app/viz_builders.py
+# viz/builders.py
 #
 # SVG viz builders for KPI tiles.
 #
@@ -38,38 +38,6 @@ from app.config import (
 # Shared shorthand — used by all builders
 _VW = KPI_SVG_VIEWBOX_WIDTH   # 100
 _VH = KPI_SVG_VIEWBOX_HEIGHT  # 40
-
-
-# ── Sparkline ─────────────────────────────────────────────────────────────
-
-def build_sparkline_points(series: list[float]) -> str:
-    """
-    Normalize a full-mission metric series into an SVG polyline points string.
-
-    X axis : frame index → 0..KPI_SVG_VIEWBOX_WIDTH  (left = mission start)
-    Y axis : min–max     → Y_PAD..HEIGHT-Y_PAD        (inverted: high = top)
-
-    Downsamples to SPARKLINE_DOWNSAMPLE_N evenly-spaced frames to keep
-    the SVG payload small without visible loss of fidelity.
-    """
-    if not series:
-        return ""
-
-    arr = np.array(series, dtype=float)
-
-    n       = min(SPARKLINE_DOWNSAMPLE_N, len(arr))
-    indices = np.linspace(0, len(arr) - 1, n, dtype=int)
-    arr     = arr[indices]
-
-    v_min, v_max = arr.min(), arr.max()
-    v_range      = v_max - v_min if v_max != v_min else 1.0
-    usable_h     = _VH - 2 * SPARKLINE_PAD_Y
-
-    x_vals = np.linspace(0, _VW, n)
-    y_norm = (arr - v_min) / v_range
-    y_vals = (_VH - SPARKLINE_PAD_Y) - y_norm * usable_h
-
-    return " ".join(f"{x:.1f},{y:.1f}" for x, y in zip(x_vals, y_vals))
 
 
 # ── Sparkline ─────────────────────────────────────────────────────────────

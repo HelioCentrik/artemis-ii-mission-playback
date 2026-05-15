@@ -1,4 +1,4 @@
-# app/trajectory.py
+# viz/trajectory.py
 #
 # build_trajectory_fig(phase_idx) — 2D top-down Earth–Moon trajectory viz.
 #

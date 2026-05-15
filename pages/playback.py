@@ -20,7 +20,6 @@ from app.config import (
     ARC_MARKER_CATEGORY,
     PLAYBACK_FRAME_INTERVAL_MIN, PLAYBACK_INTERVAL_MS,
     PLAYBACK_FRAMES_PER_TICK, PLAYBACK_ANNOTATION_WINDOW_FRAMES,
-    PLAYBACK_SPEED_LABEL,
     LAUNCH_TIME,
     TELEMETRY_METRICS,
     DIAL_VAL_MIN, DIAL_VAL_MAX,
@@ -29,10 +28,13 @@ from app.config import (
 from app.db import get_con
 from app.phases import get_scrubber_phases, get_phases, get_arc_marker_phases
 from app.utils import rotate_2d
-from app.trajectory import build_trajectory_fig, build_starfield_svg, get_moon_preload_data
 from app.telemetry import get_telemetry_preload, get_telemetry_at, get_frame_pct
-from app.viz_builders import build_sparkline_points
-from app.kpi import build_kpi_tile
+from components.header import build_header
+from components.scrubber import build_scrubber
+from components.telemetry_panel import build_telemetry_panel, build_telemetry_grid
+from components.trajectory_panel import build_trajectory_content
+from viz.trajectory import build_trajectory_fig, get_moon_preload_data
+from viz.builders import build_sparkline_points
 
 
 
@@ -238,157 +240,6 @@ _SERIES_STATS: dict[str, dict] = {
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  LAYOUT HELPERS
-# ═══════════════════════════════════════════════════════════════════════════
-
-def _build_header():
-    return html.Div([
-        html.Div([
-            html.Div([
-                html.Div("ARTEMIS II • MISSION PLAYBACK", className="header-title"),
-            ], className="header-brand-left"),
-            html.Div([
-                html.A(
-                    "deanallton.com",
-                    href="https://deanallton.com",
-                    target="_blank",
-                    className="header-credit",
-                ),
-            ], className="header-brand-right"),
-        ], className="header-brand"),
-    ])
-
-
-def _build_scrubber():
-    scrubber_phases = get_scrubber_phases()
-    dots = []
-    for i, phase in enumerate(scrubber_phases):
-        dots.append(
-            html.Div(
-                className=f"scrubber-dot{' active' if i == 0 else ''}",
-                style={"left": f"{phase['scrubber_pct']:.2f}%"},
-                id={"type": "scrubber-dot", "index": i},
-                title=phase["label"],
-            )
-        )
-    return html.Div([
-        html.Div("▶", id="playback-btn", className="playback-btn"),
-        html.Div([
-            *dots,
-            html.Div(id="scrubber-seek-indicator", className="scrubber-seek-indicator"),
-        ], className="scrubber-track"),
-    ], className="scrubber")
-
-
-def _build_telemetry_panel(
-    group_key:    str,
-    group:        dict,
-    values_dict:  dict | None = None,
-    current_pct:  float       = 0.0,
-    series_stats: dict        = {},
-) -> html.Div:
-    """
-    Build one telemetry panel with 3 KPI tiles.
-
-    values_dict  : {column: float} from get_telemetry_at(); None → stub tiles
-    current_pct  : SVG x-coord for sparkline needle (0–KPI_SVG_VIEWBOX_WIDTH)
-    series_stats : {column: {min, max}} for bar/bidir range scaling
-    """
-    if values_dict is None:
-        stub_tile = html.Div([
-            html.Div([
-                html.Span("---", className="tile-label"),
-                html.Span("---", className="tile-unit"),
-            ], className="tile-header"),
-            html.Span("--", className="tile-value"),
-            html.Div(className="tile-sparkline"),
-        ], className="tile")
-
-        tiles = [stub_tile, stub_tile, stub_tile]
-
-    else:
-        tiles = [
-            build_kpi_tile(
-                metric_cfg       = m,
-                value            = values_dict.get(m["column"], 0.0),
-                series_stats     = series_stats,
-                sparkline_points = _SPARKLINE_POINTS.get(m["column"], ""),
-                current_pct      = current_pct,
-            )
-            for m in TELEMETRY_METRICS[group_key]
-        ]
-
-    return html.Div([
-        html.Div([
-            html.Div([
-                html.Span(className="accent-dot"),
-                html.Span(group["label"]),
-            ], className="telemetry-panel-label"),
-            html.Span(group["code"], className="telemetry-panel-code"),
-        ], className="telemetry-panel-header"),
-        html.Div(tiles, className="tile-grid"),
-    ], className=f"panel telemetry-panel telemetry-panel--{group_key}")
-
-
-def _build_telemetry_grid() -> html.Div:
-    return html.Div(
-        id="telemetry-grid",
-        className="telemetry-grid",
-        children=[
-            _build_telemetry_panel(key, grp)
-            for key, grp in PANEL_GROUPS.items()
-        ],
-    )
-
-
-def _trajectory_content(fig) -> html.Div:
-    """
-    Starfield SVG (z=0) + Plotly graph (z=1) + HUD overlay (z=2)
-    inside a relative container.
-
-    dcc.Graph gets id="trajectory-graph" so the clientside frame-update
-    callback can locate it via document.getElementById. React reconciles
-    the graph in-place when the figure prop changes (same id = no teardown).
-    Pointer-events disabled — the scrubber overlay handles all clicks.
-    """
-    return html.Div([
-        dcc.Markdown(
-            build_starfield_svg(),
-            dangerously_allow_html=True,
-            style={
-                "position": "absolute",
-                "inset": "0",
-                "zIndex": "0",
-                "lineHeight": "0",
-            },
-        ),
-        dcc.Graph(
-            id="trajectory-graph",
-            figure=fig,
-            config=dict(displayModeBar=False),
-            style={
-                "position": "absolute",
-                "inset": "0",
-                "height": "100%",
-                "zIndex": "1",
-                "pointerEvents": "none",
-            },
-        ),
-        # ── HUD overlay — GMT · MET · Phase · Playback rate ──────────────
-        html.Div([
-            html.Div([
-                html.Span(className="status-dot"),
-                html.Span(
-                    "GMT ---:--:--:-- · MET --T --:--:-- · ----:---",
-                    id="status-text",
-                ),
-            ], className="traj-hud-left"),
-            html.Span(PLAYBACK_SPEED_LABEL, className="traj-hud-right"),
-        ], className="traj-hud-overlay"),
-    ], style={"position": "relative", "height": "100%"})
-
-
-# ═══════════════════════════════════════════════════════════════════════════
 #  PAGE LAYOUT
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -412,7 +263,7 @@ layout = html.Div([   # <-- was app.layout = html.Div([
         html.Div(id="artemis-init-dummy", style={"display": "none"}),
 
         # ── Header ───────────────────────────────────────────────────────────
-        _build_header(),
+        build_header(),
 
         # ── Trajectory panel ─────────────────────────────────────────────────
         html.Div([
@@ -425,12 +276,12 @@ layout = html.Div([   # <-- was app.layout = html.Div([
                     id="trajectory-content",
                     style={"position": "absolute", "inset": "0"},
                 ),
-                _build_scrubber(),
+                build_scrubber(),
             ], className="panel-trajectory-viz"),
         ], className="panel panel-trajectory"),
 
         # ── Telemetry panels ─────────────────────────────────────────────────
-        _build_telemetry_grid(),
+        build_telemetry_grid(),
 
     ], className="dashboard"),
 
@@ -692,14 +543,14 @@ def update_trajectory(phase_idx, pause_data, seek_data, _resize):
             global_idx = next(i for i, p in enumerate(all_phases) if p["key"] == phase_key)
             override_dt = _datetime.fromisoformat(payload["dt_str"])
             fig = build_trajectory_fig(global_idx, override_dt=override_dt)
-            return _trajectory_content(fig)
+            return build_trajectory_content(fig)
 
     # phase-store, resize, or initial load
     scrubber_idx = phase_idx or 0
     phase_key = scrubber_phases[scrubber_idx]["key"]
     global_idx = next(i for i, p in enumerate(all_phases) if p["key"] == phase_key)
     fig = build_trajectory_fig(global_idx)
-    return _trajectory_content(fig)
+    return build_trajectory_content(fig)
 
 
 @app.callback(
@@ -719,12 +570,13 @@ def update_telemetry(phase_idx, pause_data, seek_data):
             values = get_telemetry_at(dt_utc)
             current_pct = get_frame_pct(dt_utc)
             return [
-                _build_telemetry_panel(
+                build_telemetry_panel(
                     group_key=key,
                     group=grp,
                     values_dict=values,
                     current_pct=current_pct,
                     series_stats=_SERIES_STATS,
+                    sparkline_points_map=_SPARKLINE_POINTS,
                 )
                 for key, grp in PANEL_GROUPS.items()
             ]
@@ -739,12 +591,13 @@ def update_telemetry(phase_idx, pause_data, seek_data):
     current_pct = get_frame_pct(dt_utc)
 
     return [
-        _build_telemetry_panel(
+        build_telemetry_panel(
             group_key=key,
             group=grp,
             values_dict=values,
             current_pct=current_pct,
             series_stats=_SERIES_STATS,
+            sparkline_points_map=_SPARKLINE_POINTS,
         )
         for key, grp in PANEL_GROUPS.items()
     ]
