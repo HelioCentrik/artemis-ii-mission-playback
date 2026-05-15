@@ -95,8 +95,8 @@ R_MOON   = 1_737.4
 # ═══════════════════════════════════════════════════════════════════════════
 
 # ── Home page layout ──────────────────────────────────────────────────────
-HOME_MEDIA_ROW_HEIGHT = 520   # px — video / ignition / carousel row height
-HOME_CREW_CARD_HEIGHT = 340   # px — crew card collapsed height
+HOME_MEDIA_ROW_HEIGHT = 400   # px — video / ignition / carousel row height
+HOME_CREW_CARD_HEIGHT = 300   # px — crew card collapsed height
 
 # ── Playback page layout ──────────────────────────────────────────────────
 DASHBOARD_WIDTH_MIN = 1080
