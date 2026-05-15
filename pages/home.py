@@ -50,9 +50,13 @@ layout = html.Div([
 
     # ── Hero — title + description ─────────────────────────────────────────
     html.Div([
-        html.H1("ARTEMIS II", className="home-title"),
-        html.P("CREWED LUNAR FLYBY · APRIL 2026", className="home-title-sub"),
-        html.P(_DESCRIPTION, className="home-description"),
+        html.Div([
+            html.H1("ARTEMIS II", className="home-title"),
+            html.P("CREWED LUNAR FLYBY · APRIL 2026", className="home-title-sub"),
+        ], className="home-hero-left"),
+        html.Div([
+            html.P(_DESCRIPTION, className="home-description"),
+        ], className="home-hero-right"),
     ], className="home-hero"),
 
     html.Div([
