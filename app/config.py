@@ -95,7 +95,7 @@ R_MOON   = 1_737.4
 # ═══════════════════════════════════════════════════════════════════════════
 
 # ── Home page layout ──────────────────────────────────────────────────────
-HOME_MEDIA_ROW_HEIGHT = 460   # px — video / ignition / carousel row height
+HOME_MEDIA_ROW_HEIGHT = 520   # px — video / ignition / carousel row height
 HOME_CREW_CARD_HEIGHT = 340   # px — crew card collapsed height
 
 # ── Playback page layout ──────────────────────────────────────────────────

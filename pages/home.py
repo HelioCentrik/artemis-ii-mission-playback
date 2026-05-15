@@ -55,47 +55,47 @@ layout = html.Div([
         html.P(_DESCRIPTION, className="home-description"),
     ], className="home-hero"),
 
-    # ── Media row — video | ignition | carousel ────────────────────────────
     html.Div([
-
-        # Left — launch video placeholder
+        # ── Media row — video | ignition | carousel ────────────────────────────
         html.Div([
-            html.Span(
-                "▶",
-                style={"fontSize": "28px", "color": "var(--font-dim)", "opacity": "0.25"},
-            ),
-            html.Span("LAUNCH VIDEO", className="home-media-placeholder-label"),
-        ], className="home-media-placeholder"),
 
-        # Center — IGNITION navigation button
+            # Left — launch video placeholder
+            html.Div([
+                html.Span(
+                    "▶",
+                    style={"fontSize": "28px", "color": "var(--font-dim)", "opacity": "0.25"},
+                ),
+                html.Span("LAUNCH VIDEO", className="home-media-placeholder-label"),
+            ], className="home-media-placeholder"),
+
+            # Center — IGNITION navigation button
+            html.Div([
+                dcc.Link(
+                    [html.Span(letter, className="home-ignition-letter") for letter in "IGNITION"],
+                    href="/playback/",
+                    className="home-ignition-btn",
+                ),
+            ], className="home-ignition-wrap"),
+
+            # Right — image carousel placeholder
+            html.Div([
+                html.Span(
+                    "⬚",
+                    style={"fontSize": "28px", "color": "var(--font-dim)", "opacity": "0.25"},
+                ),
+                html.Span("IMAGE CAROUSEL", className="home-media-placeholder-label"),
+            ], className="home-media-placeholder"),
+        ], className="home-media-row"),
+
+        # ── Crew cards ────────────────────────────────────────────────────────
         html.Div([
-            dcc.Link(
-                [html.Span(letter, className="home-ignition-letter") for letter in "IGNITION"],
-                href="/playback/",
-                className="home-ignition-btn",
-            ),
-        ], className="home-ignition-wrap"),
-
-        # Right — image carousel placeholder
-        html.Div([
-            html.Span(
-                "⬚",
-                style={"fontSize": "28px", "color": "var(--font-dim)", "opacity": "0.25"},
-            ),
-            html.Span("IMAGE CAROUSEL", className="home-media-placeholder-label"),
-        ], className="home-media-placeholder"),
-
-    ], className="home-media-row"),
-
-    # ── Crew cards ────────────────────────────────────────────────────────
-    html.Div([
-        html.Div([
-            html.Span(member["role"], className="home-crew-card-role"),
-            html.Span(member["name"], className="home-crew-card-name"),
-        ], className="home-crew-card")
-        for member in _CREW
-    ], className="home-crew-row"),
-
+            html.Div([
+                html.Span(member["role"], className="home-crew-card-role"),
+                html.Span(member["name"], className="home-crew-card-name"),
+            ], className="home-crew-card")
+            for member in _CREW
+        ], className="home-crew-row"),
+    ], className="home-media"),
 ], className="home-root")
 
 
