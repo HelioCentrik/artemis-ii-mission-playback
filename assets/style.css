@@ -43,10 +43,14 @@ body {
     display:         flex;
     flex-direction:  column;
     align-items:     center;
-    justify-content: center;
+    justify-content: flex-start;
     padding:         20px 32px;
     box-sizing:      border-box;
     gap:             16px;
+}
+
+.home-spacer {
+    flex: 1;
 }
 
 /* ── Hero — title + description ────────────────────────────────────────── */
@@ -55,7 +59,7 @@ body {
     display:      flex;
     flex-direction: row;
     align-items:  center;
-    gap:          140px;
+    gap:          160px;
     width:        100%;
     max-width:    var(--dashboard-width);
 }
@@ -88,7 +92,6 @@ body {
     color:           var(--font-primary);
     margin:          0;
     margin-top:      -8px;
-    margin-bottom:   4px;
 }
 
 .home-description {
@@ -97,7 +100,6 @@ body {
     color:           var(--font-dim);
     text-align:      justify;
     margin:          0;
-    margin-bottom:   2px;
 }
 
 /* ── Media row — video | ignition | carousel ───────────────────────────── */

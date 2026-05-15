@@ -59,6 +59,8 @@ layout = html.Div([
         ], className="home-hero-right"),
     ], className="home-hero"),
 
+    html.Div(className="home-spacer"),
+
     html.Div([
         # ── Media row — video | ignition | carousel ────────────────────────────
         html.Div([
@@ -100,6 +102,9 @@ layout = html.Div([
             for member in _CREW
         ], className="home-crew-row"),
     ], className="home-media"),
+
+    html.Div(className="home-spacer")
+
 ], className="home-root")
 
 
