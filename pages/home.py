@@ -73,6 +73,7 @@ layout = html.Div([
         html.Div([
             html.H1("ARTEMIS II", className="home-title"),
             html.P("CREWED LUNAR FLYBY · APRIL 2026", className="home-title-sub"),
+            html.P("IMAGERY · NASA", className="home-title-credit"),
         ], className="home-hero-left"),
         html.Div([
             html.P(_DESCRIPTION, className="home-description"),
