@@ -93,11 +93,13 @@ Gevent async workers are required — the default sync worker class serialises c
 ---
 
 ## Project Structure
-app/              Python modules - config, data layer, figures, telemetry  
-assets/           CSS and clientside JS (playback animation hot path)  
-components/       `[ needs description ]`  
-scripts/          Horizons client, DB init, validation probes  
-main.py           Dash entrypoint - layout and callback wiring only
+pages/            Page modules — landing page (/) and mission playback dashboard (/playback/)
+app/              Config, data layer, DB singleton, phase detection, telemetry
+assets/           CSS, clientside JS (playback hot path, home carousel, resize handler)
+components/       Reusable Dash layout components — header, scrubber, panels
+viz/              Figure builders — trajectory viz, KPI tiles, sparklines
+scripts/          Horizons client, DB init, validation probes
+main.py           Entrypoint — imports pages, exposes server for Gunicorn
 
 ---
 
