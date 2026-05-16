@@ -59,3 +59,9 @@ Python · JavaScript · Dash · Plotly · DuckDB
 **Ephemeris data** - NASA Jet Propulsion Laboratory, [JPL Horizons REST API](https://ssd.jpl.nasa.gov/api/horizons.api). Orion spacecraft ID `-1024`. State vectors and osculating orbital elements at 1-minute resolution.
 
 **Moon and Sun ephemerides** - JPL Horizons, object IDs `301` (Moon) and `10` (Sun), same query window and resolution as Orion.
+
+**Crew portraits** — NASA. Official astronaut portraits: Reid Wiseman, Victor Glover, Christina Koch, Jeremy Hansen. [NASA Image and Video Library](https://images.nasa.gov).
+
+**Mission imagery** — NASA. Launch, recovery, and crew photography via [NASA Image and Video Library](https://images.nasa.gov).
+
+**Launch and recovery video** — NASA.
