@@ -1,13 +1,18 @@
 # components/header.py
 
-from dash import html
+from dash import html, dcc
 
 
 def build_header():
     return html.Div([
         html.Div([
             html.Div([
-                html.Div("ARTEMIS II • MISSION PLAYBACK", className="header-title"),
+                dcc.Link(
+                    "ARTEMIS II • MISSION PLAYBACK",
+                    href="/",
+                    className="header-title",
+                    title="Return to mission home",
+                ),
             ], className="header-brand-left"),
             html.Div([
                 html.A(

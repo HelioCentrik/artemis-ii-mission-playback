@@ -585,10 +585,18 @@ body {
 }
 
 .header-title {
-    font-size: var(--font-size-title);
-    font-weight: 700;
-    color: var(--font-primary);
-    letter-spacing: 1px;
+    font-size:       var(--font-size-title);
+    font-weight:     700;
+    color:           var(--font-primary);
+    letter-spacing:  1px;
+    text-decoration: none;
+    cursor:          pointer;
+}
+.header-title:hover,
+.header-title:active,
+.header-title:visited {
+    color:           var(--font-primary);
+    text-decoration: none;
 }
 
 .header-subtitle {
