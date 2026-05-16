@@ -27,11 +27,10 @@ _CAROUSEL_IMAGES = sorted([
 # Bios stored now for expand-on-click (next step), not yet rendered.
 
 _DESCRIPTION = (
-    "No human had travelled beyond Earth's orbit for 54 years since Apollo. "
-    "On April 1st, 2026, NASA's Space Launch System (SLS) carried Commander Reid Wiseman, "
-    "Pilot Victor Glover, and Mission Specialists Christina Koch and Jeremy Hansen further "
-    "from Earth than any crew in history. Artemis is the bridge between where we've been "
-    "and where we're going. Back to the moon."
+    "For 54 years, no human had travelled beyond Earth's orbit since Apollo. On April 1st, 2026, NASA's Space Launch "
+    "System (SLS) carried Commander Reid Wiseman, Pilot Victor Glover, and Mission Specialists Christina Koch and "
+    "Jeremy Hansen further from Earth than any crew in history. Artemis is the bridge between where we've been and "
+    "where we're going. Back to the moon."
 )
 
 _CREW = [
@@ -88,7 +87,7 @@ layout = html.Div([
 
             # Left — launch video placeholder
             html.Div([
-                html.Span("ARTEMIS II  •  LAUNCH", className="home-media-panel-label"),
+                html.Span("ARTEMIS II  ✦  LAUNCH", className="home-media-panel-label"),
                 html.Video(
                     html.Source(
                         src="http://localhost:8051/Artemis-2-launch-short-1080.mp4",
