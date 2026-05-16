@@ -72,7 +72,23 @@ gunicorn main:server --workers 2 --bind 0.0.0.0:8050 --timeout 120
 
 No environment variables are required. The DuckDB file is committed to the repo and loaded into memory at startup — there are no external API dependencies at runtime.
 
+The live demo## Deployment
+
+Serve with Gunicorn:
+
+```bash
+pip install gunicorn gevent
+gunicorn main:server \
+  --workers 2 \
+  --worker-class gevent \
+  --worker-connections 50 \
+  --timeout 120 \
+  --bind 0.0.0.0:8051
+```
+
 The live demo runs behind a Cloudflare tunnel on a self-hosted Linux server, managed as a systemd service. Any reverse proxy or tunnel setup that can forward HTTP to the Gunicorn port will work.
+
+Gevent async workers are required — the default sync worker class serialises concurrent video requests on the home page, causing sequential load times. runs behind a Cloudflare tunnel on a self-hosted Linux server, managed as a systemd service. Any reverse proxy or tunnel setup that can forward HTTP to the Gunicorn port will work.
 
 ---
 
