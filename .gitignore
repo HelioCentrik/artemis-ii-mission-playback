@@ -14,7 +14,9 @@ source/
 test/
 scripts/probe_horizons.py
 scripts/check_phases*.py
-/assets/Artemis-2-launch-short-1080.mp4
+assets/video/
+assets/carousel/
+assets/crew/
 
 # --- Python ---
 __pycache__/
@@ -48,3 +50,4 @@ desktop.ini
 .env
 .env.*
 /test/test_phase2.py
+/assets/video/

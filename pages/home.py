@@ -99,13 +99,51 @@ layout = html.Div([
                 ),
             ], className="home-ignition-wrap"),
 
-            # Right — image carousel placeholder
+            # Right — splashdown video → image carousel
             html.Div([
                 html.Span(
-                    "⬚",
-                    style={"fontSize": "28px", "color": "var(--font-dim)", "opacity": "0.25"},
+                    "ARTEMIS II  ✦  SPLASHDOWN & RECOVERY",
+                    className="home-media-panel-label",
+                    id="carousel-panel-label",
                 ),
-                html.Span("IMAGE CAROUSEL", className="home-media-placeholder-label"),
+
+                # Recovery video — plays first, hides on ended
+                html.Video(
+                    html.Source(
+                        src="/assets/video/artemis-ii-splashdown-recovery-cut.mp4",
+                        type="video/mp4",
+                    ),
+                    id="carousel-video",
+                    autoPlay=True,
+                    muted=True,
+                    controls=False,
+                    loop=False,
+                    className="home-carousel-video",
+                ),
+
+                # Images — all in DOM, JS cycles active class
+                html.Div([
+                    html.Img(
+                        src=src,
+                        className="home-carousel-img active" if i == 0 else "home-carousel-img",
+                        **{"data-index": str(i)},
+                    )
+                    for i, src in enumerate(_CAROUSEL_IMAGES)
+                ], id="carousel-imgs", className="home-carousel-imgs"),
+
+                # Controls — hidden until video ends
+                html.Div([
+                    html.Button("‹", className="home-carousel-btn", id="carousel-prev"),
+                    html.Div([
+                        html.Span(
+                            className="home-carousel-dot active" if i == 0 else "home-carousel-dot",
+                            **{"data-index": str(i)},
+                        )
+                        for i in range(len(_CAROUSEL_IMAGES))
+                    ], className="home-carousel-dots"),
+                    html.Button("›", className="home-carousel-btn", id="carousel-next"),
+                ], id="carousel-controls", className="home-carousel-controls"),
+
             ], className="home-media-placeholder"),
         ], className="home-media-row"),
 
