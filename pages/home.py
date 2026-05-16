@@ -144,13 +144,6 @@ layout = html.Div([
                 # Controls — hidden until video ends
                 html.Div([
                     html.Button("‹", className="home-carousel-btn", id="carousel-prev"),
-                    html.Div([
-                        html.Span(
-                            className="home-carousel-dot active" if i == 0 else "home-carousel-dot",
-                            **{"data-index": str(i)},
-                        )
-                        for i in range(len(_CAROUSEL_IMAGES))
-                    ], className="home-carousel-dots"),
                     html.Button("›", className="home-carousel-btn", id="carousel-next"),
                 ], id="carousel-controls", className="home-carousel-controls"),
 

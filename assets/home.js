@@ -1,30 +1,22 @@
 // assets/home.js
-//
-// Home page carousel — recovery video → image slideshow.
-// IIFE guards against running on /playback/. MutationObserver handles
-// Dash SPA navigation back to / without a full page reload.
 
 (function () {
     "use strict";
 
-    var _timer   = null;
-    var _current = 0;
-    var INTERVAL = 5000;
+    var _timer       = null;
+    var _current     = 0;
+    var _initTimeout = null;
+    var INTERVAL     = 5000;
 
-    // Derive a display label from the image filename slug.
-    // "/assets/carousel/01-recovery-victor-glover.jpg" → "RECOVERY · VICTOR GLOVER"
     function _labelFromSrc(src) {
         var filename = src.split('/').pop().replace(/\.\w+$/, '');
         var slug     = filename.replace(/^\d+[-_]/, '');
         return slug.replace(/[-_]+/g, ' · ').toUpperCase();
     }
 
-    function _showImage(imgs, dots, label, index) {
+    function _showImage(imgs, label, index) {
         imgs.forEach(function (img, i) {
             img.classList.toggle('active', i === index);
-        });
-        dots.forEach(function (dot, i) {
-            dot.classList.toggle('active', i === index);
         });
         if (label) {
             label.textContent = 'ARTEMIS II  ✦  ' + _labelFromSrc(imgs[index].src);
@@ -32,15 +24,31 @@
         _current = index;
     }
 
-    function _startTimer(imgs, dots, label) {
+    function _showVideo(video, imgsWrap, controls, label) {
+        clearInterval(_timer);
+        _timer                 = null;
+        video.style.display    = 'block';
+        video.currentTime      = 0;
+        imgsWrap.style.display = 'none';
+        if (controls) controls.style.display = 'none';
+        if (label) label.textContent = 'ARTEMIS II  ✦  SPLASHDOWN & RECOVERY';
+        video.play().catch(function () {});
+    }
+
+    function _startTimer(imgs, label, video, imgsWrap, controls) {
         _timer = setInterval(function () {
-            _showImage(imgs, dots, label, (_current + 1) % imgs.length);
+            var next = _current + 1;
+            if (next >= imgs.length) {
+                _showVideo(video, imgsWrap, controls, label);
+            } else {
+                _showImage(imgs, label, next);
+            }
         }, INTERVAL);
     }
 
-    function _resetTimer(imgs, dots, label) {
+    function _resetTimer(imgs, label, video, imgsWrap, controls) {
         clearInterval(_timer);
-        _startTimer(imgs, dots, label);
+        _startTimer(imgs, label, video, imgsWrap, controls);
     }
 
     function _init() {
@@ -53,53 +61,73 @@
 
         if (!video || !imgsWrap) return;
 
-        var imgs = Array.from(imgsWrap.querySelectorAll('.home-carousel-img'));
-        var dots = Array.from(document.querySelectorAll('.home-carousel-dot'));
+        if (video.dataset.carouselInit) return;
+        video.dataset.carouselInit = '1';
 
+        var imgs = Array.from(imgsWrap.querySelectorAll('.home-carousel-img'));
         if (!imgs.length) return;
 
-        // Hide carousel until video ends
-        imgsWrap.style.display = 'none';
-        controls.style.display = 'none';
+        clearInterval(_timer);
+        _timer   = null;
+        _current = 0;
 
+        video.style.display    = 'block';
+        video.currentTime      = 0;
+        imgsWrap.style.display = 'none';
+        if (controls) controls.style.display = 'none';
+
+        imgs.forEach(function (img, i) {
+            img.classList.toggle('active', i === 0);
+        });
+
+        video.play().catch(function () {});
+
+        // Persistent listener — no { once: true } — so every time the video
+        // ends (including after cycling back from the carousel) it hands off.
         video.addEventListener('ended', function () {
             video.style.display    = 'none';
             imgsWrap.style.display = 'block';
-            controls.style.display = 'flex';
-            _showImage(imgs, dots, label, 0);
-            _startTimer(imgs, dots, label);
+            if (controls) controls.style.display = 'flex';
+            _showImage(imgs, label, 0);
+            _startTimer(imgs, label, video, imgsWrap, controls);
         });
 
-        prevBtn && prevBtn.addEventListener('click', function () {
-            _showImage(imgs, dots, label, (_current - 1 + imgs.length) % imgs.length);
-            _resetTimer(imgs, dots, label);
-        });
-
-        nextBtn && nextBtn.addEventListener('click', function () {
-            _showImage(imgs, dots, label, (_current + 1) % imgs.length);
-            _resetTimer(imgs, dots, label);
-        });
-
-        dots.forEach(function (dot, i) {
-            dot.addEventListener('click', function () {
-                _showImage(imgs, dots, label, i);
-                _resetTimer(imgs, dots, label);
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function () {
+                if (_current === 0) {
+                    _showVideo(video, imgsWrap, controls, label);
+                } else {
+                    _showImage(imgs, label, _current - 1);
+                    _resetTimer(imgs, label, video, imgsWrap, controls);
+                }
             });
-        });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function () {
+                var next = _current + 1;
+                if (next >= imgs.length) {
+                    _showVideo(video, imgsWrap, controls, label);
+                } else {
+                    _showImage(imgs, label, next);
+                    _resetTimer(imgs, label, video, imgsWrap, controls);
+                }
+            });
+        }
     }
 
-    // MutationObserver — handles initial load AND Dash SPA navigation back to /
     var _observer = new MutationObserver(function () {
-        if (document.getElementById('carousel-video')) {
-            _observer.disconnect();
-            _init();
-        }
+        if (!document.getElementById('carousel-video')) return;
+        clearTimeout(_initTimeout);
+        _initTimeout = setTimeout(_init, 50);
     });
 
-    if (document.getElementById('carousel-video')) {
-        _init();
+    _observer.observe(document.body, { childList: true, subtree: true });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _init);
     } else {
-        _observer.observe(document.body, { childList: true, subtree: true });
+        _init();
     }
 
 }());
