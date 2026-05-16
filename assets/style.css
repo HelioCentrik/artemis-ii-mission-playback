@@ -220,80 +220,6 @@ body {
     line-height: 1.35;
 }
 
-/* ── Crew row ───────────────────────────────────────────────────────────── */
-
-.home-crew-row {
-    display:               grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap:                   calc(var(--panel-gap) + 16px);
-    width:                 100%;
-    max-width:             var(--dashboard-width);
-}
-
-/* ── Crew card ──────────────────────────────────────────────────────────── */
-
-.home-crew-card {
-    position:        relative;
-    height:          var(--home-crew-height);
-    background:      var(--panel-bg);
-    border:          1px solid var(--panel-border);
-    border-radius:   var(--panel-radius);
-    box-shadow:      inset 0 1px 0 rgba(200, 232, 255, 0.04);
-    display:         flex;
-    flex-direction:  column;
-    justify-content: flex-end;
-    padding:         0 20px 20px;
-    gap:             8px;
-    cursor:          pointer;
-    overflow:        hidden;
-    transition:      border-color 0.2s ease,
-                     box-shadow   0.2s ease;
-}
-
-.home-crew-card::after {
-    content:        "";
-    position:       absolute;
-    inset:          0;
-    background:     linear-gradient(to bottom, transparent 60%, var(--panel-bg) 90%);
-    z-index:        1;
-    pointer-events: none;
-}
-
-.home-crew-card:hover {
-    border-color: var(--font-dim);
-    box-shadow:   inset 0 1px 0 rgba(200, 232, 255, 0.06),
-                  0 0 20px rgba(200, 232, 255, 0.04);
-}
-
-.home-crew-card-portrait {
-    position:        absolute;
-    inset:           0;
-    width:           100%;
-    height:          100%;
-    object-fit:      cover;
-    object-position: top center;
-    z-index:         0;
-}
-
-.home-crew-card-role {
-    position:       relative;
-    z-index:        2;
-    font-size:      10px;
-    font-weight:    400;
-    letter-spacing: 0.2em;
-    color:          var(--font-dim);
-    text-transform: uppercase;
-}
-
-.home-crew-card-name {
-    position:       relative;
-    z-index:        2;
-    font-size:      14px;
-    font-weight:    700;
-    letter-spacing: 0.08em;
-    color:          var(--font-primary);
-}
-
 
 /* ── Carousel panel ─────────────────────────────────────────────────────── */
 
@@ -370,6 +296,234 @@ body {
 
 .home-carousel-btn:hover {
     background: rgba(0, 0, 0, 0.75);
+}
+
+/* ── Crew row ───────────────────────────────────────────────────────────── */
+
+.home-crew-row {
+    display:               grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:                   calc(var(--panel-gap) + 16px);
+    width:                 100%;
+    max-width:             var(--dashboard-width);
+}
+
+/* ── Crew card ──────────────────────────────────────────────────────────── */
+
+.home-crew-card {
+    position:        relative;
+    height:          var(--home-crew-height);
+    background:      var(--panel-bg);
+    border:          1px solid var(--panel-border);
+    border-radius:   var(--panel-radius);
+    box-shadow:      inset 0 1px 0 rgba(200, 232, 255, 0.04);
+    display:         flex;
+    flex-direction:  column;
+    justify-content: flex-end;
+    padding:         0 20px 20px;
+    gap:             8px;
+    cursor:          pointer;
+    overflow:        hidden;
+    transition:      border-color 0.2s ease,
+                     box-shadow   0.2s ease;
+}
+
+.home-crew-card::after {
+    content:        "";
+    position:       absolute;
+    inset:          0;
+    background:     linear-gradient(to bottom, transparent 60%, var(--panel-bg) 90%);
+    z-index:        1;
+    pointer-events: none;
+}
+
+.home-crew-card:hover {
+    border-color: var(--font-dim);
+    box-shadow:   inset 0 1px 0 rgba(200, 232, 255, 0.06),
+                  0 0 20px rgba(200, 232, 255, 0.04);
+}
+
+.home-crew-card-portrait {
+    position:        absolute;
+    inset:           0;
+    width:           100%;
+    height:          100%;
+    object-fit:      cover;
+    object-position: top center;
+    z-index:         0;
+}
+
+/* ── Crew card footer (collapsed label row) ─────────────────────────────── */
+
+.home-crew-card-footer {
+    position:       relative;
+    z-index:        2;
+    display:        flex;
+    flex-direction: column;
+    gap:            8px;
+    transition:     opacity 0.15s ease;
+}
+
+.home-crew-card-role {
+    position:       relative;
+    z-index:        2;
+    font-size:      10px;
+    font-weight:    400;
+    letter-spacing: 0.2em;
+    color:          var(--font-dim);
+    text-transform: uppercase;
+}
+
+.home-crew-card-name {
+    position:       relative;
+    z-index:        2;
+    font-size:      14px;
+    font-weight:    700;
+    letter-spacing: 0.08em;
+    color:          var(--font-primary);
+}
+
+/* ── Crew card detail (expanded content, hidden by default) ─────────────── */
+
+.home-crew-card-detail {
+    position:        absolute;
+    inset:           0;
+    z-index:         3;
+    display:         flex;
+    flex-direction:  column;
+    justify-content: flex-end;
+    padding:         20px;
+    opacity:         0;
+    pointer-events:  none;
+    transition:      opacity 0.2s ease;
+}
+
+/* ── Lifting state — JS sets position:fixed + inline dims, this animates ── */
+
+.home-crew-card.is-lifting {
+    z-index:    100;
+    transition: top          0.35s ease-out,
+                left         0.35s ease-out,
+                width        0.35s ease-out,
+                height       0.35s ease-out,
+                border-color 0.2s ease,
+                box-shadow   0.3s ease;
+}
+
+.home-crew-card-ghost {
+    pointer-events: none;
+    visibility:     hidden;
+}
+
+/* ── Expanded visual state ──────────────────────────────────────────────── */
+
+.home-crew-card.expanded {
+    border-color: var(--accent-trajectory);
+    box-shadow:   inset 0 1px 0 rgba(200, 232, 255, 0.08),
+                  0 0 48px rgba(0, 170, 255, 0.2),
+                  0 12px 60px rgba(0, 0, 0, 0.7);
+}
+
+.home-crew-card.expanded::after {
+    background: linear-gradient(to bottom, transparent 40%, var(--panel-bg) 60%);
+}
+
+.home-crew-card.expanded .home-crew-card-footer {
+    opacity:        0;
+    pointer-events: none;
+}
+
+.home-crew-card.expanded .home-crew-card-detail {
+    opacity:          1;
+    pointer-events:   auto;
+    transition-delay: 0.28s;
+}
+
+/* ── Scrim ───────────────────────────────────────────────────────────────── */
+
+.home-crew-scrim {
+    position:   fixed;
+    inset:      0;
+    z-index:    99;
+    background: transparent;
+    opacity:    0;
+    transition: opacity 0.3s ease,
+                background 0.3s ease;
+    cursor:     pointer;
+    pointer-events: none;
+}
+
+.home-crew-scrim.visible {
+    opacity:        1;
+    background:     rgba(0, 0, 0, 0.55);
+    pointer-events: auto;
+}
+
+/* ── Detail content ─────────────────────────────────────────────────────── */
+
+.home-crew-detail-role {
+    display:        block;
+    font-size:      10px;
+    font-weight:    400;
+    letter-spacing: 0.22em;
+    color:          var(--accent-trajectory);
+    text-transform: uppercase;
+    margin-bottom:  4px;
+}
+
+.home-crew-detail-name {
+    display:        block;
+    font-size:      20px;
+    font-weight:    700;
+    letter-spacing: 0.06em;
+    color:          var(--font-primary);
+    line-height:    1.15;
+    margin-bottom:  2px;
+}
+
+.home-crew-detail-agency {
+    display:        block;
+    font-size:      9px;
+    font-weight:    400;
+    letter-spacing: 0.22em;
+    color:          var(--font-dim);
+    text-transform: uppercase;
+    padding-bottom: 10px;
+    margin-bottom:  12px;
+    border-bottom:  1px solid var(--panel-border);
+}
+
+.home-crew-detail-row {
+    display:         flex;
+    justify-content: space-between;
+    align-items:     baseline;
+    padding:         5px 0;
+    border-bottom:   1px solid rgba(200, 232, 255, 0.07);
+}
+
+.home-crew-detail-label {
+    font-size:      9px;
+    letter-spacing: 0.18em;
+    color:          var(--font-dim);
+    text-transform: uppercase;
+}
+
+.home-crew-detail-value {
+    font-size:      11px;
+    font-weight:    600;
+    letter-spacing: 0.04em;
+    color:          var(--font-primary);
+    text-align:     justify;
+}
+
+.home-crew-detail-bg {
+    font-size:     10.5px;
+    line-height:   1.65;
+    color:         var(--font-dim);
+    text-align:    justify;
+    margin-top:    12px;
+    margin-bottom: 0;
+    opacity:       0.85;
 }
 
 
