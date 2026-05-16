@@ -152,7 +152,7 @@ body {
     height:     100%;
     object-fit: contain;
     display:    block;
-    margin-top: -20px;
+    margin-top: -10px;
 }
 
 .home-media-panel-label {
@@ -268,7 +268,7 @@ body {
     min-height: 0;
     object-fit: contain;
     display:    block;
-    margin-top: -20px;
+    margin-top: -10px;
 }
 
 .home-carousel-imgs {
@@ -276,6 +276,7 @@ body {
     min-height: 0;
     width:      100%;
     position:   relative;
+    margin-top: -10px;
 }
 
 .home-carousel-img {
