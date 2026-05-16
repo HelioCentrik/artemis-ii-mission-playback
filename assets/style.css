@@ -56,12 +56,11 @@ body {
 /* ── Hero — title + description ────────────────────────────────────────── */
 
 .home-hero {
-    display:      flex;
+    display:        flex;
     flex-direction: row;
-    align-items:  center;
-    gap:          160px;
-    width:        100%;
-    max-width:    var(--dashboard-width);
+    align-items:    center;
+    width:          100%;
+    max-width:      var(--dashboard-width);
 }
 
 .home-hero-left {
@@ -72,8 +71,10 @@ body {
 }
 
 .home-hero-right {
-    flex:       1;
-    min-width:  0;
+    width:        770px;
+    flex-shrink:  0;
+    margin-left:  auto;
+    min-width:    0;
 }
 
 .home-title {
