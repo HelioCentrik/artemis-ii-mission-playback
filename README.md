@@ -25,7 +25,7 @@ Animates Orion's 9-day Earth-Moon-Earth trajectory at 3600× speed (1 hour per s
 
 ## Live Demo
 
-[artemis-ii-mission-playback.deanallton.com](https://artemis-ii-mission-playback.deanallton.com)
+[artemis-ii-mission.deanallton.com](https://artemis-ii-mission.deanallton.com)
 
 ---
 
