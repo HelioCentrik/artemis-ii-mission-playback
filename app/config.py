@@ -101,7 +101,7 @@ HOME_CREW_CARD_HEIGHT = 360   # px — crew card collapsed height
 
 # Set ARTEMIS_STATIC_HOST env var to override for production (e.g. nginx URL)
 # Leave unset to use Werkzeug (fine if videos aren't huge or server handles concurrency)
-STATIC_VIDEO_HOST = os.environ.get("ARTEMIS_STATIC_HOST", "http://localhost:8051")
+STATIC_VIDEO_HOST = os.environ.get("ARTEMIS_STATIC_HOST", "/assets/video")
 
 # ── Playback page layout ──────────────────────────────────────────────────
 DASHBOARD_WIDTH_MIN = 1080

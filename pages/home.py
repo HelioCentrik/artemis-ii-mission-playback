@@ -60,9 +60,6 @@ _CREW = [
     },
 ]
 
-src=f"{STATIC_VIDEO_HOST}/Artemis-2-launch-short-1080.mp4"
-src=f"{STATIC_VIDEO_HOST}/artemis-ii-splashdown-recovery-cut.mp4"
-
 
 # ── Layout ────────────────────────────────────────────────────────────────
 
@@ -91,7 +88,7 @@ layout = html.Div([
                 html.Span("ARTEMIS II  ✦  LAUNCH", className="home-media-panel-label"),
                 html.Video(
                     html.Source(
-                        src="http://localhost:8051/Artemis-2-launch-short-1080.mp4",
+                        src=f"{STATIC_VIDEO_HOST}/Artemis-2-launch-short-1080.mp4",
                         type="video/mp4",
                     ),
                     controls=True,
@@ -123,7 +120,7 @@ layout = html.Div([
                 # Recovery video — plays first, hides on ended
                 html.Video(
                     html.Source(
-                        src="http://localhost:8051/artemis-ii-splashdown-recovery-cut.mp4",
+                        src=f"{STATIC_VIDEO_HOST}/artemis-ii-splashdown-recovery-cut.mp4",
                         type="video/mp4",
                     ),
                     id="carousel-video",
