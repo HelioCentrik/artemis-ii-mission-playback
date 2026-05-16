@@ -36,24 +36,28 @@ _DESCRIPTION = (
 
 _CREW = [
     {
-        "name": "Reid Wiseman",
-        "role": "Commander",
-        "bio":  "USN test pilot · ISS Expedition 41 · Selected 2009",
+        "name":     "Reid Wiseman",
+        "role":     "Commander",
+        "bio":      "USN test pilot · ISS Expedition 41 · Selected 2009",
+        "portrait": "portrait-wiseman-reid.webp",
     },
     {
-        "name": "Victor Glover",
-        "role": "Pilot",
-        "bio":  "USN test pilot · ISS Expedition 64 · Selected 2013",
+        "name":     "Victor Glover",
+        "role":     "Pilot",
+        "bio":      "USN test pilot · ISS Expedition 64 · Selected 2013",
+        "portrait": "portrait-glover-victor.webp",
     },
     {
-        "name": "Christina Koch",
-        "role": "Mission Specialist",
-        "bio":  "Engineer · ISS 328-day record mission · Selected 2013",
+        "name":     "Christina Koch",
+        "role":     "Mission Specialist",
+        "bio":      "Engineer · ISS 328-day record mission · Selected 2013",
+        "portrait": "portrait-koch-christina.webp",
     },
     {
-        "name": "Jeremy Hansen",
-        "role": "Mission Specialist",
-        "bio":  "RCAF fighter pilot · First Canadian to lunar vicinity · Selected 2009",
+        "name":     "Jeremy Hansen",
+        "role":     "Mission Specialist",
+        "bio":      "RCAF fighter pilot · First Canadian to lunar vicinity · Selected 2009",
+        "portrait": "portrait-hansen-jeremy.webp",
     },
 ]
 
@@ -153,6 +157,10 @@ layout = html.Div([
         # ── Crew cards ────────────────────────────────────────────────────────
         html.Div([
             html.Div([
+                html.Img(
+                    src=f"/assets/crew/{member['portrait']}",
+                    className="home-crew-card-portrait",
+                ),
                 html.Span(member["role"], className="home-crew-card-role"),
                 html.Span(member["name"], className="home-crew-card-name"),
             ], className="home-crew-card")
