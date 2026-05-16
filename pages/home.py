@@ -3,9 +3,21 @@
 # Landing page — registers at /.
 # Layout only — no callbacks. IGNITION navigation via dcc.Link (client-side routing).
 
+import os
+import glob
+
 import dash
 from dash import html, dcc
 
+
+
+# Scan carousel images at startup — sorted by filename gives sequence order
+_CAROUSEL_DIR = os.path.join(os.path.dirname(__file__), '..', 'assets', 'carousel')
+_CAROUSEL_IMAGES = sorted([
+    f"/assets/carousel/{os.path.basename(f)}"
+    for f in glob.glob(os.path.join(_CAROUSEL_DIR, '*'))
+    if f.lower().endswith(('.jpg', '.jpeg', '.png', '.webp'))
+])
 
 
 # ── Mission content ───────────────────────────────────────────────────────
@@ -67,11 +79,15 @@ layout = html.Div([
 
             # Left — launch video placeholder
             html.Div([
-                html.Span(
-                    "▶",
-                    style={"fontSize": "28px", "color": "var(--font-dim)", "opacity": "0.25"},
+                html.Span("ARTEMIS II  •  LAUNCH", className="home-media-panel-label"),
+                html.Video(
+                    html.Source(src="/assets/video/Artemis-2-launch-short-1080.mp4", type="video/mp4"),
+                    controls=True,
+                    loop=True,
+                    autoPlay=True,
+                    muted=True,
+                    className="home-launch-video",
                 ),
-                html.Span("LAUNCH VIDEO", className="home-media-placeholder-label"),
             ], className="home-media-placeholder"),
 
             # Center — IGNITION navigation button
