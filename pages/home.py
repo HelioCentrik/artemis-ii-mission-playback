@@ -112,7 +112,7 @@ layout = html.Div([
             # Right — splashdown video → image carousel
             html.Div([
                 html.Span(
-                    "ARTEMIS II  ✦  SPLASHDOWN & RECOVERY",
+                    "ARTEMIS II  ✦  RECOVERY (FOUR GREEN)",
                     className="home-media-panel-label",
                     id="carousel-panel-label",
                 ),
@@ -142,7 +142,7 @@ layout = html.Div([
                     for i, src in enumerate(_CAROUSEL_IMAGES)
                 ], id="carousel-imgs", className="home-carousel-imgs"),
 
-                # Controls — hidden until video ends
+                # Controls
                 html.Div([
                     html.Button("‹", className="home-carousel-btn", id="carousel-prev"),
                     html.Button("›", className="home-carousel-btn", id="carousel-next"),
