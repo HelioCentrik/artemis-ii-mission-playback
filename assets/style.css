@@ -243,7 +243,7 @@ body {
     content:        "";
     position:       absolute;
     inset:          0;
-    background:     linear-gradient(to bottom, transparent 65%, var(--panel-bg) 90%);
+    background:     linear-gradient(to bottom, transparent 60%, var(--panel-bg) 90%);
     z-index:        1;
     pointer-events: none;
 }
