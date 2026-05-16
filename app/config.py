@@ -8,6 +8,7 @@
 # Do not define raw hex values here — add them to themes.py instead.
 
 from pathlib import Path
+import os
 
 from app.themes import THEME_DARK as _T
 from app.utils import (
@@ -97,6 +98,10 @@ R_MOON   = 1_737.4
 # ── Home page layout ──────────────────────────────────────────────────────
 HOME_MEDIA_ROW_HEIGHT = 420   # px — video / ignition / carousel row height
 HOME_CREW_CARD_HEIGHT = 360   # px — crew card collapsed height
+
+# Set ARTEMIS_STATIC_HOST env var to override for production (e.g. nginx URL)
+# Leave unset to use Werkzeug (fine if videos aren't huge or server handles concurrency)
+STATIC_VIDEO_HOST = os.environ.get("ARTEMIS_STATIC_HOST", "http://localhost:8051")
 
 # ── Playback page layout ──────────────────────────────────────────────────
 DASHBOARD_WIDTH_MIN = 1080
