@@ -1,7 +1,7 @@
-# Artemis II • Mission Tracker
+# Artemis II • Mission Playback
 
-A mission control-style dashboard visualizing the Artemis II lunar flyby trajectory
-in real time. Built with Python, Dash, Plotly, and DuckDB.
+A mission control-style dashboard visualizing the Artemis II lunar flyby trajectory.
+Built with Python, Dash, Plotly, and DuckDB.
 
 ![Dashboard screenshot](assets/artemis-ii.png)
 
@@ -9,17 +9,14 @@ in real time. Built with Python, Dash, Plotly, and DuckDB.
 
 ## What It Is
 
-Animates Orion's 9-day Earth-Moon-Earth trajectory at 3600× speed (1 hour per second), driven by 12,836 state vectors at 1-minute resolution from NASA JPL Horizons.
+A two-page web app built around NASA JPL ephemeris data from the Artemis II mission.
 
-**Trajectory panel** - top-down 2D view of the Earth-Moon system with a live spacecraft marker, accumulated past arc, dashed return arc, and labeled mission event markers (propulsive burns and physics events).
+**Landing page (`/`)** — Mission overview with crew profiles, launch and splashdown
+videos, and a mission image carousel. An IGNITION button navigates to the dashboard.
 
-**Phase scrubber** - seven clickable mission phase markers drive the entire dashboard. Jump to any phase or play/pause animation from any position.
-
-**Telemetry panels** - four live data groups updating on phase change:
-- **Vectors** - total speed, escape velocity, radial velocity
-- **Trajectory / Orbital** - characteristic energy (C3), eccentricity, inclination
-- **Gravitational Pull** - Earth and Moon gravitational accelerations
-- **Range / Comms** - Earth distance, one-way light time, Moon distance
+**Mission playback (`/playback`)** — Animates Orion's 9-day Earth-Moon-Earth
+trajectory at 3600× speed (1 hour per second), driven by 12,836 state vectors at
+1-minute resolution.
 
 ---
 
