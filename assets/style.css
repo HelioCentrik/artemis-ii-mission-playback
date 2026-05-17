@@ -799,7 +799,7 @@ body {
    ═══════════════════════════════════════════════════════════════════════ */
 
 .panel-trajectory {
-    height: var(--traj-h);
+    height: clamp(var(--traj-h), 50vh, calc(var(--traj-h) + 60px));
     display: flex;
     flex-direction: column;
     margin-bottom: var(--panel-gap);
