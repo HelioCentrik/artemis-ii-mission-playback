@@ -22,9 +22,8 @@ from app.config import (
     HOME_MEDIA_ROW_HEIGHT, HOME_CREW_CARD_HEIGHT,
     SIDE_PANEL_WIDTH, SIDE_PANEL_TRANSITION,
     HEADER_BRAND_HEIGHT,
-    TRAJECTORY_HEIGHT_MIN, TRAJECTORY_HEIGHT_VH, TRAJECTORY_HEIGHT_MAX,
     SCRUBBER_HEIGHT, SCRUBBER_BORDER_RADIUS, SCRUBBER_HORIZONTAL_MARGIN, SCRUBBER_DOT_SIZE,
-    TELEMETRY_HEIGHT_MIN, TELEMETRY_HEIGHT_VH, TELEMETRY_HEIGHT_MAX,
+    TRAJECTORY_HEIGHT, TELEMETRY_HEIGHT,
     PANEL_BORDER_RADIUS,
     PANEL_GAP_MIN, PANEL_GAP_VW, PANEL_GAP_MAX,
     PANEL_PADDING_MIN, PANEL_PADDING_VW, PANEL_PADDING_MAX,
@@ -113,12 +112,12 @@ INDEX_STRING = f"""<!DOCTYPE html>
             --home-media-height:   {HOME_MEDIA_ROW_HEIGHT}px;
             --home-crew-height:    {HOME_CREW_CARD_HEIGHT}px;
             --header-brand-h:      {HEADER_BRAND_HEIGHT}px;
-            --traj-min-h:          clamp({TRAJECTORY_HEIGHT_MIN}px, {TRAJECTORY_HEIGHT_VH}vh, {TRAJECTORY_HEIGHT_MAX}px);
+            --traj-h:              {TRAJECTORY_HEIGHT}px;
             --scrubber-h:          {SCRUBBER_HEIGHT}px;
             --scrubber-radius:     {SCRUBBER_BORDER_RADIUS}px;
             --scrubber-h-margin:   {SCRUBBER_HORIZONTAL_MARGIN}px;
             --scrubber-dot:        {SCRUBBER_DOT_SIZE}px;
-            --telem-min-h:         clamp({TELEMETRY_HEIGHT_MIN}px, {TELEMETRY_HEIGHT_VH}vh, {TELEMETRY_HEIGHT_MAX}px);
+            --telem-h:             {TELEMETRY_HEIGHT}px;
             --panel-radius:        {PANEL_BORDER_RADIUS}px;
             --panel-gap:           clamp({PANEL_GAP_MIN}px, {PANEL_GAP_VW}vw, {PANEL_GAP_MAX}px);
             --panel-padding:       clamp({PANEL_PADDING_MIN}px, {PANEL_PADDING_VW}vw, {PANEL_PADDING_MAX}px);

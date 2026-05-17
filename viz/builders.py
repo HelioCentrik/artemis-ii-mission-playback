@@ -16,16 +16,10 @@ import numpy as np
 
 from app.config import (
     # Sparkline tokens
-    KPI_SVG_VIEWBOX_WIDTH,
-    KPI_SVG_VIEWBOX_HEIGHT,
-    SPARKLINE_HEIGHT,
-    SPARKLINE_PAD_Y,
-    SPARKLINE_DOWNSAMPLE_N,
-    SPARKLINE_PATH_OPACITY,
-    SPARKLINE_PATH_WIDTH,
-    SPARKLINE_FUTURE_OPACITY,
-    SPARKLINE_STAR_RADIUS,
-    SPARKLINE_STAR_GLOW_BLUR,
+    KPI_SVG_VIEWBOX_WIDTH, KPI_SVG_VIEWBOX_HEIGHT,
+    SPARKLINE_HEIGHT, SPARKLINE_PAD_Y, SPARKLINE_DOWNSAMPLE_N,
+    SPARKLINE_PATH_OPACITY, SPARKLINE_PATH_WIDTH, SPARKLINE_FUTURE_OPACITY,
+    SPARKLINE_STAR_RADIUS, SPARKLINE_STAR_GLOW_BLUR,
     # Bar tokens
     BAR_HEIGHT, BAR_BORDER_RADIUS,
     # Bidir tokens
@@ -33,6 +27,7 @@ from app.config import (
     # Dial tokens
     DIAL_CY_OFFSET, DIAL_RADIUS, DIAL_STROKE_WIDTH, DIAL_STROKE_LINECAP,
     DIAL_ANGLE_MIN, DIAL_ANGLE_MAX, DIAL_VAL_MIN, DIAL_VAL_MAX,
+    DIAL_TILE_EXTRA_HEIGHT, DIAL_TILE_TOP_OFFSET,
 )
 
 # Shared shorthand — used by all builders
@@ -357,7 +352,7 @@ def build_dial_svg(column: str, value: float) -> str:
         )
 
     return (
-        f'<div style="line-height:0">'
+        f'<div style="height:calc(100% + {DIAL_TILE_EXTRA_HEIGHT}px);top:-{DIAL_TILE_TOP_OFFSET}px;line-height:0;">'
         f'<svg viewBox="0 0 {_VW} {_VH}" '
         f'width="100%" height="100%" '
         f'preserveAspectRatio="xMidYMid meet" '

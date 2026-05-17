@@ -546,14 +546,18 @@ body {
     flex: 1;
     min-width: 0;
     height: 100vh;
-    overflow-y: auto;
     max-width: var(--dashboard-width);
     margin: 0 auto;
     padding: var(--panel-gap);
     display: grid;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto 1fr auto auto 1fr;
     grid-template-columns: 1fr;
-    gap: var(--panel-gap);
+    gap: 0;
+}
+
+.dashboard-spacer {
+    min-height: 0;
+    margin: 0;
 }
 
 
@@ -713,6 +717,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0 4px;
+    margin-bottom: 0;
 }
 
 .header-brand-left,
@@ -728,7 +733,7 @@ body {
 }
 
 .header-credit {
-    font-size: var(--font-size-label);
+    font-size: var(--font-size-tooltip);
     color: var(--font-dim);
     text-decoration: none;
     letter-spacing: 1px;
@@ -794,9 +799,10 @@ body {
    ═══════════════════════════════════════════════════════════════════════ */
 
 .panel-trajectory {
-    min-height: var(--traj-min-h);
+    height: var(--traj-h);
     display: flex;
     flex-direction: column;
+    margin-bottom: var(--panel-gap);
 }
 
 .panel-trajectory-header {
@@ -811,7 +817,7 @@ body {
 .panel-trajectory-viz {
     flex: 1;
     min-height: 0;
-    position: relative;         /* positioning context for scrubber + layers */
+    position: relative;
 }
 
 /* Ensure the Plotly graph fills its container */
@@ -983,7 +989,7 @@ body {
 
 .telemetry-grid {
     display: grid;
-    height: 100%;
+    height: var(--telem-h);
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: 1fr;
     gap: var(--panel-gap);
@@ -1041,6 +1047,29 @@ body {
 .telemetry-panel--trajectory { --panel-accent: var(--accent-trajectory); }
 .telemetry-panel--gravity    { --panel-accent: var(--accent-gravity); }
 .telemetry-panel--range      { --panel-accent: var(--accent-range); }
+
+/* ── Inclination dial — override tile-sparkline height + allow overflow ──
+ *
+ * The dial arc needs more vertical space than the flex: 1 allocation gives.
+ * We break out of the tile clip boundary intentionally — overflow is absorbed
+ * by the bottom 1fr spacer in the dashboard grid.
+ *
+ * margin-top compensates for the butt-cap endpoints making the arc read
+ * visually high; nudging the container down optically re-centers it.
+ * ─────────────────────────────────────────────────────────────────────── */
+
+.telemetry-panel--trajectory.panel {
+    overflow: visible;   /* let tile overflow escape the panel clip */
+}
+
+.telemetry-panel--trajectory .tile:last-child {
+    overflow: visible;   /* let sparkline overflow the tile row */
+}
+
+.telemetry-panel--trajectory .tile:last-child .tile-sparkline > div {
+    bottom: 0px;  /* extend below the sparkline container */
+    height: auto;   /* override height: 100% so top+bottom define the size */
+}
 
 
 /* ═══════════════════════════════════════════════════════════════════════

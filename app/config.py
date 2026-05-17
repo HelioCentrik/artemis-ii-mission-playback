@@ -125,20 +125,14 @@ PANEL_PADDING_MIN = 6
 PANEL_PADDING_VW  = 0.6    # 1.2vw ≈ 16px at 1333px wide
 PANEL_PADDING_MAX = 14
 
-# Trajectory panel height
-TRAJECTORY_HEIGHT_MIN = 320
-TRAJECTORY_HEIGHT_VH  = 50     # 50vh = 540px at 1080p
-TRAJECTORY_HEIGHT_MAX = 640
-
 SCRUBBER_HEIGHT            = 44   # fixed
 SCRUBBER_BORDER_RADIUS     = 20   # fixed
 SCRUBBER_HORIZONTAL_MARGIN = 112  # fixed
 SCRUBBER_DOT_SIZE          = 14   # fixed
 
-# Telemetry grid height
-TELEMETRY_HEIGHT_MIN = 240
-TELEMETRY_HEIGHT_VH  = 33     # 33vh ≈ 356px at 1080p
-TELEMETRY_HEIGHT_MAX = 480
+# Viz Sections Height
+TRAJECTORY_HEIGHT = 500   # px — fixed, 1080p target
+TELEMETRY_HEIGHT  = 360   # px — fixed, 1080p target
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -376,6 +370,8 @@ DIAL_ANGLE_MAX      = 10      # degrees — right endpoint (just inside 3 o'cloc
 DIAL_VAL_MIN        = 0.0     # data value mapped to DIAL_ANGLE_MIN
 DIAL_VAL_MAX        = 180.0   # data value mapped to DIAL_ANGLE_MAX
 DIAL_STROKE_LINECAP = "butt"  # SVG stroke-linecap: "butt" | "round" | "square"
+DIAL_TILE_EXTRA_HEIGHT  = 28
+DIAL_TILE_TOP_OFFSET    = 12
 
 
 # ── Arc marker dot sizing + label offset ──

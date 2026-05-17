@@ -264,6 +264,7 @@ layout = html.Div([   # <-- was app.layout = html.Div([
 
         # ── Header ───────────────────────────────────────────────────────────
         build_header(),
+        html.Div(className="dashboard-spacer"),  # ← top spacer
 
         # ── Trajectory panel ─────────────────────────────────────────────────
         html.Div([
@@ -282,6 +283,7 @@ layout = html.Div([   # <-- was app.layout = html.Div([
 
         # ── Telemetry panels ─────────────────────────────────────────────────
         build_telemetry_grid(),
+        html.Div(className="dashboard-spacer"),  # ← bottom spacer
 
     ], className="dashboard"),
 
