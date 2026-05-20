@@ -49,7 +49,7 @@
     // ── Shadow geometry cache ─────────────────────────────────────────────
     // Built once from preload data during idle (paused) time before playback.
     // Per-frame hot path becomes pure array lookups — no trig, no allocation.
-    var _futureArcHidden = false;
+    var _futureIndices = null;
     var _shadowCache = null;
 
     function _buildShadowCache(preloaded) {
@@ -199,20 +199,18 @@
             'annotations[1].y':       eventY
         });
 
-        // ── Future arc — hide once on playback start, restore on pause ────
+        // ── Future arc — hidden every running frame (survives server rebuilds) ──
+        // Indices cached once to avoid per-frame array allocation.
         var futureStart = meta.trace_idx.future_start;
         var futureEnd   = meta.trace_idx.future_end;
-        if (futureEnd > futureStart) {
-            if (running && !_futureArcHidden) {
-                var futureIndices = [];
+        if (running && futureEnd > futureStart) {
+            if (_futureIndices === null) {
+                _futureIndices = [];
                 for (var k = futureStart; k < futureEnd; k++) {
-                    futureIndices.push(k);
+                    _futureIndices.push(k);
                 }
-                Plotly.restyle(graphDiv, {opacity: 0}, futureIndices);
-                _futureArcHidden = true;
-            } else if (!running && _futureArcHidden) {
-                _futureArcHidden = false;  // reset so next play hides it again
             }
+            Plotly.restyle(graphDiv, {opacity: 0}, _futureIndices);
         }
 
         // ── Moon position + visibility ────────────────────────────────────
