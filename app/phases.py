@@ -6,8 +6,7 @@
 #   1. PHASE_HARDCODED_TIMES (config.py) — confirmed ops events; snapped to
 #      nearest DB row via _snap_to_db().
 #   2. Detector function in _DETECTORS — physics/derived events that have no
-#      known wall-clock time (c3_zero) or structural anchors (parking_orbit,
-#      dataset_close, etc.).
+#      structural anchors (parking_orbit, dataset_close, etc.).
 #
 # Detection runs in _DETECTION_ORDER. Dependencies must precede dependents:
 #   otc2_outbound  → outbound_coast
@@ -58,22 +57,6 @@ def _detect_parking_orbit(con, **_) -> datetime:
     return con.execute(
         "SELECT MIN(datetime_utc) FROM orion_trajectory"
     ).fetchone()[0]
-
-
-def _detect_c3_zero(con, **_) -> datetime:
-    """
-    First row where C3 >= 0 — Orion crosses Earth escape energy.
-    This is the physics consequence of TLI, not the burn itself.
-    Typically occurs a few minutes after TLI ignition as the burn
-    accelerates the spacecraft past escape velocity.
-    """
-    return con.execute("""
-        SELECT datetime_utc
-        FROM   v_kinematics
-        WHERE  c3_km2s2 >= 0.0
-        ORDER  BY datetime_utc ASC
-        LIMIT  1
-    """).fetchone()[0]
 
 
 def _detect_outbound_coast(con, *, otc2_outbound: datetime, **_) -> datetime:
@@ -139,7 +122,6 @@ def _detect_dataset_close(con, **_) -> datetime:
 
 _DETECTORS: dict[str, Callable] = {
     "parking_orbit":    _detect_parking_orbit,
-    "c3_zero":          _detect_c3_zero,
     "outbound_coast":   _detect_outbound_coast,
     "transearth_coast": _detect_transearth_coast,
     "earth_approach":   _detect_earth_approach,
@@ -157,8 +139,7 @@ _DETECTION_ORDER: tuple[str, ...] = (
     "perigee_raise",        # hardcoded
     "tli_burn",             # hardcoded
     "slingshot_entry",      # hardcoded (≈ TLI ignition; tune in config.py)
-    "slingshot_exit",       # hardcoded (≈ post-TLI; tune to actual C3=0 crossing)
-    "c3_zero",              # detector — first row where C3 >= 0
+    "slingshot_exit",       # hardcoded (≈ post-TLI outbound coast start; tune in config.py)
     "otc2_outbound",        # hardcoded ← outbound_coast depends on this; must come first
     "outbound_coast",       # detector — ~45 min before otc2_outbound
     "lunar_soi_entry",      # hardcoded

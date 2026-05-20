@@ -216,17 +216,15 @@ ARC_MARKER_CATEGORY: dict[str, str] = {
 # ── Hardcoded phase timestamps (UTC) ──────────────────────────────────────
 # Source: NASA mission blogs + press releases. These are confirmed ops events
 # with known times. Detectors in phases.py are bypassed for any key listed here.
-# c3_zero is intentionally absent — it's a physics crossing, not an ops event;
-# the DB detector owns it.
 #
 # slingshot_entry / slingshot_exit are starting estimates — tune as needed
-# once you can compare against the actual C3 trace in the DB.
+# once post-mission timeline data is available.
 
 PHASE_HARDCODED_TIMES: dict[str, str] = {
     "perigee_raise":    "2026-04-02T11:10:00",   # ~43s burn, perigee raise (approx; wake-up was 11:06)
     "slingshot_entry":  "2026-04-02T22:00:00",   # TLI ignition — Earth slingshot begins; tune as needed
     "tli_burn":         "2026-04-02T23:49:00",   # 5m 49s, ΔV = 1,274 fps — confirmed
-    "slingshot_exit":   "2026-04-03T05:00:00",   # ~21min post-TLI ignition; tune to actual C3=0 crossing
+    "slingshot_exit":   "2026-04-03T05:00:00",   # ~5h post-TLI; outbound coast start — tune as needed
     "otc2_outbound":    "2026-04-06T03:03:00",   # 17.5s
     "lunar_soi_entry":  "2026-04-06T04:41:00",   # Moon's gravity becomes dominant
     "closest_approach": "2026-04-06T23:02:00",   # Pericynthion; distance record at +3min
@@ -244,7 +242,6 @@ PHASE_REGISTRY = (
     {"key": "tli_burn",         "label": "TLI Burn",               "short": "TLI",  "scrubber": False, "arc_marker": True,  "status_bar": False},
     # ── Scrubber dot 2 ────────────────────────────────────────────────────
     {"key": "slingshot_exit",   "label": "Earth Slingshot Exit",   "short": "SX",   "scrubber": True,  "arc_marker": False, "status_bar": True,  "status_label": "TRANS-LUNAR COAST"},
-    {"key": "c3_zero",          "label": "Earth Escape (C3=0)",    "short": "C3",   "scrubber": False, "arc_marker": True,  "status_bar": False},
     # ── Scrubber dot 3: ~120 min before OTC-2 ─────────────────────────────
     {"key": "outbound_coast",   "label": "Outbound Coast",         "short": "OC",   "scrubber": True,  "arc_marker": False, "status_bar": False},
     {"key": "otc2_outbound",    "label": "OTC-2 Outbound",         "short": "OTC2", "scrubber": False, "arc_marker": True,  "status_bar": False},
