@@ -27,7 +27,7 @@ from app.config import (
 )
 from app.db import get_con
 from app.phases import get_scrubber_phases, get_phases, get_arc_marker_phases
-from app.utils import rotate_2d
+from app.utils import rotate_2d, fmt_met
 from app.telemetry import get_telemetry_preload, get_telemetry_at, get_frame_pct
 from components.header import build_header
 from components.scrubber import build_scrubber
@@ -61,7 +61,7 @@ def _build_preload_data() -> dict:
     rx / ry                  : rotated x/y for all frames (display-frame coords)
     speed                    : scalar speed [km/s] for all frames
     timestamps               : ISO strings for all frames (used by pause rebuild)
-    arc_markers              : list of {key, short, label, rx, ry, frame_idx, category}
+    arc_markers              : list of {key, short, label, rx, ry, frame_idx, category, met, rg_km}
     scrubber_frame_indices   : flat list of frame indices, one per scrubber dot in
                                dot order; clientside uses this to highlight the
                                active dot during playback
@@ -105,20 +105,39 @@ def _build_preload_data() -> dict:
     sun_mag = np.sqrt(sun_df["x_km"] ** 2 + sun_df["y_km"] ** 2 + sun_df["z_km"] ** 2).values
     sun_nz = (sun_df["z_km"].values / np.where(sun_mag == 0, 1.0, sun_mag)).tolist()
 
+
+    _launch_dt = _datetime.fromisoformat(LAUNCH_TIME)
+    arc_phase_list = get_arc_marker_phases()
+
+    # Bulk-fetch rg_km for all arc marker timestamps in one query.
+    arc_rg_map: dict = {}
+    if arc_phase_list:
+        arc_ts = [p["datetime_utc"] for p in arc_phase_list]
+        placeholders = ", ".join(["?" for _ in arc_ts])
+        rg_rows = con.execute(
+            f"SELECT datetime_utc, rg_km FROM orion_trajectory "
+            f"WHERE datetime_utc IN ({placeholders})",
+            arc_ts,
+        ).fetchall()
+        arc_rg_map = {row[0]: float(row[1]) for row in rg_rows}
+
     arc_markers = []
-    for phase in get_arc_marker_phases():
+    for phase in arc_phase_list:
         dt_str = phase["datetime_utc"].strftime("%Y-%m-%dT%H:%M:%S")
-        fidx   = ts_index.get(dt_str)
+        fidx = ts_index.get(dt_str)
         if fidx is None:
             continue
+        met_sec = int((phase["datetime_utc"] - _launch_dt).total_seconds())
         arc_markers.append({
-            "key":       phase["key"],
-            "short":     phase["short"],
-            "label":     phase["label"],
-            "rx":        float(rx[fidx]),
-            "ry":        float(ry[fidx]),
+            "key": phase["key"],
+            "short": phase["short"],
+            "label": phase["label"],
+            "rx": float(rx[fidx]),
+            "ry": float(ry[fidx]),
             "frame_idx": fidx,
-            "category":  ARC_MARKER_CATEGORY.get(phase["key"], "other"),
+            "category": ARC_MARKER_CATEGORY.get(phase["key"], "other"),
+            "met": fmt_met(met_sec),
+            "rg_km": arc_rg_map.get(phase["datetime_utc"], 0.0),
         })
 
     # One frame index per scrubber dot, in dot order.

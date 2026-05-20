@@ -545,12 +545,25 @@ def build_trajectory_fig(phase_idx: int, override_dt=None) -> go.Figure:
     fig = go.Figure(data=T)
 
     if ORION_LABEL_SHOW:
+        # annotations[0] — Orion speed callout (updated every frame by JS)
         fig.add_annotation(
             x=0, y=0, text="",
             visible=False,
             showarrow=False,
             xanchor="center",
             yshift=-28,
+            font=dict(color=FONT_PRIMARY, size=FONT_SIZE_LABEL, family=FONT_FAMILY),
+            bgcolor="rgba(5,10,20,0.82)",
+            bordercolor=PANEL_BORDER,
+            borderwidth=1, borderpad=5,
+        )
+        # annotations[1] — Arc event badge (shown when Orion is near a marker)
+        fig.add_annotation(
+            x=0, y=0, text="",
+            visible=False,
+            showarrow=False,
+            xanchor="center",
+            yshift=20,
             font=dict(color=FONT_PRIMARY, size=FONT_SIZE_LABEL, family=FONT_FAMILY),
             bgcolor="rgba(5,10,20,0.82)",
             bordercolor=PANEL_BORDER,

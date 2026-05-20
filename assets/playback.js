@@ -131,10 +131,6 @@
         var ry  = preloaded.ry;
         var spd = (preloaded.speed[fi] || 0).toFixed(3);
 
-        // ── Spacecraft position — batched into arc markers restyle below ──
-        var _spX = rx[fi];
-        var _spY = ry[fi];
-
         // ── Past arc — extendData on sequential ticks, restyle on reset ──
         //
         // window._artemisArcFrame tracks what frame the arc is drawn through.
@@ -166,6 +162,9 @@
             );
         }
         window._artemisArcFrame = fi;
+
+        // ── Spacecraft marker position ────────────────────────────────────
+        Plotly.restyle(graphDiv, { x: [[rx[fi]]], y: [[ry[fi]]] }, [spIdx]);
 
         // ── Arc event badge ───────────────────────────────────────────────
         var windowFrames = preloaded.annotation_window_frames || 180;
@@ -274,21 +273,22 @@
         // ── Arc marker dots — filter to past events per frame ─────────────
         var arcStart = meta.trace_idx.arc_markers_start;
         if (arcStart !== undefined) {
-            var burnX  = [], burnY  = [];
-            var coastX = [], coastY = [];
-            var otherX = [], otherY = [];
+            var burnX  = [], burnY  = [], burnCD  = [];
+            var coastX = [], coastY = [], coastCD = [];
+            var otherX = [], otherY = [], otherCD = [];
 
             for (var i = 0; i < markers.length; i++) {
                 var mk = markers[i];
                 if (mk.frame_idx > fi) { continue; }
-                if      (mk.category === 'burn')  { burnX.push(mk.rx);  burnY.push(mk.ry);  }
-                else if (mk.category === 'coast') { coastX.push(mk.rx); coastY.push(mk.ry); }
-                else                              { otherX.push(mk.rx); otherY.push(mk.ry); }
+                var cd = [mk.short, mk.label, mk.met || '', mk.rg_km || 0];
+                if      (mk.category === 'burn')  { burnX.push(mk.rx);  burnY.push(mk.ry);  burnCD.push(cd);  }
+                else if (mk.category === 'coast') { coastX.push(mk.rx); coastY.push(mk.ry); coastCD.push(cd); }
+                else                              { otherX.push(mk.rx); otherY.push(mk.ry); otherCD.push(cd); }
             }
 
             Plotly.restyle(graphDiv,
-                {x: [[_spX], burnX, coastX, otherX], y: [[_spY], burnY, coastY, otherY]},
-                [spIdx, arcStart, arcStart + 1, arcStart + 2]
+                {x: [burnX, coastX, otherX], y: [burnY, coastY, otherY], customdata: [burnCD, coastCD, otherCD]},
+                [arcStart, arcStart + 1, arcStart + 2]
             );
         }
 
