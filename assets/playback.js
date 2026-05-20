@@ -46,6 +46,35 @@
     var _lastTs  = null;
     var _elapsed = 0;
 
+    // ── Shadow geometry cache ─────────────────────────────────────────────
+    // Built once from preload data during idle (paused) time before playback.
+    // Per-frame hot path becomes pure array lookups — no trig, no allocation.
+    var _futureArcHidden = false;
+    var _shadowCache = null;
+
+    function _buildShadowCache(preloaded) {
+        if (_shadowCache !== null) return;
+        var n  = preloaded.total_frames;
+        var ER = preloaded.earth_radius;
+        var MR = preloaded.moon_radii[3];
+        var ex = new Array(n);
+        var ey = new Array(n);
+        var mx = new Array(n);
+        var my = new Array(n);
+        for (var i = 0; i < n; i++) {
+            var esd = _shadowHalfDisc(0, 0, ER,
+                preloaded.sun_angles[i], preloaded.sun_nz[i]);
+            ex[i] = esd[0];
+            ey[i] = esd[1];
+            var msd = _shadowHalfDisc(
+                preloaded.moon_rx[i], preloaded.moon_ry[i], MR,
+                preloaded.sun_angles[i], preloaded.sun_nz[i]);
+            mx[i] = msd[0];
+            my[i] = msd[1];
+        }
+        _shadowCache = { ex: ex, ey: ey, mx: mx, my: my };
+    }
+
     function _shadowHalfDisc(cx, cy, r, sunAngleDeg, sunNz) {
         var n     = 60;
         var theta = sunAngleDeg * Math.PI / 180;
@@ -86,7 +115,7 @@
     }
 
     // ── Per-frame Plotly update ───────────────────────────────────────────
-    function renderFrame(fi, preloaded, running) {
+    function renderFrame(fi, preloaded, running, framesToAdv) {
 
         var graphDiv = document.querySelector('.js-plotly-plot');
         if (!graphDiv || !graphDiv.layout || !graphDiv.layout.meta) return;
@@ -102,14 +131,41 @@
         var ry  = preloaded.ry;
         var spd = (preloaded.speed[fi] || 0).toFixed(3);
 
-        // ── Past arc + spacecraft (single restyle) ───────────────────────
-        var arcX = rx.slice(0, fi + 1);
-        var arcY = ry.slice(0, fi + 1);
+        // ── Spacecraft position — batched into arc markers restyle below ──
+        var _spX = rx[fi];
+        var _spY = ry[fi];
 
-        Plotly.restyle(graphDiv, {
-            x: [[rx[fi]], arcX, arcX],
-            y: [[ry[fi]], arcY, arcY]
-        }, [spIdx, pgIdx, pcIdx]);
+        // ── Past arc — extendData on sequential ticks, restyle on reset ──
+        //
+        // window._artemisArcFrame tracks what frame the arc is drawn through.
+        // If fi lands exactly where a sequential advance from that frame would
+        // put us, append only the new points (O(framesToAdv)).
+        // Any other case — seek, phase jump, pause render, mission restart —
+        // falls back to a full restyle (O(fi)), which is correct and rare.
+        var _prevArc = window._artemisArcFrame;
+        var _sequential = (
+            framesToAdv !== undefined &&
+            _prevArc    !== undefined &&
+            fi === _prevArc + framesToAdv &&
+            fi > 0
+        );
+
+        if (_sequential) {
+            var newX = rx.slice(_prevArc + 1, fi + 1);
+            var newY = ry.slice(_prevArc + 1, fi + 1);
+            Plotly.extendTraces(graphDiv,
+                { x: [newX, newX], y: [newY, newY] },
+                [pgIdx, pcIdx]
+            );
+        } else {
+            var arcX = rx.slice(0, fi + 1);
+            var arcY = ry.slice(0, fi + 1);
+            Plotly.restyle(graphDiv,
+                { x: [arcX, arcX], y: [arcY, arcY] },
+                [pgIdx, pcIdx]
+            );
+        }
+        window._artemisArcFrame = fi;
 
         // ── Arc event badge ───────────────────────────────────────────────
         var windowFrames = preloaded.annotation_window_frames || 180;
@@ -143,15 +199,20 @@
             'annotations[1].y':       eventY
         });
 
-        // ── Future arc — hidden during playback only ──────────────────────
+        // ── Future arc — hide once on playback start, restore on pause ────
         var futureStart = meta.trace_idx.future_start;
         var futureEnd   = meta.trace_idx.future_end;
-        if (running && futureEnd > futureStart) {
-            var futureIndices = [];
-            for (var k = futureStart; k < futureEnd; k++) {
-                futureIndices.push(k);
+        if (futureEnd > futureStart) {
+            if (running && !_futureArcHidden) {
+                var futureIndices = [];
+                for (var k = futureStart; k < futureEnd; k++) {
+                    futureIndices.push(k);
+                }
+                Plotly.restyle(graphDiv, {opacity: 0}, futureIndices);
+                _futureArcHidden = true;
+            } else if (!running && _futureArcHidden) {
+                _futureArcHidden = false;  // reset so next play hides it again
             }
-            Plotly.restyle(graphDiv, {opacity: 0}, futureIndices);
         }
 
         // ── Moon position + visibility ────────────────────────────────────
@@ -178,17 +239,17 @@
                 moonOps.push(moonOp);
                 moonIdxs.push(moonStart + k);
             }
-            Plotly.restyle(graphDiv,
-                {x: moonXs, y: moonYs, opacity: moonOps},
-                moonIdxs
-            );
-
             var MR  = moonRadii[3];
             var mlx = inView ? moonX : NaN;
             var mly = inView ? moonY - MR * preloaded.moon_label_y_mult : NaN;
+
             Plotly.restyle(graphDiv,
-                {x: [[0.0, mlx]], y: [[preloaded.earth_label_y, mly]]},
-                [labelIdx]
+                {
+                    x:       moonXs.concat([[0.0, mlx]]),
+                    y:       moonYs.concat([[preloaded.earth_label_y, mly]]),
+                    opacity: moonOps.concat([1])
+                },
+                moonIdxs.concat([labelIdx])
             );
         }
 
@@ -196,24 +257,18 @@
         var earthShadowIdx = meta.trace_idx.earth_shadow;
         var moonShadowIdx  = meta.trace_idx.moon_shadow;
 
-        if (earthShadowIdx !== undefined && preloaded.sun_angles) {
-            var sunAngle = preloaded.sun_angles[fi];
-            var sunNz    = preloaded.sun_nz[fi];
-
-            var esd = _shadowHalfDisc(0, 0, preloaded.earth_radius, sunAngle, sunNz);
-            Plotly.restyle(graphDiv, {x: [esd[0]], y: [esd[1]]}, [earthShadowIdx]);
-
+        if (earthShadowIdx !== undefined && _shadowCache) {
             if (moonShadowIdx !== undefined) {
-                var moonX  = preloaded.moon_rx[fi];
-                var moonY  = preloaded.moon_ry[fi];
-                var MR     = preloaded.moon_radii[3];
-                var yRange = preloaded.moon_y_range;
-                var inView = moonY >= (yRange[0] - preloaded.moon_radii[0])
-                          && moonY <= (yRange[1] + preloaded.moon_radii[0]);
-                var msd = _shadowHalfDisc(moonX, moonY, MR, sunAngle, sunNz);
                 Plotly.restyle(graphDiv,
-                    {x: [msd[0]], y: [msd[1]], opacity: inView ? 1 : 0},
-                    [moonShadowIdx]
+                    {x: [_shadowCache.ex[fi], _shadowCache.mx[fi]],
+                     y: [_shadowCache.ey[fi], _shadowCache.my[fi]],
+                     opacity: [1, moonOp]},
+                    [earthShadowIdx, moonShadowIdx]
+                );
+            } else {
+                Plotly.restyle(graphDiv,
+                    {x: [_shadowCache.ex[fi]], y: [_shadowCache.ey[fi]]},
+                    [earthShadowIdx]
                 );
             }
         }
@@ -234,8 +289,8 @@
             }
 
             Plotly.restyle(graphDiv,
-                {x: [burnX, coastX, otherX], y: [burnY, coastY, otherY]},
-                [arcStart, arcStart + 1, arcStart + 2]
+                {x: [[_spX], burnX, coastX, otherX], y: [[_spY], burnY, coastY, otherY]},
+                [spIdx, arcStart, arcStart + 1, arcStart + 2]
             );
         }
 
@@ -497,10 +552,15 @@
             _elapsed = 0;
         }
 
+
         // Paused — if Dash rebuilt any sparkline tile, re-init on the next
         // tick by forcing needsRender. Detects stale refs via missing _totalLen.
         // Then drain any forced render request and bail.
         if (!state.running) {
+            // Build shadow cache during idle time — one-shot, uses paused ticks.
+            if (_shadowCache === null && state.preloaded) {
+                _buildShadowCache(state.preloaded);
+            }
             if (!state.needsRender && state.preloaded && state.preloaded.telemetry_meta) {
                 var tmeta = state.preloaded.telemetry_meta;
                 for (var si = 0; si < tmeta.length; si++) {
@@ -558,7 +618,7 @@
         window._artemisFrame = fi;
 
         // ── Running branch call site ──────────────────────────────────────
-        renderFrame(fi, state.preloaded, true);
+        renderFrame(fi, state.preloaded, true, framesToAdv);
     }
 
     // Kick the loop immediately. No-ops until _artemisState.running = true.
