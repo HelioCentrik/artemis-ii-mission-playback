@@ -163,9 +163,12 @@
         }
         window._artemisArcFrame = fi;
 
-        // ── Arc event badge ───────────────────────────────────────────────
-        var windowFrames = preloaded.annotation_window_frames || 180;
-        var markers      = preloaded.arc_markers || [];
+// ── Arc event badge ───────────────────────────────────────────────
+        // Asymmetric window: short lead-in, longer trail-out.
+        // dist < 0 = approaching event, dist > 0 = event has passed.
+        var leadFrames  = preloaded.annotation_lead_frames  || 30;
+        var trailFrames = preloaded.annotation_trail_frames || 180;
+        var markers     = preloaded.arc_markers || [];
         var eventVisible = false;
         var eventText    = '';
         var eventX       = 0;
@@ -173,14 +176,17 @@
         var bestDist     = Infinity;
 
         for (var i = 0; i < markers.length; i++) {
-            var m       = markers[i];
-            var absDist = Math.abs(fi - m.frame_idx);
-            if (absDist <= windowFrames && absDist < bestDist) {
-                bestDist     = absDist;
-                eventText    = m.short + ' \u00b7 ' + m.label;
-                eventX       = m.rx;
-                eventY       = m.ry;
-                eventVisible = true;
+            var m    = markers[i];
+            var dist = fi - m.frame_idx;   // negative = before, positive = after
+            if (dist >= -leadFrames && dist <= trailFrames) {
+                var absDist = Math.abs(dist);
+                if (absDist < bestDist) {
+                    bestDist     = absDist;
+                    eventText    = m.short + ' \u00b7 ' + m.label;
+                    eventX       = m.rx;
+                    eventY       = m.ry;
+                    eventVisible = true;
+                }
             }
         }
 

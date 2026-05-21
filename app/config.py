@@ -461,7 +461,8 @@ ORION_MARKER_SIZE = 5          # Diameter of the position dot (px)
 PLAYBACK_FRAME_INTERVAL_MIN       = 1
 PLAYBACK_INTERVAL_MS              = 100   # dcc.Interval tick rate (ms) — 10fps
 PLAYBACK_FRAMES_PER_TICK          = 6    # frames advanced per tick (60 rows = 1 hr at 1-min resolution)
-PLAYBACK_ANNOTATION_WINDOW_FRAMES = 180
+PLAYBACK_ANNOTATION_LEAD_FRAMES  = 30
+PLAYBACK_ANNOTATION_TRAIL_FRAMES = 150
 PLAYBACK_SPEED_MULT               = PLAYBACK_FRAMES_PER_TICK * (1000 // PLAYBACK_INTERVAL_MS) * 60
 PLAYBACK_SPEED_LABEL              = f"PLAYBACK · {PLAYBACK_SPEED_MULT}×"
 
