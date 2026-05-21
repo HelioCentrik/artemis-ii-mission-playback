@@ -42,9 +42,21 @@
     var DIAL_ANG_RANGE   = DIAL_ANG_MIN - DIAL_ANG_MAX;
     var DIAL_CY          = (_cfg.KPI_SVG_HEIGHT + DIAL_R + DIAL_R * Math.sin(DIAL_ANG_MAX_RAD)) / 2 + _cfg.DIAL_CY_OFFSET;
 
-    // ── rAF timing state ─────────────────────────────────────────────────
+// ── rAF timing state ─────────────────────────────────────────────────
     var _lastTs  = null;
     var _elapsed = 0;
+
+    // ── Arc marker + badge dirty-check state ─────────────────────────────
+    // Arc markers: track the last fi at which the restyle fired. Skip the
+    // restyle when no new marker has crossed fi since last frame. Reset on
+    // any backward jump (seek, phase change) so removals are caught.
+    var _arcMarkerFi    = -1;
+
+    // Badge: track last rendered state. Only include annotation[1] keys in
+    // the relayout when visible/text actually changes — cuts relayout payload
+    // on the majority of frames where the badge is idle.
+    var _badgeVisible   = null;   // null forces first-frame write
+    var _badgeText      = null;
 
     // ── Shadow geometry cache ─────────────────────────────────────────────
     // Built once from preload data during idle (paused) time before playback.
@@ -190,16 +202,23 @@
             }
         }
 
-        // ── Orion callout + event badge (single relayout) ────────────────
-        Plotly.relayout(graphDiv, {
-            'annotations[0].x':       rx[fi],
-            'annotations[0].y':       ry[fi],
-            'annotations[0].text':    'ORION<br>' + spd + ' km/s',
-            'annotations[1].visible': eventVisible,
-            'annotations[1].text':    eventText,
-            'annotations[1].x':       eventX,
-            'annotations[1].y':       eventY
-        });
+        // ── Orion callout + event badge (relayout, badge dirty-checked) ───
+        // annotation[0] (Orion callout) always updates — position changes every frame.
+        // annotation[1] (event badge) only included when visible/text state changes.
+        var layoutUpdate = {
+            'annotations[0].x':    rx[fi],
+            'annotations[0].y':    ry[fi],
+            'annotations[0].text': 'ORION<br>' + spd + ' km/s',
+        };
+        if (eventVisible !== _badgeVisible || eventText !== _badgeText) {
+            layoutUpdate['annotations[1].visible'] = eventVisible;
+            layoutUpdate['annotations[1].text']    = eventText;
+            layoutUpdate['annotations[1].x']       = eventX;
+            layoutUpdate['annotations[1].y']       = eventY;
+            _badgeVisible = eventVisible;
+            _badgeText    = eventText;
+        }
+        Plotly.relayout(graphDiv, layoutUpdate);
 
         // ── Future arc — hidden every running frame (survives server rebuilds) ──
         // Indices cached once to avoid per-frame array allocation.
@@ -253,7 +272,7 @@
             );
         }
 
-// ── Spacecraft + shadows — Earth + Moon (one restyle) ────────────
+        // ── Spacecraft + shadows — Earth + Moon (one restyle) ────────────
         // Spacecraft batched here since all three update x/y on Plotly traces.
         var earthShadowIdx = meta.trace_idx.earth_shadow;
         var moonShadowIdx  = meta.trace_idx.moon_shadow;
@@ -276,26 +295,45 @@
             }
         }
 
-        // ── Arc marker dots — filter to past events per frame ─────────────
+        // ── Arc marker dots — dirty-checked, skip when nothing crossed fi ──
+        // _arcMarkerFi tracks last frame that fired. Forward-only ticks skip
+        // the restyle unless a new marker entered the past. Backward jumps
+        // (seek, phase change) always force a full restyle and reset the tracker.
         var arcStart = meta.trace_idx.arc_markers_start;
         if (arcStart !== undefined) {
-            var burnX  = [], burnY  = [], burnCD  = [];
-            var coastX = [], coastY = [], coastCD = [];
-            var otherX = [], otherY = [], otherCD = [];
+            var arcBackward = fi < _arcMarkerFi;
+            var arcDirty    = arcBackward;
 
-            for (var i = 0; i < markers.length; i++) {
-                var mk = markers[i];
-                if (mk.frame_idx > fi) { continue; }
-                var cd = [mk.short, mk.label, mk.met || '', mk.rg_km || 0];
-                if      (mk.category === 'burn')  { burnX.push(mk.rx);  burnY.push(mk.ry);  burnCD.push(cd);  }
-                else if (mk.category === 'coast') { coastX.push(mk.rx); coastY.push(mk.ry); coastCD.push(cd); }
-                else                              { otherX.push(mk.rx); otherY.push(mk.ry); otherCD.push(cd); }
+            if (!arcBackward) {
+                for (var i = 0; i < markers.length; i++) {
+                    if (markers[i].frame_idx > _arcMarkerFi && markers[i].frame_idx <= fi) {
+                        arcDirty = true;
+                        break;
+                    }
+                }
             }
 
-            Plotly.restyle(graphDiv,
-                {x: [burnX, coastX, otherX], y: [burnY, coastY, otherY], customdata: [burnCD, coastCD, otherCD]},
-                [arcStart, arcStart + 1, arcStart + 2]
-            );
+            if (arcDirty) {
+                var burnX  = [], burnY  = [], burnCD  = [];
+                var coastX = [], coastY = [], coastCD = [];
+                var otherX = [], otherY = [], otherCD = [];
+
+                for (var i = 0; i < markers.length; i++) {
+                    var mk = markers[i];
+                    if (mk.frame_idx > fi) { continue; }
+                    var cd = [mk.short, mk.label, mk.met || '', mk.rg_km || 0];
+                    if      (mk.category === 'burn')  { burnX.push(mk.rx);  burnY.push(mk.ry);  burnCD.push(cd);  }
+                    else if (mk.category === 'coast') { coastX.push(mk.rx); coastY.push(mk.ry); coastCD.push(cd); }
+                    else                              { otherX.push(mk.rx); otherY.push(mk.ry); otherCD.push(cd); }
+                }
+
+                Plotly.restyle(graphDiv,
+                    {x: [burnX, coastX, otherX], y: [burnY, coastY, otherY], customdata: [burnCD, coastCD, otherCD]},
+                    [arcStart, arcStart + 1, arcStart + 2]
+                );
+            }
+
+            _arcMarkerFi = fi;
         }
 
         // ── Scrubber dot highlight (direct DOM) ───────────────────────────
