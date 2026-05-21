@@ -163,9 +163,6 @@
         }
         window._artemisArcFrame = fi;
 
-        // ── Spacecraft marker position ────────────────────────────────────
-        Plotly.restyle(graphDiv, { x: [[rx[fi]]], y: [[ry[fi]]] }, [spIdx]);
-
         // ── Arc event badge ───────────────────────────────────────────────
         var windowFrames = preloaded.annotation_window_frames || 180;
         var markers      = preloaded.arc_markers || [];
@@ -250,22 +247,25 @@
             );
         }
 
-        // ── Shadow casting — Earth + Moon ────────────────────────────────────
+// ── Spacecraft + shadows — Earth + Moon (one restyle) ────────────
+        // Spacecraft batched here since all three update x/y on Plotly traces.
         var earthShadowIdx = meta.trace_idx.earth_shadow;
         var moonShadowIdx  = meta.trace_idx.moon_shadow;
 
         if (earthShadowIdx !== undefined && _shadowCache) {
             if (moonShadowIdx !== undefined) {
                 Plotly.restyle(graphDiv,
-                    {x: [_shadowCache.ex[fi], _shadowCache.mx[fi]],
-                     y: [_shadowCache.ey[fi], _shadowCache.my[fi]],
-                     opacity: [1, moonOp]},
-                    [earthShadowIdx, moonShadowIdx]
+                    {x: [[rx[fi]], _shadowCache.ex[fi], _shadowCache.mx[fi]],
+                     y: [[ry[fi]], _shadowCache.ey[fi], _shadowCache.my[fi]],
+                     opacity: [1, 1, moonOp]},
+                    [spIdx, earthShadowIdx, moonShadowIdx]
                 );
             } else {
                 Plotly.restyle(graphDiv,
-                    {x: [_shadowCache.ex[fi]], y: [_shadowCache.ey[fi]]},
-                    [earthShadowIdx]
+                    {x: [[rx[fi]], _shadowCache.ex[fi]],
+                     y: [[ry[fi]], _shadowCache.ey[fi]],
+                     opacity: [1, 1]},
+                    [spIdx, earthShadowIdx]
                 );
             }
         }
