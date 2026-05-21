@@ -36,6 +36,8 @@ from app.config import (
     SPARKLINE_PAD_X, SPARKLINE_PAD_Y, SPARKLINE_WIDTH, SPARKLINE_HEIGHT,
     DIAL_RADIUS, DIAL_ANGLE_MIN, DIAL_ANGLE_MAX, DIAL_STROKE_WIDTH,
     DIAL_STROKE_LINECAP, DIAL_CY_OFFSET, DASHBOARD_WIDTH_MAX, DASHBOARD_WIDTH_MIN, DASHBOARD_WIDTH_VW,
+    # Arc badge
+    ARC_BADGE_OFFSET_PX,
 )
 
 
@@ -46,20 +48,22 @@ def _build_artemis_config_script() -> str:
     """
     cfg = {
         # KPI viz size
-        "KPI_SVG_WIDTH":      KPI_SVG_VIEWBOX_WIDTH,
-        "KPI_SVG_HEIGHT":     KPI_SVG_VIEWBOX_HEIGHT,
+        "KPI_SVG_WIDTH":       KPI_SVG_VIEWBOX_WIDTH,
+        "KPI_SVG_HEIGHT":      KPI_SVG_VIEWBOX_HEIGHT,
         # Dial geometry
-        "DIAL_CY_OFFSET":     DIAL_CY_OFFSET,
-        "DIAL_RADIUS":        DIAL_RADIUS,
-        "DIAL_ANGLE_MIN":     DIAL_ANGLE_MIN,
-        "DIAL_ANGLE_MAX":     DIAL_ANGLE_MAX,
-        "DIAL_STROKE_WIDTH":  DIAL_STROKE_WIDTH,
+        "DIAL_CY_OFFSET":      DIAL_CY_OFFSET,
+        "DIAL_RADIUS":         DIAL_RADIUS,
+        "DIAL_ANGLE_MIN":      DIAL_ANGLE_MIN,
+        "DIAL_ANGLE_MAX":      DIAL_ANGLE_MAX,
+        "DIAL_STROKE_WIDTH":   DIAL_STROKE_WIDTH,
         "DIAL_STROKE_LINECAP": DIAL_STROKE_LINECAP,
         # Sparkline geometry
-        "SPARKLINE_WIDTH":    SPARKLINE_WIDTH,
-        "SPARKLINE_HEIGHT":   SPARKLINE_HEIGHT,
-        "SPARKLINE_PAD_X":    SPARKLINE_PAD_X,
-        "SPARKLINE_PAD_Y":    SPARKLINE_PAD_Y,
+        "SPARKLINE_WIDTH":     SPARKLINE_WIDTH,
+        "SPARKLINE_HEIGHT":    SPARKLINE_HEIGHT,
+        "SPARKLINE_PAD_X":     SPARKLINE_PAD_X,
+        "SPARKLINE_PAD_Y":     SPARKLINE_PAD_Y,
+        # Arc badge
+        "ARC_BADGE_OFFSET_PX": ARC_BADGE_OFFSET_PX,
     }
     return f"<script>window._artemisConfig = {json.dumps(cfg)};</script>"
 

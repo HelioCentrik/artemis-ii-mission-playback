@@ -185,11 +185,12 @@
         var eventText    = '';
         var eventX       = 0;
         var eventY       = 0;
+        var eventSide    = 'top';   // ← new
         var bestDist     = Infinity;
 
         for (var i = 0; i < markers.length; i++) {
             var m    = markers[i];
-            var dist = fi - m.frame_idx;   // negative = before, positive = after
+            var dist = fi - m.frame_idx;
             if (dist >= -leadFrames && dist <= trailFrames) {
                 var absDist = Math.abs(dist);
                 if (absDist < bestDist) {
@@ -197,6 +198,7 @@
                     eventText    = m.short + ' \u00b7 ' + m.label;
                     eventX       = m.rx;
                     eventY       = m.ry;
+                    eventSide    = m.badge_side || 'top';   // ← new
                     eventVisible = true;
                 }
             }
@@ -211,20 +213,40 @@
             'annotations[0].text': 'ORION<br>' + spd + ' km/s',
         };
         if (eventVisible !== _badgeVisible || eventText !== _badgeText) {
+            // Map badge_side → Plotly annotation anchor + pixel offset.
+            // xanchor/yanchor control which edge of the box sits at (x, y).
+            // xshift/yshift are additional pixel nudges after anchoring.
+            var _off = _cfg.ARC_BADGE_OFFSET_PX || 20;
+            var _anchor = {
+                'top':    { xanchor: 'center', yanchor: 'bottom', xshift:    0, yshift:  _off },
+                'bottom': { xanchor: 'center', yanchor: 'top',    xshift:    0, yshift: -_off },
+                'left':   { xanchor: 'right',  yanchor: 'middle', xshift: -_off, yshift:    0 },
+                'right':  { xanchor: 'left',   yanchor: 'middle', xshift:  _off, yshift:    0 },
+            }[eventSide] || { xanchor: 'center', yanchor: 'bottom', xshift: 0, yshift: _off };
+
             layoutUpdate['annotations[1].visible'] = eventVisible;
             layoutUpdate['annotations[1].text']    = eventText;
             layoutUpdate['annotations[1].x']       = eventX;
             layoutUpdate['annotations[1].y']       = eventY;
+            layoutUpdate['annotations[1].xanchor'] = _anchor.xanchor;
+            layoutUpdate['annotations[1].yanchor'] = _anchor.yanchor;
+            layoutUpdate['annotations[1].xshift']  = _anchor.xshift;
+            layoutUpdate['annotations[1].yshift']  = _anchor.yshift;
             _badgeVisible = eventVisible;
             _badgeText    = eventText;
         }
         Plotly.relayout(graphDiv, layoutUpdate);
 
         // ── Future arc — hidden every running frame (survives server rebuilds) ──
-        // Indices cached once to avoid per-frame array allocation.
         var futureStart = meta.trace_idx.future_start;
         var futureEnd   = meta.trace_idx.future_end;
         if (running && futureEnd > futureStart) {
+            // Invalidate cache if the server rebuilt the figure with a different
+            // future arc trace count (happens on pause — override_dt changes how
+            // much future arc exists, shifting IDX_ARC_MARKERS_START).
+            if (_futureIndices !== null && _futureIndices.length !== (futureEnd - futureStart)) {
+                _futureIndices = null;
+            }
             if (_futureIndices === null) {
                 _futureIndices = [];
                 for (var k = futureStart; k < futureEnd; k++) {

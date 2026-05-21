@@ -236,25 +236,26 @@ PHASE_HARDCODED_TIMES: dict[str, str] = {
 PHASE_REGISTRY = (
     # ── Scrubber dot 0 ────────────────────────────────────────────────────
     {"key": "parking_orbit",    "label": "Parking Orbit",          "short": "PO",   "scrubber": True,  "arc_marker": False, "status_bar": True,  "status_label": "PARKING ORBIT"},
-    {"key": "perigee_raise",    "label": "Perigee Raise Burn",     "short": "PRB",  "scrubber": False, "arc_marker": True,  "status_bar": False},
+    {"key": "perigee_raise",    "label": "Perigee Raise Burn",     "short": "PRB",  "scrubber": False, "arc_marker": True,  "status_bar": False, "badge_side": "right"},
     # ── Scrubber dot 1 ────────────────────────────────────────────────────
     {"key": "slingshot_entry",  "label": "Earth Slingshot Entry",  "short": "SE",   "scrubber": True,  "arc_marker": False, "status_bar": True,  "status_label": "EARTH SLINGSHOT"},
-    {"key": "tli_burn",         "label": "TLI Burn",               "short": "TLI",  "scrubber": False, "arc_marker": True,  "status_bar": False},
+    {"key": "tli_burn",         "label": "TLI Burn",               "short": "TLI",  "scrubber": False, "arc_marker": True,  "status_bar": False, "badge_side": "left"},
     # ── Scrubber dot 2 ────────────────────────────────────────────────────
     {"key": "slingshot_exit",   "label": "Earth Slingshot Exit",   "short": "SX",   "scrubber": True,  "arc_marker": False, "status_bar": True,  "status_label": "TRANS-LUNAR COAST"},
     # ── Scrubber dot 3: ~120 min before OTC-2 ─────────────────────────────
     {"key": "outbound_coast",   "label": "Outbound Coast",         "short": "OC",   "scrubber": True,  "arc_marker": False, "status_bar": False},
-    {"key": "otc2_outbound",    "label": "OTC-2 Outbound",         "short": "OTC2", "scrubber": False, "arc_marker": True,  "status_bar": False},
-    {"key": "lunar_soi_entry",  "label": "Lunar SOI Entry",        "short": "SOI",  "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "LUNAR APPROACH"},
-    {"key": "closest_approach", "label": "Closest Approach",       "short": "CA",   "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "CLOSEST APPROACH"},
+    {"key": "otc2_outbound",    "label": "OTC-2 Outbound",         "short": "OTC2", "scrubber": False, "arc_marker": True,  "status_bar": False, "badge_side": "left"},
+    {"key": "lunar_soi_entry",  "label": "Lunar SOI Entry",        "short": "SOI",  "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "LUNAR APPROACH",   "badge_side": "left"},
+    {"key": "closest_approach", "label": "Closest Approach",       "short": "CA",   "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "CLOSEST APPROACH", "badge_side": "top"},
+    {"key": "furthest_record",  "label": "Furthest Record",        "short": "FR",   "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "FURTHERST RECORD", "badge_side": "top"},
     # ── Scrubber dot 4 ────────────────────────────────────────────────────
-    {"key": "lunar_soi_exit",   "label": "Lunar SOI Exit",         "short": "SOX",  "scrubber": True,  "arc_marker": True,  "status_bar": True,  "status_label": "TRANS-EARTH COAST"},
+    {"key": "lunar_soi_exit",   "label": "Lunar SOI Exit",         "short": "SOX",  "scrubber": True,  "arc_marker": True,  "status_bar": True,  "status_label": "TRANS-EARTH COAST","badge_side": "bottom"},
     {"key": "transearth_coast", "label": "Transearth Coast",       "short": "TC",   "scrubber": False, "arc_marker": False, "status_bar": False},
-    {"key": "return_burn_1",    "label": "Return Burn 1",          "short": "RB1",  "scrubber": False, "arc_marker": True,  "status_bar": False},
-    {"key": "return_burn_2",    "label": "Return Burn 2",          "short": "RB2",  "scrubber": False, "arc_marker": True,  "status_bar": False},
+    {"key": "return_burn_1",    "label": "Return Burn 1",          "short": "RB1",  "scrubber": False, "arc_marker": True,  "status_bar": False, "badge_side": "top"},
+    {"key": "return_burn_2",    "label": "Return Burn 2",          "short": "RB2",  "scrubber": False, "arc_marker": True,  "status_bar": False, "badge_side": "top"},
     # ── Scrubber dot 5 ────────────────────────────────────────────────────
-    {"key": "earth_approach",   "label": "Earth Approach",         "short": "EA",   "scrubber": True,  "arc_marker": True,  "status_bar": True,  "status_label": "EARTH APPROACH"},
-    {"key": "dataset_close",    "label": "Last Available Pos.",    "short": "LKP",  "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "LAST AVAILABLE POSITION"},
+    {"key": "earth_approach",   "label": "Earth Approach",         "short": "EA",   "scrubber": True,  "arc_marker": True,  "status_bar": True,  "status_label": "EARTH APPROACH",   "badge_side": "top"},
+    {"key": "dataset_close",    "label": "Last Available Pos.",    "short": "LKP",  "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "LAST AVAILABLE POSITION", "badge_side": "top"},
 )
 
 
@@ -449,6 +450,8 @@ ORION_LABEL_SHOW     = True    # False hides the annotation entirely
 ORION_LABEL_BG_ALPHA = 0.33    # Background box opacity (0.0 = invisible, 1.0 = solid)
 ORION_LABEL_XSHIFT   = -40     # Arrow / offset x (px) — still controls box position
 ORION_LABEL_YSHIFT   = 40      # Arrow / offset y (px)
+
+ARC_BADGE_OFFSET_PX = 12
 
 # ── Orion spacecraft marker ───────────────────────────────────────────────
 ORION_MARKER_SIZE = 5          # Diameter of the position dot (px)

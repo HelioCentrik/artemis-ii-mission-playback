@@ -130,15 +130,16 @@ def _build_preload_data() -> dict:
             continue
         met_sec = int((phase["datetime_utc"] - _launch_dt).total_seconds())
         arc_markers.append({
-            "key": phase["key"],
-            "short": phase["short"],
-            "label": phase["label"],
-            "rx": float(rx[fidx]),
-            "ry": float(ry[fidx]),
-            "frame_idx": fidx,
-            "category": ARC_MARKER_CATEGORY.get(phase["key"], "other"),
-            "met": fmt_met(met_sec),
-            "rg_km": arc_rg_map.get(phase["datetime_utc"], 0.0),
+            "key":        phase["key"],
+            "short":      phase["short"],
+            "label":      phase["label"],
+            "rx":         float(rx[fidx]),
+            "ry":         float(ry[fidx]),
+            "frame_idx":  fidx,
+            "category":   ARC_MARKER_CATEGORY.get(phase["key"], "other"),
+            "met":        fmt_met(met_sec),
+            "rg_km":      arc_rg_map.get(phase["datetime_utc"], 0.0),
+            "badge_side": phase.get("badge_side", "top"),   # ← new
         })
 
     # One frame index per scrubber dot, in dot order.
