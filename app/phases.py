@@ -111,6 +111,13 @@ def _detect_earth_approach(con, *, closest_approach: datetime, **_) -> datetime:
     """, [closest_approach]).fetchone()[0]
 
 
+def _detect_furthest_record(con, **_) -> datetime:
+    """Row with maximum Earth distance — the human spaceflight distance record."""
+    return con.execute(
+        "SELECT datetime_utc FROM orion_trajectory ORDER BY rg_km DESC LIMIT 1"
+    ).fetchone()[0]
+
+
 def _detect_dataset_close(con, **_) -> datetime:
     """Last row — 'Last Known Position' before reentry plasma blackout."""
     return con.execute(
@@ -125,6 +132,7 @@ _DETECTORS: dict[str, Callable] = {
     "outbound_coast":   _detect_outbound_coast,
     "transearth_coast": _detect_transearth_coast,
     "earth_approach":   _detect_earth_approach,
+    "furthest_record":  _detect_furthest_record,
     "dataset_close":    _detect_dataset_close,
 }
 
@@ -144,6 +152,7 @@ _DETECTION_ORDER: tuple[str, ...] = (
     "outbound_coast",       # detector — ~45 min before otc2_outbound
     "lunar_soi_entry",      # hardcoded
     "closest_approach",     # hardcoded ← transearth_coast + earth_approach depend on this
+    "furthest_record",      # detector  ← no deps, sits near pericynthion
     "lunar_soi_exit",       # hardcoded
     "transearth_coast",     # detector — midpoint of return leg
     "return_burn_1",        # hardcoded

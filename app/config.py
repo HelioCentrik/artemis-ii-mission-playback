@@ -247,7 +247,7 @@ PHASE_REGISTRY = (
     {"key": "otc2_outbound",    "label": "OTC-2 Outbound",         "short": "OTC2", "scrubber": False, "arc_marker": True,  "status_bar": False, "badge_side": "left"},
     {"key": "lunar_soi_entry",  "label": "Lunar SOI Entry",        "short": "SOI",  "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "LUNAR APPROACH",   "badge_side": "left"},
     {"key": "closest_approach", "label": "Closest Approach",       "short": "CA",   "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "CLOSEST APPROACH", "badge_side": "top"},
-    {"key": "furthest_record",  "label": "Furthest Record",        "short": "FR",   "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "FURTHERST RECORD", "badge_side": "top"},
+    {"key": "furthest_record",  "label": "Furthest Record",        "short": "FR",   "scrubber": False, "arc_marker": True,  "status_bar": True,  "status_label": "FURTHEST RECORD",  "badge_side": "top"},
     # ── Scrubber dot 4 ────────────────────────────────────────────────────
     {"key": "lunar_soi_exit",   "label": "Lunar SOI Exit",         "short": "SOX",  "scrubber": True,  "arc_marker": True,  "status_bar": True,  "status_label": "TRANS-EARTH COAST","badge_side": "bottom"},
     {"key": "transearth_coast", "label": "Transearth Coast",       "short": "TC",   "scrubber": False, "arc_marker": False, "status_bar": False},
