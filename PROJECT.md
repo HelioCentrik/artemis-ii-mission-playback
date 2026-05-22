@@ -56,9 +56,9 @@ Python · JavaScript · Dash · Plotly · DuckDB
 
 ## Documentation
 
-**[Data Dictionary](docs/Data_Dictionary.html)** — Tables, fields, units, coordinate frame, and data gaps.
+**[Data Dictionary](/docs/Data_Dictionary.html)** — Tables, fields, units, coordinate frame, and data gaps.
 
-**[Metrics & Queries](docs/Metrics_and_Queries.html)** — Derived metric formulas, physical constants, and the SQL query cookbook.
+**[Metrics & Queries](/docs/Metrics_and_Queries.html)** — Derived metric formulas, physical constants, and the SQL query cookbook.
 
 ---
 
