@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metrics &amp; Queries — Artemis II Mission Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<style>
+:root {
+  --bg:          #050a0f;
+  --surface:     #0a1628;
+  --surface-2:   #0d1e36;
+  --surface-3:   #0f2540;
+  --border:      #1a2f4a;
+  --border-mid:  #243d5e;
+  --code-bg:     #000000;
+
+  --text:        #c8e8ff;
+  --text-muted:  #6db8e9;
+  --text-dim:    #458ac3;
+  --text-hint:   #326088;
+
+  --teal:        #00f5ab;
+  --teal-dim:    rgba(0,245,171,0.10);
+  --teal-glow:   rgba(0,245,171,0.22);
+  --cyan:        #00c3ff;
+  --cyan-dim:    rgba(0,195,255,0.10);
+  --cyan-glow:   rgba(0,195,255,0.22);
+  --amber:       #f5ce0b;
+  --amber-dim:   rgba(245,206,11,0.10);
+  --amber-glow:  rgba(245,206,11,0.22);
+  --blood:       #e8420a;
+  --blood-dim:   rgba(232,66,10,0.12);
+  --blood-glow:  rgba(232,66,10,0.25);
+  --violet:      #786afb;
+  --violet-dim:  rgba(120,106,251,0.12);
+  --violet-glow: rgba(120,106,251,0.25);
+  --silver:      #82a0bc;
+  --silver-dim:  rgba(130,160,188,0.12);
+  --status-live: #22c55e;
+
+  /* hljs overrides */
+  --hljs-bg:      #000000;
+  --hljs-default: #c8e8ff;
+  --hljs-keyword: #00c3ff;
+  --hljs-string:  #00f5ab;
+  --hljs-comment: #2d5473;
+  --hljs-number:  #f5ce0b;
+  --hljs-name:    #e8420a;
+  --hljs-attr:    #578fb5;
+  --hljs-builtin: #786afb;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HIGHLIGHT.JS OVERRIDES ────────────────────────────── */
+.hljs                { background: var(--code-bg) !important; color: var(--hljs-default); padding: 0; }
+.hljs-keyword,
+.hljs-operator       { color: var(--hljs-keyword); font-weight: 700; }
+.hljs-string         { color: var(--hljs-string); }
+.hljs-comment        { color: var(--hljs-comment); font-style: italic; }
+.hljs-number         { color: var(--hljs-number); }
+.hljs-built_in,
+.hljs-type           { color: var(--hljs-builtin); }
+.hljs-attr,
+.hljs-params         { color: var(--hljs-attr); }
+.hljs-title          { color: var(--hljs-name); }
+.hljs-variable       { color: var(--hljs-default); }
+
+/* ── TOPBAR ───────────────────────────────────────────── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 50px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; z-index: 200; gap: 0;
+}
+.topbar-project {
+  font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+}
+.topbar-sep { color: var(--border-mid); margin: 0 12px; }
+.topbar-doc {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-dim);
+}
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.topbar-badge {
+  font-family: 'Space Mono', monospace; font-size: 9px; padding: 2px 9px;
+  border-radius: 2px; border: 1px solid var(--border-mid); color: var(--text-dim); letter-spacing: 0.05em;
+}
+.topbar-badge.accent-teal  { border-color: var(--teal);  color: var(--teal);  background: var(--teal-dim); }
+.topbar-badge.accent-blood { border-color: var(--blood); color: var(--blood); background: var(--blood-dim); }
+
+/* ── LAYOUT ───────────────────────────────────────────── */
+.layout { display: grid; grid-template-columns: 244px 1fr; padding-top: 50px; min-height: 100vh; }
+
+/* ── SIDEBAR ──────────────────────────────────────────── */
+.sidebar {
+  position: sticky; top: 50px; height: calc(100vh - 50px);
+  overflow-y: auto; border-right: 1px solid var(--border);
+  background: var(--surface); padding: 28px 0 40px;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.nav-group { margin-bottom: 4px; }
+.nav-group-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-hint); padding: 14px 18px 5px; display: block;
+}
+.nav-link {
+  display: block; padding: 5px 18px 5px 16px; font-size: 11px; color: var(--text-muted);
+  text-decoration: none; border-left: 2px solid transparent;
+  transition: color 0.12s, background 0.12s, border-color 0.12s; line-height: 1.4;
+}
+.nav-link:hover { color: var(--text); background: var(--surface-2); }
+.nav-link.active { color: var(--cyan); border-left-color: var(--cyan); background: var(--cyan-dim); }
+.nav-link .nav-sub { display: block; font-size: 9.5px; color: var(--text-dim); margin-top: 1px; }
+.nav-link.active .nav-sub { color: rgba(0,195,255,0.5); }
+
+/* ── MAIN ─────────────────────────────────────────────── */
+.main { padding: 52px 60px 80px; min-width: 0; max-width: 60vw; margin-inline: auto; }
+
+/* ── SECTIONS ─────────────────────────────────────────── */
+.section { margin-bottom: 72px; }
+.section-eyebrow {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--cyan); margin-bottom: 10px;
+}
+.section-eyebrow.teal   { color: var(--teal); }
+.section-eyebrow.amber  { color: var(--amber); }
+.section-eyebrow.violet { color: var(--violet); }
+.section-eyebrow.silver { color: var(--silver); }
+.section-eyebrow.blood  { color: var(--blood); }
+
+.section-title {
+  font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700;
+  color: var(--text); line-height: 1.2; margin-bottom: 6px;
+  letter-spacing: 0.03em; text-transform: uppercase;
+}
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0 32px; }
+.section-lead { color: var(--text-muted); font-size: 12.5px; max-width: 640px; line-height: 1.8; margin-bottom: 32px; }
+
+p code, li code, td code {
+  font-family: 'Space Mono', monospace; font-size: 0.87em;
+  color: var(--amber); background: var(--amber-dim); padding: 1px 5px; border-radius: 2px;
+}
+
+/* ── CONSTANTS GRID ───────────────────────────────────── */
+.constants-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 32px; }
+.const-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px;
+}
+.const-card code {
+  display: block; font-family: 'Space Mono', monospace; font-size: 11px;
+  color: var(--amber); margin-bottom: 5px; font-weight: 700;
+}
+.const-card .const-val {
+  font-family: 'Space Mono', monospace; font-size: 12px; color: var(--cyan); margin-bottom: 6px;
+}
+.const-card p { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+
+/* ── METRIC CARDS ─────────────────────────────────────── */
+.metric-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; margin-bottom: 32px; overflow: hidden; transition: border-color 0.15s;
+}
+.metric-card:hover { border-color: var(--border-mid); }
+
+.metric-card-head {
+  padding: 18px 22px 14px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 18px;
+}
+.metric-num {
+  font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700;
+  color: var(--border-mid); line-height: 1; padding-top: 3px; min-width: 28px; text-align: right;
+}
+.metric-titles { flex: 1; }
+.metric-name {
+  font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 600;
+  color: var(--text); line-height: 1.3; letter-spacing: 0.03em; text-transform: uppercase;
+}
+.metric-source { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+.metric-tag {
+  margin-left: auto; font-family: 'Space Mono', monospace; font-size: 9px;
+  padding: 3px 8px; border-radius: 2px; border: 1px solid var(--border-mid);
+  color: var(--text-dim); white-space: nowrap; align-self: flex-start; margin-top: 4px; letter-spacing: 0.04em;
+}
+.metric-tag.view-tag   { color: var(--teal);   border-color: var(--teal);   background: var(--teal-dim); }
+.metric-tag.event-tag  { color: var(--amber);  border-color: var(--amber);  background: var(--amber-dim); }
+.metric-tag.raw-tag    { color: var(--silver); border-color: var(--silver); background: var(--silver-dim); }
+.metric-tag.kpi-tag    { color: var(--cyan);   border-color: var(--cyan);   background: var(--cyan-dim); }
+
+.metric-card-body {
+  display: grid; grid-template-columns: 200px 1fr; gap: 0; border-bottom: 1px solid var(--border);
+}
+
+/* Formula panel */
+.formula-panel {
+  border-right: 1px solid var(--border); padding: 20px 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--code-bg); gap: 0;
+}
+.formula-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 16px;
+}
+.formula { text-align: center; font-family: 'Space Mono', monospace; width: 100%; }
+.formula-num {
+  color: var(--cyan); font-size: 12px; line-height: 1.5; padding-bottom: 7px;
+  border-bottom: 1px solid var(--border-mid); display: block;
+}
+.formula-den {
+  color: var(--text-muted); font-size: 12px; line-height: 1.5; padding-top: 5px; display: block;
+}
+.formula-unit {
+  display: inline-block; margin-top: 12px; font-size: 9px; padding: 2px 8px;
+  border: 1px solid var(--border-mid); border-radius: 2px; color: var(--text-dim); letter-spacing: 0.06em;
+}
+.formula-expr {
+  color: var(--cyan); font-size: 11.5px; line-height: 1.7; display: block; text-align: left;
+}
+.formula-expr .sym { color: var(--amber); }
+.formula-expr .op  { color: var(--text-muted); }
+.formula-sign {
+  display: block; color: var(--blood); font-size: 11px; margin-top: 10px; font-weight: 700;
+}
+.formula-note {
+  display: block; font-size: 9px; color: var(--text-dim); margin-top: 8px; line-height: 1.4;
+}
+
+/* Metric info */
+.metric-info { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.metric-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.7; max-width: 500px; }
+
+/* Mission phase trajectory strip */
+.trajectory { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.traj-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.11em;
+  text-transform: uppercase; color: var(--text-dim); margin-right: 4px;
+}
+.traj-chip {
+  font-family: 'Space Mono', monospace; font-size: 10px; background: var(--surface-3);
+  border: 1px solid var(--border); border-radius: 2px; padding: 2px 7px;
+  color: var(--text-muted); white-space: nowrap;
+}
+.traj-chip.peak  { border-color: var(--teal);  color: var(--teal);  background: var(--teal-dim); }
+.traj-chip.cross { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+.traj-chip.warn  { border-color: var(--blood); color: var(--blood); background: var(--blood-dim); }
+.traj-arrow { color: var(--text-dim); font-size: 10px; line-height: 1; }
+
+/* Callouts */
+.callout {
+  border-radius: 3px; padding: 10px 14px; font-size: 12px; line-height: 1.6; color: var(--text-muted);
+}
+.callout.warn   { background: var(--blood-dim);  border: 1px solid var(--blood-glow); }
+.callout.info   { background: var(--amber-dim);  border: 1px solid var(--amber-glow); }
+.callout.note   { background: var(--surface-2);  border: 1px solid var(--border); }
+.callout.teal   { background: var(--teal-dim);   border: 1px solid var(--teal-glow); }
+.callout strong { font-weight: 700; color: var(--blood); }
+.callout.info strong  { color: var(--amber); }
+.callout.note strong  { color: var(--text-muted); }
+.callout.teal strong  { color: var(--teal); }
+
+/* ── CODE BLOCKS ──────────────────────────────────────── */
+.code-wrapper { background: var(--code-bg); }
+.code-bar {
+  display: flex; align-items: center; padding: 8px 16px;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); gap: 10px;
+}
+.code-bar-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.code-view-badge {
+  font-family: 'Space Mono', monospace; font-size: 9px; padding: 1px 7px; border-radius: 2px;
+  background: var(--teal-dim); border: 1px solid var(--teal); color: var(--teal); letter-spacing: 0.04em;
+}
+.code-view-badge.amber { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
+.copy-btn {
+  margin-left: auto; background: none; border: 1px solid var(--border); border-radius: 2px;
+  color: var(--text-dim); font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 700;
+  padding: 3px 10px; cursor: pointer; transition: color 0.12s, border-color 0.12s; letter-spacing: 0.06em;
+}
+.copy-btn:hover { color: var(--text); border-color: var(--border-mid); }
+.copy-btn.copied { color: var(--teal); border-color: var(--teal); }
+
+pre {
+  margin: 0; padding: 18px 22px; overflow-x: auto;
+  font-family: 'Space Mono', monospace; font-size: 11.5px; line-height: 1.8;
+  background: var(--code-bg) !important; tab-size: 4;
+}
+pre code { background: none !important; padding: 0 !important; font-size: inherit; }
+
+/* Standalone code blocks (outside metric cards) */
+.standalone-code {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px;
+  overflow: hidden; margin-bottom: 28px;
+}
+.standalone-code .code-bar { border-top: none; }
+
+/* ── REFERENCE TABLE ──────────────────────────────────── */
+.ref-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 20px; }
+.ref-table th {
+  text-align: left; padding: 7px 14px; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim);
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+.ref-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; }
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table tr:nth-child(even) td { background: rgba(0,0,0,0.12); }
+.ref-table .rn { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--cyan); white-space: nowrap; }
+.ref-table .rf { font-family: 'Space Mono', monospace; font-size: 10.5px; color: var(--amber); white-space: nowrap; }
+.ref-table .ru { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text-dim); white-space: nowrap; }
+.ref-table .rd { color: var(--text-muted); font-size: 12px; }
+
+/* ── SECTION VIEW BLOCK ───────────────────────────────── */
+.view-block {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+  overflow: hidden; margin-top: 32px; margin-bottom: 8px;
+}
+.view-block-head {
+  padding: 14px 18px 10px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.view-name { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; color: var(--text); }
+.view-desc { font-size: 11.5px; color: var(--text-dim); margin-top: 3px; }
+
+/* ── FOOTER ───────────────────────────────────────────── */
+.page-footer {
+  border-top: 1px solid var(--border); padding: 32px 60px;
+  display: flex; align-items: center; gap: 32px; font-size: 11px; color: var(--text-dim);
+}
+.footer-link { color: var(--text-dim); text-decoration: none; transition: color 0.12s; }
+.footer-link:hover { color: var(--cyan); }
+.footer-right { margin-left: auto; }
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; display: flex; flex-wrap: wrap; padding: 12px; gap: 2px; border-right: none; border-bottom: 1px solid var(--border); }
+  .nav-group-label { display: none; }
+  .nav-link { padding: 4px 10px; border-left: none; border-radius: 2px; font-size: 11px; }
+  .nav-link .nav-sub { display: none; }
+  .main { padding: 32px 20px 60px; max-width: 100%; }
+  .metric-card-body { grid-template-columns: 1fr; }
+  .formula-panel { border-right: none; border-bottom: 1px solid var(--border); }
+  .constants-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     TOPBAR
+════════════════════════════════════════════════════════ -->
+<header class="topbar">
+  <span class="topbar-project">Artemis II · Mission Dashboard</span>
+  <span class="topbar-sep">/</span>
+  <span class="topbar-doc">Metrics &amp; Queries</span>
+  <div class="topbar-right">
+    <span class="topbar-badge">DuckDB</span>
+    <span class="topbar-badge">ICRF geocentric</span>
+    <span class="topbar-badge accent-teal">v_kinematics</span>
+    <span class="topbar-badge accent-teal">v_earth_moon</span>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ══════════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="nav-group">
+    <span class="nav-group-label">Overview</span>
+    <a href="#intro" class="nav-link active">Constants &amp; Frame</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">1 — Kinematics</span>
+    <a href="#speed" class="nav-link">Speed<span class="nav-sub">v = √(vx²+vy²+vz²)</span></a>
+    <a href="#altitude-earth" class="nav-link">Altitude (Earth)<span class="nav-sub">r − R♁</span></a>
+    <a href="#transverse-speed" class="nav-link">Transverse Speed</a>
+    <a href="#kinematics-ref" class="nav-link">Reference — all fields</a>
+    <a href="#v-kinematics" class="nav-link">v_kinematics view</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">2 — Orbital Mechanics</span>
+    <a href="#orbital-energy" class="nav-link">Specific Orbital Energy<span class="nav-sub">ε = v²/2 − μ/r</span></a>
+    <a href="#c3" class="nav-link">C3 — Characteristic Energy<span class="nav-sub">departure energy metric</span></a>
+    <a href="#eccentricity" class="nav-link">Eccentricity</a>
+    <a href="#orbital-ref" class="nav-link">Reference — all fields</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">3 — Earth–Moon Geometry</span>
+    <a href="#moon-range" class="nav-link">Spacecraft-to-Moon Distance<span class="nav-sub">flyby metric</span></a>
+    <a href="#moon-altitude" class="nav-link">Altitude Above Moon<span class="nav-sub">closest approach</span></a>
+    <a href="#earthmoon-ref" class="nav-link">Reference — all fields</a>
+    <a href="#v-earth-moon" class="nav-link">v_earth_moon view</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">4 — Gravitational Accels</span>
+    <a href="#gravity-crossover" class="nav-link">Gravitational Crossover<span class="nav-sub">Moon dominates Earth</span></a>
+    <a href="#gravity-ref" class="nav-link">Reference — all fields</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Reference</span>
+    <a href="#telemetry-table" class="nav-link">Additional Telemetry</a>
+    <a href="#orbital-elements" class="nav-link">Orbital Elements<span class="nav-sub">from orion_elements</span></a>
+    <a href="#approximation-note" class="nav-link">Approximation Notes</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- ── INTRO ─────────────────────────────────────────── -->
+  <section id="intro" class="section">
+    <div class="section-eyebrow">Reference Document</div>
+    <h1 class="section-title">Metrics &amp; Queries</h1>
+    <hr class="section-divider">
+    <p class="section-lead">
+      All metrics derived from raw Horizons data in <code>orion_trajectory</code> and, where noted,
+      <code>moon_trajectory</code>. Formulas use SI-consistent units. All vector operations are
+      in the ICRF geocentric frame. Two DuckDB views (<code>v_kinematics</code> and <code>v_earth_moon</code>)
+      pre-compute the derived columns used throughout the dashboard.
+    </p>
+
+    <div class="constants-grid">
+      <div class="const-card">
+        <code>GM_EARTH = 398_600.4418</code>
+        <div class="const-val">km³/s²</div>
+        <p>Earth gravitational parameter (μ♁). Denominator in vis-viva, C3, and escape velocity. Do not round — precision matters for energy calculations near Earth escape.</p>
+      </div>
+      <div class="const-card">
+        <code>GM_MOON = 4_902.8001</code>
+        <div class="const-val">km³/s²</div>
+        <p>Moon gravitational parameter (μ☽). Used for lunar gravity magnitude and the gravitational crossover event. ~81.3× smaller than Earth's.</p>
+      </div>
+      <div class="const-card">
+        <code>GM_SUN = 1.327_124_4e11</code>
+        <div class="const-val">km³/s²</div>
+        <p>Sun gravitational parameter. Used only for approximate solar gravity — Sun's influence on Orion is non-trivial for precision work but small relative to Earth and Moon.</p>
+      </div>
+      <div class="const-card">
+        <code>R_EARTH = 6_371.0</code>
+        <div class="const-val">km — Earth mean radius</div>
+        <p>Subtracted from geocentric range to get altitude above the surface. Mean spherical radius — actual surface varies ±21 km due to Earth's oblateness.</p>
+      </div>
+      <div class="const-card">
+        <code>R_MOON = 1_737.4</code>
+        <div class="const-val">km — Moon mean radius</div>
+        <p>Subtracted from spacecraft-to-Moon range to get altitude above the lunar surface. The closest approach altitude is the dashboard's most dramatic single number.</p>
+      </div>
+      <div class="const-card">
+        <code>FRAME = ICRF geocentric</code>
+        <div class="const-val">500@399 · non-rotating</div>
+        <p>All X/Y/Z vectors are in the International Celestial Reference Frame with origin at Earth's center of mass. The frame does not rotate with Earth — converting to lat/lon requires GAST/GMST.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 1 — KINEMATICS
+  ════════════════════════════════════════════════════════ -->
+  <section id="kinematics" class="section">
+    <div class="section-eyebrow">Section 1</div>
+    <h2 class="section-title">Kinematics</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      Derived from <code>orion_trajectory</code> state vectors alone. No secondary bodies required.
+      These are the headline numbers for the dashboard's velocity and position panels.
+    </p>
+
+    <!-- ── METRIC 1: SPEED ──────────────────────────────── -->
+    <div class="metric-card" id="speed">
+      <div class="metric-card-head">
+        <span class="metric-num">1</span>
+        <div class="metric-titles">
+          <div class="metric-name">Speed</div>
+          <div class="metric-source">orion_trajectory · vx_kms, vy_kms, vz_kms</div>
+        </div>
+        <span class="metric-tag kpi-tag">dashboard headline</span>
+      </div>
+      <div class="metric-card-body">
+        <div class="formula-panel">
+          <div class="formula-label">Formula</div>
+          <div class="formula">
+            <span class="formula-expr">
+              <span class="sym">v</span> <span class="op">=</span> √(<span class="sym">vx</span>² <span class="op">+</span> <span class="sym">vy</span>² <span class="op">+</span> <span class="sym">vz</span>²)
+            </span>
+            <span class="formula-unit">km/s</span>
+          </div>
+        </div>
+        <div class="metric-info">
+          <p class="metric-desc">
+            The scalar magnitude of the velocity vector. The most important single number
+            on the dashboard. Peaks near TLI burn (~10.8 km/s), drops during trans-lunar coast,
+            rises again during lunar flyby, then climbs toward ~11 km/s approaching reentry.
+            Pair with escape velocity to show whether Orion is bound or unbound from Earth.
+          </p>
+          <div class="trajectory">
+            <span class="traj-label">Mission arc</span>
+            <span class="traj-chip">~7.8 km/s (LEO)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip peak">~10.8 km/s (TLI)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip">falling (coast)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip">rising (flyby approach)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip warn">~11 km/s (reentry)</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-wrapper">
+        <div class="code-bar">
+          <span class="code-bar-label">SQL — v_kinematics</span>
+          <span class="code-view-badge">computed column</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-sql">SQRT(vx_kms * vx_kms + vy_kms * vy_kms + vz_kms * vz_kms) AS speed_kms</code></pre>
+      </div>
+    </div>
+
+    <!-- ── METRIC 2: ALTITUDE EARTH ─────────────────────── -->
+    <div class="metric-card" id="altitude-earth">
+      <div class="metric-card-head">
+        <span class="metric-num">2</span>
+        <div class="metric-titles">
+          <div class="metric-name">Altitude Above Earth's Surface</div>
+          <div class="metric-source">orion_trajectory · rg_km</div>
+        </div>
+        <span class="metric-tag view-tag">v_kinematics</span>
+      </div>
+      <div class="metric-card-body">
+        <div class="formula-panel">
+          <div class="formula-label">Formula</div>
+          <div class="formula">
+            <span class="formula-expr">
+              <span class="sym">alt</span> <span class="op">=</span> <span class="sym">r</span><span class="op">−</span> <span class="sym">R♁</span>
+            </span>
+            <br>
+            <span class="formula-expr" style="font-size:10px; color:var(--text-dim); margin-top:6px;">
+              R♁ = 6,371.0 km
+            </span>
+            <span class="formula-unit">km</span>
+          </div>
+        </div>
+        <div class="metric-info">
+          <p class="metric-desc">
+            Geocentric range minus Earth's mean radius. Most meaningful during the early mission
+            (LEO parking orbit, TLI) and reentry corridor. Conceptually thinner during deep
+            trans-lunar coast — at 300,000 km from Earth, "altitude" is a stretch — but still
+            a valid and displayable number throughout.
+          </p>
+          <div class="trajectory">
+            <span class="traj-label">Altitude</span>
+            <span class="traj-chip peak">~400 km (LEO parking)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip">rising (TLI coast)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip">~400,000 km (max)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip warn">~120 km (reentry interface)</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-wrapper">
+        <div class="code-bar">
+          <span class="code-bar-label">SQL — v_kinematics</span>
+          <span class="code-view-badge">computed column</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-sql">rg_km - 6371.0 AS altitude_earth_km</code></pre>
+      </div>
+    </div>
+
+    <!-- ── METRIC 3: TRANSVERSE SPEED ───────────────────── -->
+    <div class="metric-card" id="transverse-speed">
+      <div class="metric-card-head">
+        <span class="metric-num">3</span>
+        <div class="metric-titles">
+          <div class="metric-name">Transverse Speed</div>
+          <div class="metric-source">orion_trajectory · derived from speed + rr_kms</div>
+        </div>
+        <span class="metric-tag view-tag">v_kinematics</span>
+      </div>
+      <div class="metric-card-body">
+        <div class="formula-panel">
+          <div class="formula-label">Formula</div>
+          <div class="formula">
+            <span class="formula-expr">
+              <span class="sym">v⊥</span> <span class="op">=</span> √(<span class="sym">v</span>² <span class="op">−</span> <span class="sym">ṙ</span>²)
+            </span>
+            <span class="formula-note">ṙ = rr_kms (range rate)</span>
+            <span class="formula-unit">km/s</span>
+          </div>
+        </div>
+        <div class="metric-info">
+          <p class="metric-desc">
+            The component of velocity perpendicular to the position vector — the part of the
+            spacecraft's motion that isn't closing or opening distance from Earth. Together
+            with range rate (<code>rr_kms</code>), it decomposes the full velocity into
+            radial and tangential components. High transverse speed = mostly sideways;
+            high range rate = mostly radial.
+          </p>
+          <div class="callout note">
+            <strong>Note:</strong> Use <code>GREATEST(..., 0)</code> under the square root in SQL
+            to guard against floating-point artifacts where <code>speed² &lt; rr²</code> by a
+            tiny margin near periapsis.
+          </div>
+        </div>
+      </div>
+      <div class="code-wrapper">
+        <div class="code-bar">
+          <span class="code-bar-label">SQL — v_kinematics</span>
+          <span class="code-view-badge">computed column</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-sql">SQRT(GREATEST(speed_kms * speed_kms - rr_kms * rr_kms, 0)) AS v_transverse_kms</code></pre>
+      </div>
+    </div>
+
+    <!-- ── KINEMATICS REF TABLE ──────────────────────────── -->
+    <div id="kinematics-ref">
+      <table class="ref-table">
+        <thead>
+          <tr><th>Metric</th><th>Formula / Source</th><th>Units</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="rn">speed_kms</td>
+            <td class="rf">√(vx²+vy²+vz²)</td>
+            <td class="ru">km/s</td>
+            <td class="rd">Scalar speed. Primary headline KPI.</td>
+          </tr>
+          <tr>
+            <td class="rn">altitude_earth_km</td>
+            <td class="rf">rg_km − 6371.0</td>
+            <td class="ru">km</td>
+            <td class="rd">Altitude above mean spherical Earth. Use <code>rg_km</code> as cross-check against √(x²+y²+z²).</td>
+          </tr>
+          <tr>
+            <td class="rn">rr_kms</td>
+            <td class="rf">raw: orion_trajectory</td>
+            <td class="ru">km/s</td>
+            <td class="rd">Range rate. Negative = closing, positive = receding. Display with "closing / receding" label rather than raw sign.</td>
+          </tr>
+          <tr>
+            <td class="rn">v_transverse_kms</td>
+            <td class="rf">√(speed²−rr²)</td>
+            <td class="ru">km/s</td>
+            <td class="rd">Tangential velocity component. Guard GREATEST(..., 0) against float artifacts.</td>
+          </tr>
+          <tr>
+            <td class="rn">lt_sec</td>
+            <td class="rf">raw: orion_trajectory</td>
+            <td class="ru">s</td>
+            <td class="rd">One-way light time. Divide by 60 for minutes. Simulates DSN ranging observable.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── v_kinematics VIEW ─────────────────────────────── -->
+    <div class="view-block" id="v-kinematics">
+      <div class="view-block-head">
+        <div>
+          <div class="view-name">v_kinematics</div>
+          <div class="view-desc">Pre-computes speed, altitude, and transverse speed in a single pass over orion_trajectory.</div>
+        </div>
+      </div>
+      <div class="code-bar" style="border-top:none;">
+        <span class="code-bar-label">SQL — app/sql.py view definition</span>
+        <span class="code-view-badge">CREATE VIEW</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code class="language-sql">CREATE OR REPLACE VIEW v_kinematics AS
+SELECT
+    datetime_utc,
+    jd_tdb,
+    rg_km,
+    rr_kms,
+    lt_sec,
+    -- Scalar speed from velocity components
+    SQRT(vx_kms*vx_kms + vy_kms*vy_kms + vz_kms*vz_kms)             AS speed_kms,
+    -- Altitude above Earth's mean spherical surface
+    rg_km - 6371.0                                                     AS altitude_earth_km,
+    -- Transverse (tangential) speed — perpendicular to position vector
+    SQRT(GREATEST(
+        (vx_kms*vx_kms + vy_kms*vy_kms + vz_kms*vz_kms) - rr_kms*rr_kms,
+        0.0
+    ))                                                                 AS v_transverse_kms
+FROM orion_trajectory</code></pre>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 2 — ORBITAL MECHANICS
+  ════════════════════════════════════════════════════════ -->
+  <section id="orbital-mechanics" class="section">
+    <div class="section-eyebrow teal">Section 2</div>
+    <h2 class="section-title">Orbital Mechanics</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      Two-body Keplerian derivations from <code>orion_trajectory</code> state vectors.
+      Where <code>orion_elements</code> covers the same metric, prefer it — it uses JPL's
+      full n-body solution and is more precise. These formulas remain authoritative for
+      metrics not in the ELEMENTS output: orbital energy ε, C3, and gravitational accelerations.
+    </p>
+
+    <!-- ── METRIC 4: SPECIFIC ORBITAL ENERGY ────────────── -->
+    <div class="metric-card" id="orbital-energy">
+      <div class="metric-card-head">
+        <span class="metric-num">4</span>
+        <div class="metric-titles">
+          <div class="metric-name">Specific Orbital Energy</div>
+          <div class="metric-source">orion_trajectory · vis-viva equation</div>
+        </div>
+        <span class="metric-tag event-tag">key event: ε = 0</span>
+      </div>
+      <div class="metric-card-body">
+        <div class="formula-panel">
+          <div class="formula-label">Vis-Viva</div>
+          <div class="formula">
+            <span class="formula-num">v²</span>
+            <span class="formula-den">2</span>
+            <span class="formula-expr" style="margin-top:6px; font-size:11px;">
+              <span class="op">−</span>
+              <span class="formula-num" style="display:inline; border:none; padding:0;">μ♁</span>
+              <span class="op"> / </span>
+              <span class="formula-den" style="display:inline; padding:0;">r</span>
+            </span>
+            <span class="formula-unit">km²/s²</span>
+          </div>
+        </div>
+        <div class="metric-info">
+          <p class="metric-desc">
+            The cleanest single indicator of mission phase. When ε &lt; 0, Orion is gravitationally
+            bound to Earth (elliptical orbit). When ε = 0, it is exactly at escape velocity.
+            When ε &gt; 0, it is on a hyperbolic trajectory — unbound from Earth and coasting
+            toward the Moon. Watching ε cross zero during the TLI burn marks the precise moment
+            Orion escapes Earth's gravitational well.
+          </p>
+          <div class="trajectory">
+            <span class="traj-label">Energy state</span>
+            <span class="traj-chip">ε &lt; 0 (LEO, bound)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip cross">ε = 0 (escape threshold)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip peak">ε &gt; 0 (TLI, hyperbolic)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip">ε &lt; 0 again (return)</span>
+          </div>
+          <div class="callout info">
+            <strong>Not conserved:</strong> ε drifts during trans-lunar coast because the Moon and Sun
+            exert non-negligible gravitational forces. The drift is physically real and reflects
+            actual multi-body dynamics — it is not a numerical error.
+          </div>
+        </div>
+      </div>
+      <div class="code-wrapper">
+        <div class="code-bar">
+          <span class="code-bar-label">SQL — v_kinematics extension</span>
+          <span class="code-view-badge">computed column</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-sql">-- Specific orbital energy (vis-viva) — km²/s²
+-- Negative = bound orbit. Zero = escape. Positive = hyperbolic.
+(speed_kms * speed_kms / 2.0) - (398600.4418 / rg_km) AS orbital_energy_kms2s2</code></pre>
+      </div>
+    </div>
+
+    <!-- ── METRIC 5: C3 ──────────────────────────────────── -->
+    <div class="metric-card" id="c3">
+      <div class="metric-card-head">
+        <span class="metric-num">5</span>
+        <div class="metric-titles">
+          <div class="metric-name">C3 — Characteristic Energy</div>
+          <div class="metric-source">orion_trajectory · mission design standard</div>
+        </div>
+        <span class="metric-tag view-tag">v_kinematics</span>
+      </div>
+      <div class="metric-card-body">
+        <div class="formula-panel">
+          <div class="formula-label">Formula</div>
+          <div class="formula">
+            <span class="formula-expr">
+              <span class="sym">C3</span> <span class="op">= 2ε</span>
+            </span>
+            <span class="formula-expr" style="margin-top:8px; font-size:11px; color:var(--text-dim);">
+              <span class="op">= v² − 2μ♁/r</span>
+            </span>
+            <span class="formula-unit">km²/s²</span>
+          </div>
+        </div>
+        <div class="metric-info">
+          <p class="metric-desc">
+            The standard mission design metric for departure energy — twice the specific orbital energy.
+            C3 = 0 is Earth escape. For a trans-lunar trajectory, C3 is slightly positive
+            (typically 0.5–2 km²/s² at TLI). Negative C3 means still in a closed Earth orbit.
+            Negative C3 and negative ε are equivalent statements — C3 is simply the convention
+            used in mission design documentation and trajectory trade studies.
+          </p>
+          <div class="trajectory">
+            <span class="traj-label">C3 value</span>
+            <span class="traj-chip">negative (LEO)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip cross">C3 = 0 (escape)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip peak">~0.5–2.0 km²/s² (TLI)</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-wrapper">
+        <div class="code-bar">
+          <span class="code-bar-label">SQL — v_kinematics extension</span>
+          <span class="code-view-badge">computed column</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-sql">-- C3 (Characteristic Energy) — km²/s²
+-- Mission design standard: C3 = 0 is Earth escape threshold.
+speed_kms * speed_kms - (2.0 * 398600.4418 / rg_km) AS c3_kms2s2</code></pre>
+      </div>
+    </div>
+
+    <!-- ── METRIC 6: ECCENTRICITY ────────────────────────── -->
+    <div class="metric-card" id="eccentricity">
+      <div class="metric-card-head">
+        <span class="metric-num">6</span>
+        <div class="metric-titles">
+          <div class="metric-name">Eccentricity</div>
+          <div class="metric-source">orion_elements · ec (preferred) or Laplace-Runge-Lenz vector</div>
+        </div>
+        <span class="metric-tag event-tag">ec = 1 crossover</span>
+      </div>
+      <div class="metric-card-body">
+        <div class="formula-panel">
+          <div class="formula-label">LRL Vector</div>
+          <div class="formula">
+            <span class="formula-expr">
+              <span class="sym">ê</span> <span class="op">=</span> <span class="op">(</span><span class="sym">v</span><span class="op">×</span><span class="sym">h</span><span class="op">)</span><span class="op">/</span><span class="sym">μ♁</span> <span class="op">− r̂</span>
+            </span>
+            <span class="formula-expr" style="margin-top:8px; font-size:10px; color:var(--text-dim);">
+              <span class="op">e = |ê| — use orion_elements.ec</span>
+            </span>
+            <span class="formula-unit">dimensionless</span>
+          </div>
+        </div>
+        <div class="metric-info">
+          <p class="metric-desc">
+            Orbit shape. e = 0 is circular; 0 &lt; e &lt; 1 is elliptical; e = 1 is parabolic escape;
+            e &gt; 1 is hyperbolic (trans-lunar coast). The Laplace-Runge-Lenz vector is the
+            two-body derivation — prefer <code>orion_elements.ec</code> directly, which uses
+            JPL's full n-body solution and requires no vector arithmetic. The eccentricity vector
+            points toward periapsis.
+          </p>
+          <div class="callout warn">
+            <strong>Hyperbolic caveat:</strong> Once e &gt; 1, apoapsis (<code>ad_km</code>) and
+            orbital period (<code>pr_d</code>) in <code>orion_elements</code> are undefined.
+            Horizons returns sentinel values. Always filter <code>ec &lt; 1</code> before using those columns.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ORBITAL REF TABLE ─────────────────────────────── -->
+    <div id="orbital-ref">
+      <table class="ref-table">
+        <thead>
+          <tr><th>Metric</th><th>Formula / Source</th><th>Units</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="rn">|h| (ang. momentum)</td>
+            <td class="rf">|r × v|</td>
+            <td class="ru">km²/s</td>
+            <td class="rd">Conserved in two-body. Magnitude = √(hx²+hy²+hz²) where hx=y·vz−z·vy, etc.</td>
+          </tr>
+          <tr>
+            <td class="rn">inclination</td>
+            <td class="rf">arccos(hz / |h|)</td>
+            <td class="ru">deg</td>
+            <td class="rd">Angle between orbital plane and ICRF equator. Prefer <code>orion_elements.inc_deg</code>. Loses physical meaning once Moon's gravity dominates.</td>
+          </tr>
+          <tr>
+            <td class="rn">orbital_energy</td>
+            <td class="rf">v²/2 − μ♁/r</td>
+            <td class="ru">km²/s²</td>
+            <td class="rd">ε — vis-viva. Crosses zero at Earth escape. ε &lt; 0 = bound, ε &gt; 0 = hyperbolic.</td>
+          </tr>
+          <tr>
+            <td class="rn">v_escape</td>
+            <td class="rf">√(2·μ♁/r)</td>
+            <td class="ru">km/s</td>
+            <td class="rd">Escape velocity at current distance. Pair with speed: when speed &gt; v_escape, Orion is unbound.</td>
+          </tr>
+          <tr>
+            <td class="rn">c3</td>
+            <td class="rf">v² − 2μ♁/r</td>
+            <td class="ru">km²/s²</td>
+            <td class="rd">Characteristic energy = 2ε. Mission design standard; C3 = 0 is Earth escape.</td>
+          </tr>
+          <tr>
+            <td class="rn">eccentricity</td>
+            <td class="rf">orion_elements.ec</td>
+            <td class="ru">—</td>
+            <td class="rd">Prefer ELEMENTS output. &lt; 1 = elliptical, &gt; 1 = hyperbolic (TLI onward).</td>
+          </tr>
+          <tr>
+            <td class="rn">semi_major_axis</td>
+            <td class="rf">−μ♁ / (2ε)</td>
+            <td class="ru">km</td>
+            <td class="rd">Valid only when ε &lt; 0. Negative (and meaningless for display) when hyperbolic. Use <code>orion_elements.a_km</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 3 — EARTH–MOON GEOMETRY
+  ════════════════════════════════════════════════════════ -->
+  <section id="earth-moon-geometry" class="section">
+    <div class="section-eyebrow amber">Section 3</div>
+    <h2 class="section-title">Earth–Moon Geometry</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      Requires <code>moon_trajectory</code> joined on <code>datetime_utc</code>. All metrics
+      use the difference vector between Orion and Moon positions in the ICRF geocentric frame.
+      The closest approach altitude is the single most dramatic number of the mission.
+    </p>
+
+    <!-- ── METRIC 7: MOON RANGE ──────────────────────────── -->
+    <div class="metric-card" id="moon-range">
+      <div class="metric-card-head">
+        <span class="metric-num">7</span>
+        <div class="metric-titles">
+          <div class="metric-name">Spacecraft-to-Moon Distance</div>
+          <div class="metric-source">orion_trajectory JOIN moon_trajectory</div>
+        </div>
+        <span class="metric-tag event-tag">flyby metric</span>
+      </div>
+      <div class="metric-card-body">
+        <div class="formula-panel">
+          <div class="formula-label">Formula</div>
+          <div class="formula">
+            <span class="formula-expr" style="font-size:10.5px;">
+              Δ<span class="sym">x</span> <span class="op">=</span> <span class="sym">x</span><span class="op">−</span><span class="sym">mx</span><br>
+              Δ<span class="sym">y</span> <span class="op">=</span> <span class="sym">y</span><span class="op">−</span><span class="sym">my</span><br>
+              Δ<span class="sym">z</span> <span class="op">=</span> <span class="sym">z</span><span class="op">−</span><span class="sym">mz</span><br>
+            </span>
+            <span class="formula-expr" style="margin-top:8px;">
+              <span class="sym">r_moon</span> <span class="op">=</span> √(Δx²<span class="op">+</span>Δy²<span class="op">+</span>Δz²)
+            </span>
+            <span class="formula-unit">km</span>
+          </div>
+        </div>
+        <div class="metric-info">
+          <p class="metric-desc">
+            The primary metric for the lunar flyby. Computed from the difference of Orion's
+            position vector and the Moon's position vector at the same timestamp.
+            The minimum value of <code>r_moon</code> across the dataset gives closest approach
+            distance and its timestamp. Do not use the geocentric range difference —
+            that gives the radial range difference, not the actual 3D spacecraft-to-Moon distance.
+          </p>
+          <div class="trajectory">
+            <span class="traj-label">r_moon</span>
+            <span class="traj-chip">~384,000 km (departure)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip">falling (approach)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip peak">min value = closest approach</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip">rising (departure)</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-wrapper">
+        <div class="code-bar">
+          <span class="code-bar-label">SQL — v_earth_moon</span>
+          <span class="code-view-badge amber">computed column</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-sql">SQRT(
+    POWER(o.x_km - m.x_km, 2) +
+    POWER(o.y_km - m.y_km, 2) +
+    POWER(o.z_km - m.z_km, 2)
+) AS r_moon_km</code></pre>
+      </div>
+    </div>
+
+    <!-- ── METRIC 8: MOON ALTITUDE ───────────────────────── -->
+    <div class="metric-card" id="moon-altitude">
+      <div class="metric-card-head">
+        <span class="metric-num">8</span>
+        <div class="metric-titles">
+          <div class="metric-name">Altitude Above Moon's Surface</div>
+          <div class="metric-source">v_earth_moon · r_moon_km</div>
+        </div>
+        <span class="metric-tag kpi-tag">dashboard headline</span>
+      </div>
+      <div class="metric-card-body">
+        <div class="formula-panel">
+          <div class="formula-label">Formula</div>
+          <div class="formula">
+            <span class="formula-expr">
+              <span class="sym">alt☽</span> <span class="op">=</span> <span class="sym">r_moon</span><span class="op">−</span> <span class="sym">R☽</span>
+            </span>
+            <span class="formula-expr" style="font-size:10px; color:var(--text-dim); margin-top:6px;">
+              R☽ = 1,737.4 km
+            </span>
+            <span class="formula-unit">km</span>
+          </div>
+        </div>
+        <div class="metric-info">
+          <p class="metric-desc">
+            Spacecraft-to-Moon range minus the Moon's mean radius. The minimum value of this
+            metric is the closest approach altitude above the lunar surface — the most dramatic
+            single number of the mission. The Artemis II free-return trajectory brings Orion
+            to within a few thousand kilometers of the surface, making this the headline flyby stat.
+          </p>
+          <div class="trajectory">
+            <span class="traj-label">Mission highlight</span>
+            <span class="traj-chip">min = closest approach altitude</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip peak">label as "LUNAR CLOSEST APPROACH"</span>
+          </div>
+          <div class="callout teal">
+            <strong>Closest approach:</strong> Find the timestamp of minimum <code>altitude_moon_km</code>
+            at startup and store it as a phase event. This becomes the "Flyby" phase marker on the
+            scrubber and the peak moment in the lunar approach animation.
+          </div>
+        </div>
+      </div>
+      <div class="code-wrapper">
+        <div class="code-bar">
+          <span class="code-bar-label">SQL — v_earth_moon</span>
+          <span class="code-view-badge amber">computed column</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-sql">r_moon_km - 1737.4 AS altitude_moon_km</code></pre>
+      </div>
+    </div>
+
+    <!-- ── EARTH-MOON REF TABLE ──────────────────────────── -->
+    <div id="earthmoon-ref">
+      <table class="ref-table">
+        <thead>
+          <tr><th>Metric</th><th>Formula / Source</th><th>Units</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="rn">r_moon_km</td>
+            <td class="rf">√(Δx²+Δy²+Δz²)</td>
+            <td class="ru">km</td>
+            <td class="rd">True 3D spacecraft-to-Moon distance. Do not use geocentric range difference.</td>
+          </tr>
+          <tr>
+            <td class="rn">altitude_moon_km</td>
+            <td class="rf">r_moon_km − 1737.4</td>
+            <td class="ru">km</td>
+            <td class="rd">Altitude above lunar surface. Minimum = closest approach. Primary flyby KPI.</td>
+          </tr>
+          <tr>
+            <td class="rn">rr_moon_kms</td>
+            <td class="rf">(Δr · Δv) / r_moon</td>
+            <td class="ru">km/s</td>
+            <td class="rd">Closing speed relative to Moon. Negative = approaching. Dot product of Δr and Δv vectors divided by r_moon.</td>
+          </tr>
+          <tr>
+            <td class="rn">r_earth_moon_km</td>
+            <td class="rf">√(mx²+my²+mz²)</td>
+            <td class="ru">km</td>
+            <td class="rd">Earth–Moon range at any timestamp. Context for how far out Orion is relative to total Earth-Moon distance.</td>
+          </tr>
+          <tr>
+            <td class="rn">em_fraction</td>
+            <td class="rf">r_earth / r_earth_moon</td>
+            <td class="ru">0–1+</td>
+            <td class="rd">Normalized distance progress. Reaches ~1 at closest approach; exceeds 1 briefly if Orion passes beyond the Moon.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── v_earth_moon VIEW ─────────────────────────────── -->
+    <div class="view-block" id="v-earth-moon">
+      <div class="view-block-head">
+        <div>
+          <div class="view-name">v_earth_moon</div>
+          <div class="view-desc">Joins orion_trajectory and moon_trajectory; derives all spacecraft-to-Moon metrics in one pass.</div>
+        </div>
+      </div>
+      <div class="code-bar" style="border-top:none;">
+        <span class="code-bar-label">SQL — app/sql.py view definition</span>
+        <span class="code-view-badge amber">CREATE VIEW</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code class="language-sql">CREATE OR REPLACE VIEW v_earth_moon AS
+SELECT
+    o.datetime_utc,
+    o.rg_km             AS r_earth_km,
+    -- Spacecraft-to-Moon distance vector
+    o.x_km - m.x_km    AS dx_km,
+    o.y_km - m.y_km    AS dy_km,
+    o.z_km - m.z_km    AS dz_km,
+    -- Moon range and altitude
+    SQRT(
+        POWER(o.x_km - m.x_km, 2) +
+        POWER(o.y_km - m.y_km, 2) +
+        POWER(o.z_km - m.z_km, 2)
+    )                                                               AS r_moon_km,
+    SQRT(
+        POWER(o.x_km - m.x_km, 2) +
+        POWER(o.y_km - m.y_km, 2) +
+        POWER(o.z_km - m.z_km, 2)
+    ) - 1737.4                                                      AS altitude_moon_km,
+    -- Earth-Moon distance
+    SQRT(m.x_km*m.x_km + m.y_km*m.y_km + m.z_km*m.z_km)         AS r_earth_moon_km,
+    -- Fraction of Earth-Moon distance traveled
+    o.rg_km / NULLIF(
+        SQRT(m.x_km*m.x_km + m.y_km*m.y_km + m.z_km*m.z_km), 0
+    )                                                               AS em_fraction
+FROM orion_trajectory o
+JOIN moon_trajectory m USING (datetime_utc)</code></pre>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 4 — GRAVITATIONAL ACCELERATIONS
+  ════════════════════════════════════════════════════════ -->
+  <section id="gravitational-accels" class="section">
+    <div class="section-eyebrow violet">Section 4</div>
+    <h2 class="section-title">Gravitational Accelerations</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      Force per unit mass experienced by Orion from each gravitational body. Units are km/s² —
+      convert to mm/s² (multiply by 10⁶) for display. The crossover event where Moon's pull
+      exceeds Earth's is a labeled mission marker.
+    </p>
+
+    <!-- ── METRIC 9: GRAVITATIONAL CROSSOVER ────────────── -->
+    <div class="metric-card" id="gravity-crossover">
+      <div class="metric-card-head">
+        <span class="metric-num">9</span>
+        <div class="metric-titles">
+          <div class="metric-name">Earth–Moon Gravitational Crossover</div>
+          <div class="metric-source">v_earth_moon · derived at startup</div>
+        </div>
+        <span class="metric-tag event-tag">phase event marker</span>
+      </div>
+      <div class="metric-card-body">
+        <div class="formula-panel">
+          <div class="formula-label">Crossover when</div>
+          <div class="formula">
+            <span class="formula-num">μ☽ / r_moon²</span>
+            <span class="formula-den">= μ♁ / r_earth²</span>
+            <span class="formula-note">ratio &gt; 1.0 = Moon dominates</span>
+            <span class="formula-unit">dimensionless</span>
+          </div>
+        </div>
+        <div class="metric-info">
+          <p class="metric-desc">
+            The point at which the Moon's gravitational acceleration exceeds Earth's. Related to
+            but distinct from the classical Lagrange L1 point or the Hill sphere boundary.
+            Compute the ratio at each timestep; the crossover is where the ratio crosses 1.0.
+            Worth computing at startup and storing as a phase event — it's a clear, intuitive
+            marker of when Orion enters the Moon's sphere of gravitational dominance.
+          </p>
+          <div class="callout note">
+            <strong>Not the L1 point:</strong> The L1 Lagrange point accounts for the centrifugal
+            force in the rotating Earth-Moon frame. The gravitational crossover is simpler —
+            it is just the point where |a_moon| = |a_earth|. Both are interesting but they
+            are different locations.
+          </div>
+          <div class="trajectory">
+            <span class="traj-label">Accel ratio</span>
+            <span class="traj-chip">≪ 1.0 (departure, Earth dominates)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip cross">ratio = 1.0 (crossover event)</span>
+            <span class="traj-arrow">→</span>
+            <span class="traj-chip peak">≫ 1.0 (flyby, Moon dominates)</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-wrapper">
+        <div class="code-bar">
+          <span class="code-bar-label">Python — find crossover at startup</span>
+          <span class="code-view-badge">app/phases.py</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python"># Gravitational acceleration magnitudes at each timestep
+df["a_earth"] = GM_EARTH / (df["r_earth_km"] ** 2)
+df["a_moon"]  = GM_MOON  / (df["r_moon_km"]  ** 2)
+df["accel_ratio"] = df["a_moon"] / df["a_earth"]
+
+# Crossover: first row where Moon's pull exceeds Earth's
+crossover_mask = df["accel_ratio"] >= 1.0
+if crossover_mask.any():
+    crossover_time = df.loc[crossover_mask.idxmax(), "datetime_utc"]</code></pre>
+      </div>
+    </div>
+
+    <!-- ── GRAVITY REF TABLE ─────────────────────────────── -->
+    <div id="gravity-ref">
+      <table class="ref-table">
+        <thead>
+          <tr><th>Metric</th><th>Formula</th><th>Units</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="rn">|a_earth|</td>
+            <td class="rf">μ♁ / r_earth²</td>
+            <td class="ru">km/s²</td>
+            <td class="rd">Magnitude of Earth's gravitational pull. Dominant during LEO and early coast. Multiply by 10⁶ for mm/s² display.</td>
+          </tr>
+          <tr>
+            <td class="rn">|a_moon|</td>
+            <td class="rf">μ☽ / r_moon²</td>
+            <td class="ru">km/s²</td>
+            <td class="rd">Magnitude of Moon's gravitational pull. Becomes dominant near closest approach. Requires r_moon from v_earth_moon.</td>
+          </tr>
+          <tr>
+            <td class="rn">accel_ratio</td>
+            <td class="rf">a_moon / a_earth</td>
+            <td class="ru">—</td>
+            <td class="rd">Crossover event at ratio = 1.0. Find timestamp at startup; store as phase event.</td>
+          </tr>
+          <tr>
+            <td class="rn">|a_sun| (approx)</td>
+            <td class="rf">μ☉ / r_sun²</td>
+            <td class="ru">km/s²</td>
+            <td class="rd">Approximate solar gravity. Requires sun_trajectory. Non-trivial for precision work; useful as a visualization element (show Sun pull direction).</td>
+          </tr>
+          <tr>
+            <td class="rn">a_net</td>
+            <td class="rf">a_earth + a_moon + a_sun</td>
+            <td class="ru">km/s²</td>
+            <td class="rd">Vector sum. Direction relative to velocity vector determines whether Orion is accelerating or decelerating — drives the trajectory shape.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       ADDITIONAL TELEMETRY
+  ════════════════════════════════════════════════════════ -->
+  <section id="telemetry-table" class="section">
+    <div class="section-eyebrow silver">Section 5</div>
+    <h2 class="section-title">Additional Telemetry</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      Direct re-expressions of raw columns from <code>orion_trajectory</code>, formatted for display.
+      No formula derivation required — these are available immediately from the source table.
+    </p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Metric</th><th>Source Column</th><th>Units</th><th>Display Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="rn">Light time</td>
+          <td class="rf">lt_sec</td>
+          <td class="ru">s → min</td>
+          <td class="rd">One-way signal delay Earth geocenter → Orion. Divide by 60 for minutes. Simulates DSN ranging observable.</td>
+        </tr>
+        <tr>
+          <td class="rn">Range rate</td>
+          <td class="rf">rr_kms</td>
+          <td class="ru">km/s</td>
+          <td class="rd">Negative = closing, positive = receding. Display as "CLOSING / RECEDING" label, not raw signed value.</td>
+        </tr>
+        <tr>
+          <td class="rn">Geocentric range</td>
+          <td class="rf">rg_km</td>
+          <td class="ru">km</td>
+          <td class="rd">Earth-to-Orion distance. Equivalent to √(x²+y²+z²) — use rg_km as cross-check against the computed value.</td>
+        </tr>
+        <tr>
+          <td class="rn">Mission elapsed time</td>
+          <td class="rf">datetime_utc − LAUNCH_TIME</td>
+          <td class="ru">DDT HH:MM</td>
+          <td class="rd">Seconds from SLS liftoff (2026-04-01 22:35 UTC). Format with fmt_met() from app/utils.py.</td>
+        </tr>
+        <tr>
+          <td class="rn">Mission phase</td>
+          <td class="rf">phases.py registry</td>
+          <td class="ru">string</td>
+          <td class="rd">LEO coast / TLI burn / Trans-lunar coast / Lunar approach / Flyby / Return coast / Reentry. Derived from phase registry; not stored in DB.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout note" style="margin-top:8px;">
+      <strong>MET vs dataset start:</strong> <code>LAUNCH_TIME = "2026-04-01 22:35:00 UTC"</code> differs from
+      <code>EPHEM_START = "2026-04-02 01:59 UTC"</code> by ~3.5 hours. The MET clock starts at liftoff, but
+      the dataset starts at DSN acquisition. The first row of the dataset has MET ≈ T+03:24, not T+00:00.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       ORBITAL ELEMENTS
+  ════════════════════════════════════════════════════════ -->
+  <section id="orbital-elements" class="section">
+    <div class="section-eyebrow blood">Section 6</div>
+    <h2 class="section-title">Orbital Elements from Horizons</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      <code>orion_elements</code> provides pre-computed osculating Keplerian elements at each timestep
+      using JPL's full n-body solution. These supersede the two-body derivations in Section 2
+      wherever precision matters. The Section 2 formulas remain necessary for metrics not in
+      the ELEMENTS output: orbital energy ε, C3, and gravitational accelerations.
+    </p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Element</th><th>Column</th><th>Units</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="rn">Eccentricity</td>
+          <td class="rf">ec</td>
+          <td class="ru">—</td>
+          <td class="rd">&lt; 1 = elliptical, &gt; 1 = hyperbolic (TLI onward). Key filter for apoapsis and period validity.</td>
+        </tr>
+        <tr>
+          <td class="rn">Semi-major axis</td>
+          <td class="rf">a_km</td>
+          <td class="ru">km</td>
+          <td class="rd">Negative for hyperbolic trajectories — mathematically valid but hide or annotate for display when ec &gt; 1.</td>
+        </tr>
+        <tr>
+          <td class="rn">Inclination</td>
+          <td class="rf">inc_deg</td>
+          <td class="ru">deg</td>
+          <td class="rd">Relative to ICRF equatorial plane. Physically meaningful only during geocentric phases.</td>
+        </tr>
+        <tr>
+          <td class="rn">Longitude of ascending node</td>
+          <td class="rf">om_deg</td>
+          <td class="ru">deg</td>
+          <td class="rd">Ω — where the orbit crosses the equatorial plane northward.</td>
+        </tr>
+        <tr>
+          <td class="rn">Argument of periapsis</td>
+          <td class="rf">w_deg</td>
+          <td class="ru">deg</td>
+          <td class="rd">ω — angle from ascending node to periapsis direction.</td>
+        </tr>
+        <tr>
+          <td class="rn">True anomaly</td>
+          <td class="rf">ta_deg</td>
+          <td class="ru">deg</td>
+          <td class="rd">ν — current angular position in orbit, measured from periapsis.</td>
+        </tr>
+        <tr>
+          <td class="rn">Periapsis distance</td>
+          <td class="rf">qr_km</td>
+          <td class="ru">km</td>
+          <td class="rd">Closest approach to Earth center. Valid throughout (even hyperbolic). Subtract R_EARTH for periapsis altitude.</td>
+        </tr>
+        <tr>
+          <td class="rn">Apoapsis distance</td>
+          <td class="rf">ad_km</td>
+          <td class="ru">km</td>
+          <td class="rd"><strong style="color:var(--blood)">Undefined when ec &gt; 1.</strong> Horizons returns sentinel values. Always filter <code>WHERE ec &lt; 1</code> and use <code>errors='coerce'</code> (Python) or <code>NULLIF</code> (SQL).</td>
+        </tr>
+        <tr>
+          <td class="rn">Orbital period</td>
+          <td class="rf">pr_d</td>
+          <td class="ru">days</td>
+          <td class="rd"><strong style="color:var(--blood)">Undefined when ec &gt; 1.</strong> No closed orbit exists on a hyperbolic trajectory. Same filter applies.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="standalone-code">
+      <div class="code-bar">
+        <span class="code-bar-label">Python — safe access pattern for hyperbolic sentinel values</span>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code class="language-python">import pandas as pd
+
+# ad_km and pr_d return Horizons sentinel values when ec > 1.
+# Coerce them to NaN so downstream math doesn't silently propagate garbage.
+df["ad_km"] = pd.to_numeric(df["ad_km"], errors="coerce").where(df["ec"] < 1)
+df["pr_d"]  = pd.to_numeric(df["pr_d"],  errors="coerce").where(df["ec"] < 1)</code></pre>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       APPROXIMATION NOTE
+  ════════════════════════════════════════════════════════ -->
+  <section id="approximation-note" class="section" style="margin-bottom:48px;">
+    <div class="section-eyebrow silver">Note</div>
+    <h2 class="section-title" style="font-size:20px;">On Two-Body Approximations</h2>
+    <hr class="section-divider">
+
+    <div class="callout note">
+      <strong>What the approximations mean:</strong> Several formulas in Sections 2 and 4 use
+      two-body (Keplerian) approximations — treating Earth (or Moon) as the only gravitational
+      influence. The actual Orion trajectory is an n-body solution accounting for Earth, Moon,
+      Sun, and higher-order perturbations (Earth's J2 oblateness, etc.).<br><br>
+      This means metrics like eccentricity, semi-major axis, and orbital energy will drift
+      slowly during trans-lunar coast even though they'd be conserved in a pure two-body
+      problem. These drifts are physically real, not numerical errors. For a visualization
+      dashboard the approximations are accurate enough — the numbers are correct in order of
+      magnitude and visually interesting. For navigation-grade computation, use
+      <code>orion_elements</code> directly.
+    </div>
+  </section>
+
+</main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════ -->
+<footer class="page-footer">
+  <span>Artemis II Mission Dashboard</span>
+  <span>·</span>
+  <a href="https://ssd.jpl.nasa.gov/horizons/manual.html" target="_blank" class="footer-link">JPL Horizons Manual</a>
+  <span>·</span>
+  <span>orion_trajectory · orion_elements · moon_trajectory · sun_trajectory</span>
+  <span class="footer-right">deanallton.com</span>
+</footer>
+
+<script>
+// ── HIGHLIGHT.JS ─────────────────────────────────────────
+hljs.highlightAll();
+
+// ── COPY BUTTONS ─────────────────────────────────────────
+function copyCode(btn) {
+  const bar = btn.closest('.code-bar');
+  const pre = bar.nextElementSibling;
+  const text = pre ? pre.innerText : '';
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1800);
+  });
+}
+
+// ── ACTIVE NAV via IntersectionObserver ───────────────────
+const navLinks = document.querySelectorAll('.nav-link');
+
+const idToNav = {
+  'intro':                '[href="#intro"]',
+  'speed':                '[href="#speed"]',
+  'altitude-earth':       '[href="#altitude-earth"]',
+  'transverse-speed':     '[href="#transverse-speed"]',
+  'kinematics-ref':       '[href="#kinematics-ref"]',
+  'v-kinematics':         '[href="#v-kinematics"]',
+  'orbital-energy':       '[href="#orbital-energy"]',
+  'c3':                   '[href="#c3"]',
+  'eccentricity':         '[href="#eccentricity"]',
+  'orbital-ref':          '[href="#orbital-ref"]',
+  'moon-range':           '[href="#moon-range"]',
+  'moon-altitude':        '[href="#moon-altitude"]',
+  'earthmoon-ref':        '[href="#earthmoon-ref"]',
+  'v-earth-moon':         '[href="#v-earth-moon"]',
+  'gravity-crossover':    '[href="#gravity-crossover"]',
+  'gravity-ref':          '[href="#gravity-ref"]',
+  'telemetry-table':      '[href="#telemetry-table"]',
+  'orbital-elements':     '[href="#orbital-elements"]',
+  'approximation-note':   '[href="#approximation-note"]',
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navLinks.forEach(l => l.classList.remove('active'));
+      const sel = idToNav[id];
+      if (sel) {
+        const link = document.querySelector('.nav-link' + sel) ||
+                     document.querySelector(`.nav-link[href="#${id}"]`);
+        if (link) link.classList.add('active');
+      }
+    }
+  });
+}, { rootMargin: '-50px 0px -60% 0px', threshold: 0 });
+
+document.querySelectorAll(
+  'section[id], .metric-card[id], .view-block[id], div[id]'
+).forEach(el => { if (el.id) observer.observe(el); });
+</script>
+</body>
+</html>

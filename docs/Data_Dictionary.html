@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Dictionary — Artemis II Mission Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* ── Surfaces ── */
+  --bg:          #050a0f;
+  --surface:     #0a1628;
+  --surface-2:   #0d1e36;
+  --surface-3:   #0f2540;
+  --border:      #1a2f4a;
+  --border-mid:  #243d5e;
+  --code-bg:     #000000;
+
+  /* ── Text ── */
+  --text:        #c8e8ff;
+  --text-muted:  #6db8e9;
+  --text-dim:    #458ac3;
+  --text-hint:   #326088;
+
+  /* ── Accent palette ── */
+  --teal:        #00f5ab;
+  --teal-dim:    rgba(0,245,171,0.10);
+  --teal-glow:   rgba(0,245,171,0.22);
+  --cyan:        #00c3ff;
+  --cyan-dim:    rgba(0,195,255,0.10);
+  --amber:       #f5ce0b;
+  --amber-dim:   rgba(245,206,11,0.10);
+  --amber-glow:  rgba(245,206,11,0.22);
+  --blood:       #e8420a;
+  --blood-dim:   rgba(232,66,10,0.12);
+  --blood-glow:  rgba(232,66,10,0.25);
+  --silver:      #82a0bc;
+  --silver-dim:  rgba(130,160,188,0.12);
+  --violet:      #786afb;
+  --status-live: #22c55e;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── TOPBAR ───────────────────────────────────────────────── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 50px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; z-index: 200; gap: 0;
+}
+.topbar-project {
+  font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+}
+.topbar-sep { color: var(--border-mid); margin: 0 12px; font-weight: 300; }
+.topbar-doc {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-dim);
+  font-family: 'Space Mono', monospace;
+}
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.topbar-badge {
+  font-family: 'Space Mono', monospace; font-size: 9px; padding: 2px 9px;
+  border-radius: 2px; border: 1px solid var(--border-mid); color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+.topbar-badge.accent-teal  { border-color: var(--teal);  color: var(--teal);  background: var(--teal-dim); }
+.topbar-badge.accent-amber { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+
+/* ── LAYOUT ──────────────────────────────────────────────── */
+.layout { display: grid; grid-template-columns: 244px 1fr; padding-top: 50px; min-height: 100vh; }
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar {
+  position: sticky; top: 50px; height: calc(100vh - 50px);
+  overflow-y: auto; border-right: 1px solid var(--border);
+  background: var(--surface); padding: 28px 0 40px;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.nav-group { margin-bottom: 4px; }
+.nav-group-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-hint); padding: 14px 18px 5px; display: block;
+}
+.nav-link {
+  display: block; padding: 5px 18px 5px 16px; font-size: 11.5px; color: var(--text-muted);
+  text-decoration: none; border-left: 2px solid transparent;
+  transition: color 0.12s, background 0.12s, border-color 0.12s; line-height: 1.4;
+  font-family: 'Space Mono', monospace;
+}
+.nav-link:hover { color: var(--text); background: var(--surface-2); }
+.nav-link.active { color: var(--cyan); border-left-color: var(--cyan); background: var(--cyan-dim); }
+.nav-link.active-amber { color: var(--amber); border-left-color: var(--amber); background: var(--amber-dim); }
+.nav-link .nav-sub { display: block; font-size: 9.5px; color: var(--text-dim); margin-top: 1px; }
+.nav-link.active .nav-sub { color: rgba(0,195,255,0.5); }
+
+/* ── MAIN ────────────────────────────────────────────────── */
+.main { padding: 52px 60px 80px; min-width: 0; max-width: 60vw; margin-inline: auto; }
+
+/* ── TYPOGRAPHY ──────────────────────────────────────────── */
+.section { margin-bottom: 72px; }
+.section-eyebrow {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--cyan); margin-bottom: 10px; font-family: 'Space Mono', monospace;
+}
+.section-title {
+  font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700;
+  color: var(--text); line-height: 1.2; margin-bottom: 6px; letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0 28px; }
+.section-lead {
+  color: var(--text-muted); font-size: 12.5px; max-width: 640px;
+  line-height: 1.8; margin-bottom: 32px;
+}
+p code, li code, td code, .section-lead code {
+  font-family: 'Space Mono', monospace; font-size: 0.87em;
+  color: var(--amber); background: var(--amber-dim); padding: 1px 5px; border-radius: 2px;
+}
+
+/* ── CALLOUTS ────────────────────────────────────────────── */
+.callout {
+  border-radius: 3px; padding: 11px 15px; font-size: 12px; line-height: 1.65;
+  color: var(--text-muted); margin: 14px 0;
+}
+.callout.warn  { background: var(--blood-dim);  border: 1px solid var(--blood-glow); }
+.callout.info  { background: var(--amber-dim);  border: 1px solid var(--amber-glow); }
+.callout.note  { background: var(--surface-2);  border: 1px solid var(--border); }
+.callout.teal  { background: var(--teal-dim);   border: 1px solid var(--teal-glow); }
+.callout strong { font-weight: 700; color: var(--blood); }
+.callout.info strong  { color: var(--amber); }
+.callout.note strong  { color: var(--text-muted); }
+.callout.teal strong  { color: var(--teal); }
+
+/* ── SOURCE GRID ─────────────────────────────────────────── */
+.source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 28px; }
+.source-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 13px 15px;
+}
+.source-card .label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 5px; font-family: 'Space Mono', monospace;
+}
+.source-card .value { font-size: 12px; color: var(--text-muted); word-break: break-all; }
+.source-card .value a { color: var(--cyan); text-decoration: none; }
+.source-card .value a:hover { text-decoration: underline; }
+
+/* ── PIPELINE DIAGRAM ────────────────────────────────────── */
+.pipeline-block {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px;
+  margin-bottom: 28px; overflow: hidden;
+}
+.pipeline-bar {
+  display: flex; align-items: center; gap: 10px; padding: 9px 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.pipeline-bar-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.pipeline-code {
+  padding: 20px 24px; font-family: 'Space Mono', monospace;
+  font-size: 11.5px; color: var(--text-dim); line-height: 1.9;
+  white-space: pre; overflow-x: auto;
+}
+.pipeline-code .node  { color: var(--cyan); }
+.pipeline-code .arrow { color: var(--text-hint); }
+.pipeline-code .note  { color: var(--text-dim); }
+.pipeline-code .file  { color: var(--amber); }
+
+/* ── TABLES OVERVIEW ─────────────────────────────────────── */
+.coverage-table {
+  width: 100%; border-collapse: collapse; font-size: 12.5px;
+  border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+}
+.coverage-table th {
+  text-align: left; padding: 8px 14px; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim);
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+  font-family: 'Space Mono', monospace;
+}
+.coverage-table td {
+  padding: 9px 14px; border-bottom: 1px solid var(--border);
+  color: var(--text-muted); vertical-align: top;
+}
+.coverage-table tr:last-child td { border-bottom: none; }
+.coverage-table td:first-child {
+  font-family: 'Space Mono', monospace; font-size: 11.5px;
+  color: var(--amber); white-space: nowrap;
+}
+.coverage-table td:nth-child(2) {
+  font-family: 'Space Mono', monospace; font-size: 11px; color: var(--teal);
+}
+
+/* ── TABLE CARDS ─────────────────────────────────────────── */
+.table-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; margin-bottom: 28px; overflow: hidden;
+}
+.table-card:hover { border-color: var(--border-mid); }
+
+.table-card-head {
+  padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.table-name {
+  font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700;
+  color: var(--text); letter-spacing: 0.02em;
+}
+.table-grain {
+  font-size: 11.5px; color: var(--text-dim); margin-top: 4px; line-height: 1.5;
+}
+.table-badges {
+  margin-left: auto; display: flex; gap: 6px;
+  align-items: flex-start; flex-wrap: wrap; justify-content: flex-end;
+}
+.tbadge {
+  font-family: 'Space Mono', monospace; font-size: 9px; padding: 2px 8px;
+  border-radius: 2px; border: 1px solid; white-space: nowrap; letter-spacing: 0.06em;
+}
+.tbadge.vectors { color: var(--cyan);   border-color: var(--cyan);   background: var(--cyan-dim); }
+.tbadge.elements{ color: var(--amber);  border-color: var(--amber);  background: var(--amber-dim); }
+.tbadge.teal    { color: var(--teal);   border-color: var(--teal);   background: var(--teal-dim); }
+.tbadge.silver  { color: var(--silver); border-color: var(--silver); background: var(--silver-dim); }
+
+/* ── FIELDS TABLE ────────────────────────────────────────── */
+.fields-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.fields-table thead tr { background: var(--code-bg); }
+.fields-table th {
+  text-align: left; padding: 7px 14px; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim);
+  border-bottom: 1px solid var(--border); font-family: 'Space Mono', monospace;
+}
+.fields-table td {
+  padding: 8px 14px; border-bottom: 1px solid var(--border);
+  vertical-align: top; line-height: 1.55;
+}
+.fields-table tr:last-child td { border-bottom: none; }
+.fields-table tr:nth-child(even) td { background: rgba(0,0,0,0.15); }
+.fields-table .fn {
+  font-family: 'Space Mono', monospace; font-size: 11.5px; white-space: nowrap;
+}
+.fields-table .fn.key    { color: var(--amber); }
+.fields-table .fn.regular{ color: var(--text-muted); }
+.fields-table .ftype {
+  font-family: 'Space Mono', monospace; font-size: 10.5px; color: var(--text-dim); white-space: nowrap;
+}
+.fields-table .fdesc { color: var(--text-muted); font-size: 12px; }
+.fields-table .fdesc em { color: var(--text-dim); font-style: normal; }
+
+/* ── PARAMS TABLE ────────────────────────────────────────── */
+.params-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 20px; }
+.params-table th {
+  text-align: left; padding: 7px 14px; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim);
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border); font-family: 'Space Mono', monospace;
+}
+.params-table td {
+  padding: 8px 14px; border-bottom: 1px solid var(--border);
+  vertical-align: top; line-height: 1.55;
+}
+.params-table tr:last-child td { border-bottom: none; }
+.params-table tr:nth-child(even) td { background: rgba(0,0,0,0.12); }
+.params-table .pk {
+  font-family: 'Space Mono', monospace; font-size: 11.5px; color: var(--cyan); white-space: nowrap;
+}
+.params-table .pv {
+  font-family: 'Space Mono', monospace; font-size: 11px; color: var(--amber);
+}
+.params-table .pn { color: var(--text-muted); font-size: 12px; }
+
+/* ── CODE BLOCKS ─────────────────────────────────────────── */
+.code-block {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px;
+  margin-bottom: 20px; overflow: hidden;
+}
+.code-block-bar {
+  display: flex; align-items: center; padding: 8px 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+}
+.code-block-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-dim);
+}
+.code-block pre {
+  padding: 18px 22px; font-family: 'Space Mono', monospace;
+  font-size: 11.5px; color: var(--text-dim); line-height: 1.85;
+  white-space: pre; overflow-x: auto;
+}
+.code-block pre .hl-key   { color: var(--cyan); }
+.code-block pre .hl-val   { color: var(--amber); }
+.code-block pre .hl-str   { color: var(--teal); }
+.code-block pre .hl-cmt   { color: var(--text-hint); }
+
+/* ── SUBSECTION HEADER ───────────────────────────────────── */
+.sub-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-dim); margin: 28px 0 10px; display: flex; align-items: center; gap: 10px;
+}
+.sub-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.sub-title {
+  font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 600;
+  color: var(--text); margin: 0 0 16px; letter-spacing: 0.04em; text-transform: uppercase;
+}
+
+/* ── WHY BLOCK ───────────────────────────────────────────── */
+.why-block {
+  margin: 24px 0;
+}
+.why-item {
+  display: flex; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.why-item:last-child { border-bottom: none; }
+.why-key {
+  font-family: 'Space Mono', monospace; font-size: 11px; color: var(--cyan);
+  min-width: 160px; padding-top: 1px; flex-shrink: 0;
+}
+.why-val { color: var(--text-muted); font-size: 12px; line-height: 1.7; }
+
+/* ── LIMITATION CARDS ────────────────────────────────────── */
+.limit-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; margin-bottom: 16px; overflow: hidden;
+}
+.limit-card-head {
+  padding: 14px 18px 10px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.limit-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.limit-dot.warn   { background: var(--blood); box-shadow: 0 0 6px var(--blood); }
+.limit-dot.info   { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.limit-dot.note   { background: var(--text-dim); }
+.limit-title {
+  font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600;
+  color: var(--text); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.limit-card-body { padding: 14px 18px; color: var(--text-muted); font-size: 12.5px; line-height: 1.75; }
+.limit-implication {
+  margin-top: 10px; padding: 9px 12px; background: var(--surface-2);
+  border-left: 2px solid var(--cyan); border-radius: 2px;
+  font-size: 12px; color: var(--text-dim);
+}
+.limit-implication strong { color: var(--cyan); font-weight: 700; }
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+.page-footer {
+  border-top: 1px solid var(--border); padding: 32px 60px;
+  display: flex; align-items: center; gap: 32px; font-size: 11px; color: var(--text-dim);
+  font-family: 'Space Mono', monospace;
+}
+.footer-link { color: var(--text-dim); text-decoration: none; transition: color 0.12s; }
+.footer-link:hover { color: var(--cyan); }
+.footer-right { margin-left: auto; }
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar {
+    position: static; height: auto; display: flex; flex-wrap: wrap;
+    padding: 12px; gap: 2px; border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-group-label { display: none; }
+  .nav-link { padding: 4px 10px; border-left: none; border-radius: 2px; font-size: 11px; }
+  .nav-link .nav-sub { display: none; }
+  .main { padding: 32px 20px 60px; max-width: 100%; }
+  .source-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     TOPBAR
+════════════════════════════════════════════════════════ -->
+<header class="topbar">
+  <span class="topbar-project">Artemis II · Mission Dashboard</span>
+  <span class="topbar-sep">/</span>
+  <span class="topbar-doc">Data Dictionary</span>
+  <div class="topbar-right">
+    <span class="topbar-badge">DuckDB</span>
+    <span class="topbar-badge">1-min cadence</span>
+    <span class="topbar-badge accent-teal">12,836 rows</span>
+    <span class="topbar-badge accent-amber">artemis2.duckdb</span>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ══════════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="nav-group">
+    <span class="nav-group-label">Overview</span>
+    <a href="#overview" class="nav-link active">Primary Source</a>
+    <a href="#pipeline" class="nav-link">Data Pipeline</a>
+    <a href="#tables" class="nav-link">Tables</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Dataset 1</span>
+    <a href="#orion-trajectory" class="nav-link">orion_trajectory<span class="nav-sub">VECTORS · spacecraft state</span></a>
+    <a href="#traj-params" class="nav-link">Query Parameters</a>
+    <a href="#traj-why" class="nav-link">Design Rationale</a>
+    <a href="#traj-schema" class="nav-link">Output Schema</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Dataset 2</span>
+    <a href="#orion-elements" class="nav-link">orion_elements<span class="nav-sub">ELEMENTS · osculating orbits</span></a>
+    <a href="#elem-schema" class="nav-link">Output Schema</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Dataset 3</span>
+    <a href="#moon-trajectory" class="nav-link">moon_trajectory<span class="nav-sub">VECTORS · lunar ephemeris</span></a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Dataset 4</span>
+    <a href="#sun-trajectory" class="nav-link">sun_trajectory<span class="nav-sub">VECTORS · solar ephemeris</span></a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Known Limitations</span>
+    <a href="#limit-launch" class="nav-link">Launch Gap (~T+3.5 h)</a>
+    <a href="#limit-reentry" class="nav-link">Reentry Blackout</a>
+    <a href="#limit-reconstruction" class="nav-link">Reconstruction Note</a>
+    <a href="#limit-frame" class="nav-link">Inertial Frame</a>
+  </div>
+  <div class="nav-group">
+    <span class="nav-group-label">Reproduction</span>
+    <a href="#reproduce" class="nav-link">Rebuild Dataset</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- ── OVERVIEW ──────────────────────────────────────── -->
+  <section id="overview" class="section">
+    <div class="section-eyebrow">Reference Document</div>
+    <h1 class="section-title">Data Dictionary</h1>
+    <hr class="section-divider">
+    <p class="section-lead">
+      All tables and fields in <code>artemis2.duckdb</code>. Four tables share a common
+      timestamp spine at 1-minute cadence across the ~9-day Artemis II mission window.
+      The dataset originates from the JPL Horizons ephemeris system and covers the period
+      from first DSN acquisition through reentry plasma blackout.
+    </p>
+
+    <div class="source-grid">
+      <div class="source-card">
+        <div class="label">Provider</div>
+        <div class="value">NASA Jet Propulsion Laboratory — Solar System Dynamics Group</div>
+      </div>
+      <div class="source-card">
+        <div class="label">Endpoint</div>
+        <div class="value"><a href="https://ssd.jpl.nasa.gov/api/horizons.api" target="_blank">ssd.jpl.nasa.gov/api/horizons.api</a></div>
+      </div>
+      <div class="source-card">
+        <div class="label">Documentation</div>
+        <div class="value"><a href="https://ssd.jpl.nasa.gov/horizons/manual.html" target="_blank">ssd.jpl.nasa.gov/horizons/manual.html</a></div>
+      </div>
+      <div class="source-card">
+        <div class="label">Data Type</div>
+        <div class="value">High-precision ephemeris — position, velocity, orbital elements — reconstructed from Deep Space Network tracking solutions.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PIPELINE ───────────────────────────────────────── -->
+  <section id="pipeline" class="section">
+    <div class="section-eyebrow">Architecture</div>
+    <h2 class="section-title">Data Pipeline</h2>
+    <hr class="section-divider">
+
+    <div class="pipeline-block">
+      <div class="pipeline-bar">
+        <span class="pipeline-bar-label">Ingest → Storage → Runtime</span>
+      </div>
+      <div class="pipeline-code"><span class="node">JPL Horizons API</span>
+      │
+      ▼
+<span class="node">scripts/fetch_horizons.py</span>   <span class="note">← pulls raw ephemeris (VECTORS or ELEMENTS)</span>
+      │
+      ▼
+<span class="node">scripts/init_db.py</span>          <span class="note">← parses, validates, writes to DuckDB</span>
+      │
+      ▼
+<span class="file">data/artemis2.duckdb</span>        <span class="note">← four tables, 12,836 rows each</span>
+      │
+      ▼
+<span class="node">app/db.py</span>                   <span class="note">← loads all tables into in-memory DuckDB at startup</span>
+      │
+      ▼
+<span class="node">app/sql.py</span>                  <span class="note">← creates derived metric views on the in-memory connection</span></div>
+    </div>
+
+    <p class="section-lead" style="margin-bottom: 0;">
+      The on-disk DuckDB file is a reproducible artifact — re-run <code>scripts/init_db.py</code>
+      to rebuild it from scratch. At runtime, all four tables are loaded into an in-memory DuckDB
+      instance and extended with derived metric views. The <code>data/</code> directory is gitignored.
+    </p>
+  </section>
+
+  <!-- ── TABLES OVERVIEW ────────────────────────────────── -->
+  <section id="tables" class="section">
+    <div class="section-eyebrow">Database Schema</div>
+    <h2 class="section-title">Tables</h2>
+    <hr class="section-divider">
+
+    <p class="section-lead">
+      All four tables share the same timestamp spine:
+      <code>2026-04-02 01:59 UTC</code> → <code>2026-04-10 23:54 UTC</code>,
+      1-minute step size, ICRF geocentric frame. Rows join cleanly on <code>datetime_utc</code>.
+    </p>
+
+    <table class="coverage-table">
+      <thead>
+        <tr>
+          <th>Table</th>
+          <th>COMMAND</th>
+          <th>EPHEM_TYPE</th>
+          <th>Rows</th>
+          <th>Body</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>orion_trajectory</td>
+          <td>-1024</td>
+          <td>VECTORS</td>
+          <td style="color:var(--text-muted)">12,836</td>
+          <td style="color:var(--text-muted)">Orion capsule (Artemis II)</td>
+        </tr>
+        <tr>
+          <td>orion_elements</td>
+          <td>-1024</td>
+          <td>ELEMENTS</td>
+          <td style="color:var(--text-muted)">12,836</td>
+          <td style="color:var(--text-muted)">Orion capsule (Artemis II)</td>
+        </tr>
+        <tr>
+          <td>moon_trajectory</td>
+          <td>301</td>
+          <td>VECTORS</td>
+          <td style="color:var(--text-muted)">12,836</td>
+          <td style="color:var(--text-muted)">Moon</td>
+        </tr>
+        <tr>
+          <td>sun_trajectory</td>
+          <td>10</td>
+          <td>VECTORS</td>
+          <td style="color:var(--text-muted)">12,836</td>
+          <td style="color:var(--text-muted)">Sun</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       DATASET 1 — ORION TRAJECTORY
+  ════════════════════════════════════════════════════════ -->
+  <section id="orion-trajectory" class="section">
+    <div class="section-eyebrow">Dataset 1 — Spacecraft State Vectors</div>
+    <h2 class="section-title">Orion Capsule Trajectory</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      Cartesian state vectors for the Orion capsule in an Earth-centered inertial frame.
+      Provides position, velocity, range, and range-rate at each timestep. This is the
+      primary table for computing derived physics — speed, orbital energy, closest approach,
+      and all trajectory arc rendering.
+    </p>
+
+    <!-- Query Parameters -->
+    <div id="traj-params">
+      <div class="sub-label">Query Parameters</div>
+      <table class="params-table">
+        <thead>
+          <tr><th>Parameter</th><th>Value</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="pk">COMMAND</td>    <td class="pv">-1024</td>           <td class="pn">Orion spacecraft (Artemis II)</td></tr>
+          <tr><td class="pk">EPHEM_TYPE</td> <td class="pv">VECTORS</td>         <td class="pn">Cartesian state vectors (position + velocity)</td></tr>
+          <tr><td class="pk">CENTER</td>     <td class="pv">500@399</td>          <td class="pn">Earth geocenter as origin</td></tr>
+          <tr><td class="pk">REF_SYSTEM</td> <td class="pv">ICRF</td>            <td class="pn">International Celestial Reference Frame</td></tr>
+          <tr><td class="pk">REF_PLANE</td>  <td class="pv">FRAME</td>           <td class="pn">XY plane aligned to ICRF (equatorial)</td></tr>
+          <tr><td class="pk">OUT_UNITS</td>  <td class="pv">KM-S</td>            <td class="pn">Kilometers and km/s</td></tr>
+          <tr><td class="pk">VEC_TABLE</td>  <td class="pv">3</td>               <td class="pn">Position + velocity + light time + range + range rate</td></tr>
+          <tr><td class="pk">STEP_SIZE</td>  <td class="pv">1m</td>              <td class="pn">1-minute intervals</td></tr>
+          <tr><td class="pk">START_TIME</td> <td class="pv">2026-Apr-02 01:59</td><td class="pn">First available post-launch tracking point</td></tr>
+          <tr><td class="pk">STOP_TIME</td>  <td class="pv">2026-Apr-10 23:54</td><td class="pn">Final point before reentry plasma blackout</td></tr>
+          <tr><td class="pk">CSV_FORMAT</td> <td class="pv">YES</td>             <td class="pn">Comma-separated output for deterministic parsing</td></tr>
+          <tr><td class="pk">VEC_LABELS</td> <td class="pv">NO</td>              <td class="pn">Labels suppressed; columns parsed positionally</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Design Rationale -->
+    <div id="traj-why">
+      <div class="sub-label">Design Rationale</div>
+      <div class="why-block">
+        <div class="why-item">
+          <div class="why-key">VECTORS type</div>
+          <div class="why-val">Cartesian state vectors (X, Y, Z, Vx, Vy, Vz) in a fixed inertial frame — the natural representation for computing derived physics such as range, speed, orbital energy, and closest approach without angular ambiguity.</div>
+        </div>
+        <div class="why-item">
+          <div class="why-key">500@399 (geocenter)</div>
+          <div class="why-val">Sets the coordinate origin at Earth's center of mass. All X/Y/Z values are Earth-centered distances in km — the most intuitive frame for visualizing launch, TLI, lunar flyby, and reentry from a mission control perspective.</div>
+        </div>
+        <div class="why-item">
+          <div class="why-key">ICRF / FRAME plane</div>
+          <div class="why-val">The International Celestial Reference Frame is a fixed, non-rotating inertial frame tied to distant quasars. Z-axis aligns to the ICRF pole (close to Earth's north celestial pole), not the ecliptic. Standard for spacecraft navigation; stable regardless of Earth's orbital position.</div>
+        </div>
+        <div class="why-item">
+          <div class="why-key">VEC_TABLE=3</div>
+          <div class="why-val">Includes all five useful output columns beyond the calendar/JD timestamps: position, velocity, light time, range, and range rate. Light time (<code>lt_sec</code>) and range rate (<code>rr_kms</code>) simulate DSN tracking observables in the dashboard.</div>
+        </div>
+        <div class="why-item">
+          <div class="why-key">1-minute step</div>
+          <div class="why-val">~12,800 rows across the ~9-day mission window — fine-grained enough to resolve events like TLI, lunar closest approach, and the reentry corridor accurately, without the dataset becoming unmanageable.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Output Schema -->
+    <div id="traj-schema">
+      <div class="sub-label">Output Schema</div>
+      <div class="callout note" style="margin-bottom: 14px;">
+        <strong>orion_trajectory</strong> — 12,836 rows, zero nulls.
+      </div>
+      <div class="table-card">
+        <div class="table-card-head">
+          <div>
+            <div class="table-name">orion_trajectory</div>
+            <div class="table-grain">One row per minute · Earth geocenter · ICRF frame · KM-S units</div>
+          </div>
+          <div class="table-badges">
+            <span class="tbadge vectors">VECTORS</span>
+            <span class="tbadge silver">-1024</span>
+          </div>
+        </div>
+        <table class="fields-table">
+          <thead><tr><th>Column</th><th>Type</th><th>Units</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td class="fn key">datetime_utc</td><td class="ftype">TIMESTAMP</td><td class="ftype">—</td>      <td class="fdesc">Calendar date/time, UTC. Join key across all four tables.</td></tr>
+            <tr><td class="fn regular">jd_tdb</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">days</td>   <td class="fdesc">Julian Date in Barycentric Dynamical Time (TDB). Differs from UTC by ~65 seconds. Use for cross-ephemeris precision physics; prefer <code>datetime_utc</code> for display.</td></tr>
+            <tr><td class="fn regular">x_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>     <td class="fdesc">X position, Earth geocenter, ICRF equatorial frame.</td></tr>
+            <tr><td class="fn regular">y_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>     <td class="fdesc">Y position, Earth geocenter, ICRF equatorial frame.</td></tr>
+            <tr><td class="fn regular">z_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>     <td class="fdesc">Z position, Earth geocenter, ICRF equatorial frame.</td></tr>
+            <tr><td class="fn regular">vx_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td>   <td class="fdesc">X velocity component.</td></tr>
+            <tr><td class="fn regular">vy_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td>   <td class="fdesc">Y velocity component.</td></tr>
+            <tr><td class="fn regular">vz_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td>   <td class="fdesc">Z velocity component.</td></tr>
+            <tr><td class="fn regular">lt_sec</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">seconds</td><td class="fdesc">One-way light time from observer to spacecraft. Simulates DSN ranging observable.</td></tr>
+            <tr><td class="fn regular">rg_km</td>    <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>     <td class="fdesc">Range (distance) from observer to spacecraft. Equivalent to <code>√(x²+y²+z²)</code> for a geocenter observer.</td></tr>
+            <tr><td class="fn regular">rr_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td>   <td class="fdesc">Range rate (radial velocity). Negative = closing; positive = receding. Simulates Doppler observable.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <strong>jd_tdb vs datetime_utc:</strong> Horizons returns calendar timestamps in UTC but Julian Dates in TDB. The ~65-second difference is negligible for visualization but matters for precision physics involving relativistic corrections. Use <code>datetime_utc</code> for display; use <code>jd_tdb</code> if computing against other Horizons-sourced ephemerides (e.g., Moon position), since both share the same TDB epoch.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       DATASET 2 — ORION ELEMENTS
+  ════════════════════════════════════════════════════════ -->
+  <section id="orion-elements" class="section">
+    <div class="section-eyebrow">Dataset 2 — Osculating Orbital Elements</div>
+    <h2 class="section-title">Orion Orbital Elements</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      Same query window and spacecraft as Dataset 1, with <code>EPHEM_TYPE=ELEMENTS</code>.
+      Horizons computes osculating Keplerian orbital elements at each timestep using its full
+      n-body solution — more precise than deriving them manually from the state vectors.
+      This is the preferred source for orbital mechanics metrics (eccentricity, inclination,
+      periapsis, etc.) where both tables cover the same period.
+    </p>
+
+    <div class="sub-label">Query Parameters</div>
+    <table class="params-table" style="margin-bottom:28px;">
+      <thead>
+        <tr><th>Parameter</th><th>Value</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="pk">COMMAND</td>    <td class="pv">-1024</td>             <td class="pn">Orion spacecraft (Artemis II)</td></tr>
+        <tr><td class="pk">EPHEM_TYPE</td> <td class="pv">ELEMENTS</td>          <td class="pn">Osculating Keplerian orbital elements</td></tr>
+        <tr><td class="pk">CENTER</td>     <td class="pv">500@399</td>            <td class="pn">Earth geocenter</td></tr>
+        <tr><td class="pk">REF_SYSTEM</td> <td class="pv">ICRF</td>             <td class="pn"></td></tr>
+        <tr><td class="pk">REF_PLANE</td>  <td class="pv">FRAME</td>            <td class="pn"></td></tr>
+        <tr><td class="pk">START_TIME</td> <td class="pv">2026-Apr-02 01:59</td> <td class="pn">Matches orion_trajectory exactly</td></tr>
+        <tr><td class="pk">STOP_TIME</td>  <td class="pv">2026-Apr-10 23:54</td> <td class="pn">Matches orion_trajectory exactly</td></tr>
+        <tr><td class="pk">STEP_SIZE</td>  <td class="pv">1m</td>               <td class="pn">1-minute intervals</td></tr>
+        <tr><td class="pk">CSV_FORMAT</td> <td class="pv">YES</td>              <td class="pn"></td></tr>
+      </tbody>
+    </table>
+
+    <div id="elem-schema">
+      <div class="sub-label">Output Schema</div>
+      <div class="table-card">
+        <div class="table-card-head">
+          <div>
+            <div class="table-name">orion_elements</div>
+            <div class="table-grain">~12,836 rows · joins 1:1 with orion_trajectory on datetime_utc</div>
+          </div>
+          <div class="table-badges">
+            <span class="tbadge elements">ELEMENTS</span>
+            <span class="tbadge silver">-1024</span>
+          </div>
+        </div>
+        <table class="fields-table">
+          <thead><tr><th>Column</th><th>Type</th><th>Units</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td class="fn key">datetime_utc</td><td class="ftype">TIMESTAMP</td><td class="ftype">—</td>      <td class="fdesc">Calendar date/time, UTC. Join key.</td></tr>
+            <tr><td class="fn regular">jd_tdb</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">days</td>   <td class="fdesc">Julian Date, TDB.</td></tr>
+            <tr><td class="fn regular">ec</td>        <td class="ftype">DOUBLE</td>   <td class="ftype">—</td>      <td class="fdesc">Eccentricity. Values &gt; 1 indicate a hyperbolic trajectory (post-TLI). Filter <code>ec &lt; 1</code> before using <code>ad_km</code> or <code>pr_d</code>.</td></tr>
+            <tr><td class="fn regular">qr_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>     <td class="fdesc">Periapsis distance — closest approach to Earth center.</td></tr>
+            <tr><td class="fn regular">inc_deg</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">deg</td>    <td class="fdesc">Inclination relative to ICRF equatorial plane.</td></tr>
+            <tr><td class="fn regular">om_deg</td>    <td class="ftype">DOUBLE</td>   <td class="ftype">deg</td>    <td class="fdesc">Longitude of ascending node (Ω).</td></tr>
+            <tr><td class="fn regular">w_deg</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">deg</td>    <td class="fdesc">Argument of periapsis (ω).</td></tr>
+            <tr><td class="fn regular">tp_jd</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">days</td>   <td class="fdesc">Time of periapsis passage (Julian Date, TDB).</td></tr>
+            <tr><td class="fn regular">n_deg_d</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">deg/day</td><td class="fdesc">Mean motion.</td></tr>
+            <tr><td class="fn regular">ma_deg</td>    <td class="ftype">DOUBLE</td>   <td class="ftype">deg</td>    <td class="fdesc">Mean anomaly.</td></tr>
+            <tr><td class="fn regular">ta_deg</td>    <td class="ftype">DOUBLE</td>   <td class="ftype">deg</td>    <td class="fdesc">True anomaly (ν) — current angular position in the orbit.</td></tr>
+            <tr><td class="fn regular">a_km</td>      <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>     <td class="fdesc">Semi-major axis.</td></tr>
+            <tr><td class="fn regular">ad_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>     <td class="fdesc">Apoapsis distance. <strong style="color:var(--blood)">Undefined for ec &gt; 1</strong> — Horizons returns a sentinel value. Always filter on <code>ec &lt; 1</code>.</td></tr>
+            <tr><td class="fn regular">pr_d</td>      <td class="ftype">DOUBLE</td>   <td class="ftype">days</td>   <td class="fdesc">Orbital period. <strong style="color:var(--blood)">Undefined for ec &gt; 1</strong> — no closed orbit exists on a hyperbolic trajectory.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <strong>Hyperbolic caveat:</strong> Once Orion is on a trans-lunar trajectory (eccentricity &gt; 1), apoapsis (<code>ad_km</code>) and orbital period (<code>pr_d</code>) are physically undefined — there is no farthest point and no closed orbit. Horizons returns sentinel values for these columns during hyperbolic phases. Always filter on <code>ec &lt; 1</code> and use <code>errors='coerce'</code> before using these fields.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       DATASET 3 — MOON
+  ════════════════════════════════════════════════════════ -->
+  <section id="moon-trajectory" class="section">
+    <div class="section-eyebrow">Dataset 3 — Lunar Ephemeris</div>
+    <h2 class="section-title">Moon Position</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      Same query parameters as <code>orion_trajectory</code>, with <code>COMMAND=301</code> (Moon).
+      Moon position vectors in the same ICRF/geocenter frame allow the dashboard to render
+      Earth–Moon geometry at any mission timestamp, compute spacecraft-to-Moon range, and
+      identify the closest approach point during the lunar flyby.
+    </p>
+
+    <div class="table-card">
+      <div class="table-card-head">
+        <div>
+          <div class="table-name">moon_trajectory</div>
+          <div class="table-grain">12,836 rows · same timestamp spine as orion_trajectory · identical schema</div>
+        </div>
+        <div class="table-badges">
+          <span class="tbadge vectors">VECTORS</span>
+          <span class="tbadge silver">301</span>
+        </div>
+      </div>
+      <table class="fields-table">
+        <thead><tr><th>Column</th><th>Type</th><th>Units</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="fn key">datetime_utc</td><td class="ftype">TIMESTAMP</td><td class="ftype">—</td>    <td class="fdesc">Calendar date/time, UTC. Joins 1:1 with orion_trajectory.</td></tr>
+          <tr><td class="fn regular">jd_tdb</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">days</td> <td class="fdesc">Julian Date, TDB.</td></tr>
+          <tr><td class="fn regular">x_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>   <td class="fdesc">Moon X position, Earth geocenter, ICRF.</td></tr>
+          <tr><td class="fn regular">y_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>   <td class="fdesc">Moon Y position, Earth geocenter, ICRF.</td></tr>
+          <tr><td class="fn regular">z_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>   <td class="fdesc">Moon Z position, Earth geocenter, ICRF.</td></tr>
+          <tr><td class="fn regular">vx_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td> <td class="fdesc">Moon X velocity.</td></tr>
+          <tr><td class="fn regular">vy_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td> <td class="fdesc">Moon Y velocity.</td></tr>
+          <tr><td class="fn regular">vz_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td> <td class="fdesc">Moon Z velocity.</td></tr>
+          <tr><td class="fn regular">lt_sec</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">seconds</td><td class="fdesc">One-way light time from observer.</td></tr>
+          <tr><td class="fn regular">rg_km</td>    <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>   <td class="fdesc">Earth–Moon range. Subtract Orion's <code>rg_km</code> for spacecraft-to-Moon range along the geocentric radial — or compute properly from XYZ difference vectors.</td></tr>
+          <tr><td class="fn regular">rr_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td> <td class="fdesc">Moon range rate from observer.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       DATASET 4 — SUN
+  ════════════════════════════════════════════════════════ -->
+  <section id="sun-trajectory" class="section">
+    <div class="section-eyebrow">Dataset 4 — Solar Ephemeris</div>
+    <h2 class="section-title">Sun Position</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      Same query parameters as <code>orion_trajectory</code>, with <code>COMMAND=10</code> (Sun).
+      Solar position vectors in the geocentric ICRF frame, used for solar distance metrics,
+      illumination geometry, and solar phase angle calculations.
+    </p>
+
+    <div class="table-card">
+      <div class="table-card-head">
+        <div>
+          <div class="table-name">sun_trajectory</div>
+          <div class="table-grain">12,836 rows · same timestamp spine · identical schema to moon_trajectory</div>
+        </div>
+        <div class="table-badges">
+          <span class="tbadge vectors">VECTORS</span>
+          <span class="tbadge silver">10</span>
+        </div>
+      </div>
+      <table class="fields-table">
+        <thead><tr><th>Column</th><th>Type</th><th>Units</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="fn key">datetime_utc</td><td class="ftype">TIMESTAMP</td><td class="ftype">—</td>    <td class="fdesc">Calendar date/time, UTC. Joins 1:1 with all other tables.</td></tr>
+          <tr><td class="fn regular">jd_tdb</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">days</td> <td class="fdesc">Julian Date, TDB.</td></tr>
+          <tr><td class="fn regular">x_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>   <td class="fdesc">Sun X position, Earth geocenter, ICRF.</td></tr>
+          <tr><td class="fn regular">y_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>   <td class="fdesc">Sun Y position, Earth geocenter, ICRF.</td></tr>
+          <tr><td class="fn regular">z_km</td>     <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>   <td class="fdesc">Sun Z position, Earth geocenter, ICRF.</td></tr>
+          <tr><td class="fn regular">vx_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td> <td class="fdesc">Sun X velocity (relative motion in geocentric frame).</td></tr>
+          <tr><td class="fn regular">vy_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td> <td class="fdesc">Sun Y velocity.</td></tr>
+          <tr><td class="fn regular">vz_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td> <td class="fdesc">Sun Z velocity.</td></tr>
+          <tr><td class="fn regular">lt_sec</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">seconds</td><td class="fdesc">One-way light time Earth–Sun (~499 seconds / ~8.3 minutes).</td></tr>
+          <tr><td class="fn regular">rg_km</td>    <td class="ftype">DOUBLE</td>   <td class="ftype">km</td>   <td class="fdesc">Earth–Sun range (~150 million km nominal).</td></tr>
+          <tr><td class="fn regular">rr_kms</td>   <td class="ftype">DOUBLE</td>   <td class="ftype">km/s</td> <td class="fdesc">Earth–Sun range rate.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       KNOWN LIMITATIONS
+  ════════════════════════════════════════════════════════ -->
+  <section id="limitations" class="section">
+    <div class="section-eyebrow">Data Quality</div>
+    <h2 class="section-title">Known Limitations</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      Four structural gaps and caveats in the dataset. None are fixable — they are
+      inherent to how DSN tracking and reentry physics work. Design the dashboard
+      around them, not against them.
+    </p>
+
+    <!-- Limitation 1 -->
+    <div class="limit-card" id="limit-launch">
+      <div class="limit-card-head">
+        <div class="limit-dot warn"></div>
+        <div class="limit-title">Launch Through ~T+3.5 Hours — No Pre-Tracking Data</div>
+      </div>
+      <div class="limit-card-body">
+        The dataset begins at <code>2026-Apr-02 01:59 UTC</code>. The SLS launch, ascent, and early
+        trans-lunar injection (TLI) burn are not covered. Horizons does not provide trajectory data
+        for Orion prior to initial DSN acquisition of signal after orbital insertion. The first row
+        in <code>orion_trajectory</code> represents the earliest point at which JPL had a
+        reconstructed tracking solution available.
+        <div class="limit-implication">
+          <strong>Dashboard implication:</strong> The trajectory does not begin at Kennedy Space Center or the launch pad. The earliest visualizable position is already in Earth orbit or early trans-lunar coast.
+        </div>
+      </div>
+    </div>
+
+    <!-- Limitation 2 -->
+    <div class="limit-card" id="limit-reentry">
+      <div class="limit-card-head">
+        <div class="limit-dot warn"></div>
+        <div class="limit-title">Final ~13 Minutes — Reentry Plasma Blackout</div>
+      </div>
+      <div class="limit-card-body">
+        The dataset ends at <code>2026-Apr-10 23:54 UTC</code>. During atmospheric reentry, the
+        plasma sheath surrounding the capsule blocks all radio communication, including DSN tracking.
+        There is no trajectory data for the reentry corridor from approximately Entry Interface (EI)
+        through splashdown.
+        <div class="limit-implication">
+          <strong>Dashboard implication:</strong> The trajectory terminates before reaching Earth's surface. The endpoint should be labeled "Last Known Position" — not splashdown.
+        </div>
+      </div>
+    </div>
+
+    <!-- Limitation 3 -->
+    <div class="limit-card" id="limit-reconstruction">
+      <div class="limit-card-head">
+        <div class="limit-dot info"></div>
+        <div class="limit-title">Ephemeris Is a Reconstruction, Not a Prediction</div>
+      </div>
+      <div class="limit-card-body">
+        For active or recently completed missions, Horizons data reflects JPL's best current
+        trajectory reconstruction based on available DSN tracking data. Early in the mission, the
+        solution is updated as additional tracking passes are incorporated. Data fetched at
+        different times during or after the mission may differ slightly for overlapping windows.
+        <div class="limit-implication">
+          <strong>Dashboard implication:</strong> Re-running <code>scripts/init_db.py</code> after mission end may return a refined trajectory. The dataset is reproducible but not strictly time-invariant.
+        </div>
+      </div>
+    </div>
+
+    <!-- Limitation 4 -->
+    <div class="limit-card" id="limit-frame">
+      <div class="limit-card-head">
+        <div class="limit-dot note"></div>
+        <div class="limit-title">Coordinate Frame Is Inertial, Not Earth-Fixed</div>
+      </div>
+      <div class="limit-card-body">
+        ICRF is a non-rotating frame. Earth rotates inside it. X/Y/Z coordinates are not tied to
+        geographic features — a spacecraft directly over New York will not have a constant X/Y
+        position as time passes. Converting to geographic coordinates (latitude, longitude, altitude)
+        requires accounting for Earth's rotation via Greenwich Apparent Sidereal Time (GAST/GMST).
+        <div class="limit-implication">
+          <strong>Dashboard implication:</strong> The 2D trajectory visualization uses ICRF X/Y directly (projected into the orbital plane) — this is valid for the Earth-Moon geometry view but does not represent sub-satellite ground track.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       REPRODUCE
+  ════════════════════════════════════════════════════════ -->
+  <section id="reproduce" class="section">
+    <div class="section-eyebrow">Reproducibility</div>
+    <h2 class="section-title">Rebuild Dataset</h2>
+    <hr class="section-divider">
+    <p class="section-lead">
+      The database is a reproducible artifact. Run <code>scripts/init_db.py</code> to re-fetch
+      from Horizons and rebuild <code>artemis2.duckdb</code> from scratch. Query parameters
+      in <code>config.py</code> define the dataset — do not modify them without understanding
+      the downstream effects on the DB schema and all derived views.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-bar">
+        <span class="code-block-label">config.py — Horizons query constants</span>
+      </div>
+      <pre><span class="hl-cmt"># config.py values used for this dataset</span>
+<span class="hl-key">SPACECRAFT_ID</span> = <span class="hl-str">"-1024"</span>
+<span class="hl-key">MISSION_START</span> = <span class="hl-str">"2026-Apr-02 01:59"</span>
+<span class="hl-key">MISSION_STOP</span>  = <span class="hl-str">"2026-Apr-10 23:54"</span>
+<span class="hl-key">STEP_SIZE</span>     = <span class="hl-str">"1m"</span>
+<span class="hl-key">CENTER</span>        = <span class="hl-str">"500@399"</span>
+<span class="hl-key">REF_SYSTEM</span>    = <span class="hl-str">"ICRF"</span>
+<span class="hl-key">REF_PLANE</span>     = <span class="hl-str">"FRAME"</span>
+<span class="hl-key">OUT_UNITS</span>     = <span class="hl-str">"KM-S"</span>
+<span class="hl-key">VEC_TABLE</span>     = <span class="hl-str">"3"</span></pre>
+    </div>
+
+    <div class="callout note">
+      <strong>Note:</strong> Re-fetching late in or after the mission may return a slightly updated
+      trajectory solution if JPL has refined their tracking reconstruction. The endpoint timestamps
+      are fixed and will not change — but intermediate position values may drift slightly between
+      fetch dates as JPL incorporates additional DSN tracking data.
+    </div>
+  </section>
+
+</main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════ -->
+<footer class="page-footer">
+  <span>Artemis II Mission Dashboard</span>
+  <span>·</span>
+  <a href="https://ssd.jpl.nasa.gov/horizons/manual.html" target="_blank" class="footer-link">JPL Horizons Manual</a>
+  <span>·</span>
+  <span>artemis2.duckdb · 12,836 rows · 1-min cadence</span>
+  <span class="footer-right">deanallton.com</span>
+</footer>
+
+<script>
+// Active nav link on scroll
+const sections = document.querySelectorAll('section[id], div[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const match = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+      if (match) match.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
