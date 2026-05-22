@@ -35,7 +35,7 @@ app = dash.Dash(
 
 server = app.server
 
-DOCS_DIR = os.path.join(os.path.dirname(__file__), 'docs')
+DOCS_DIR = _PROJECT_ROOT / 'docs'
 
 @server.route('/docs/<path:filename>')
 def serve_docs(filename):
