@@ -10,9 +10,11 @@
 # not "main", so Dash's default relative-path resolution would look inside
 # app/ rather than the project root. Explicit path fixes that.
 
+import os
 from pathlib import Path
 
 import dash
+from flask import send_from_directory
 
 from app.index_string import INDEX_STRING
 import app.plotly_template
@@ -32,3 +34,9 @@ app = dash.Dash(
 )
 
 server = app.server
+
+DOCS_DIR = os.path.join(os.path.dirname(__file__), 'docs')
+
+@server.route('/docs/<path:filename>')
+def serve_docs(filename):
+    return send_from_directory(DOCS_DIR, filename)
