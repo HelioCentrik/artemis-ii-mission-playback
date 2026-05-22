@@ -54,14 +54,16 @@ Python · JavaScript · Dash · Plotly · DuckDB
 
 ---
 
+## Documentation
+
+**[Data Dictionary](docs/Data_Dictionary.html)** — Tables, fields, units, coordinate frame, and data gaps.
+
+**[Metrics & Queries](docs/Metrics_and_Queries.html)** — Derived metric formulas, physical constants, and the SQL query cookbook.
+
+---
+
 ## Data & Attribution
 
-**Ephemeris data** - NASA Jet Propulsion Laboratory, [JPL Horizons REST API](https://ssd.jpl.nasa.gov/api/horizons.api). Orion spacecraft ID `-1024`. State vectors and osculating orbital elements at 1-minute resolution.
+**Ephemeris data** — NASA Jet Propulsion Laboratory, [JPL Horizons REST API](https://ssd.jpl.nasa.gov/api/horizons.api). Ephemeris IDs: Orion spacecraft `-1024`, Moon `301`, and Sun `10`. State vectors and osculating orbital elements at 1-minute resolution.
 
-**Moon and Sun ephemerides** - JPL Horizons, object IDs `301` (Moon) and `10` (Sun), same query window and resolution as Orion.
-
-**Crew portraits** — NASA. Official astronaut portraits: Reid Wiseman, Victor Glover, Christina Koch, Jeremy Hansen. [NASA Image and Video Library](https://images.nasa.gov).
-
-**Mission imagery** — NASA. Launch, recovery, and crew photography via [NASA Image and Video Library](https://images.nasa.gov).
-
-**Launch and recovery video** — NASA.
+**Mission media** — NASA. Crew portraits, launch, and mission photography via [NASA Image and Video Library](https://images.nasa.gov). Launch video via NASA. Recovery video courtesy of Reid Wiseman via [Instagram](https://www.instagram.com/astroreid).
