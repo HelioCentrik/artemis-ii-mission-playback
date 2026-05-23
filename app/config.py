@@ -106,7 +106,7 @@ STATIC_VIDEO_HOST = os.environ.get("ARTEMIS_STATIC_HOST", "/assets/video")
 # ── Playback page layout ──────────────────────────────────────────────────
 DASHBOARD_WIDTH_MIN = 1080
 DASHBOARD_WIDTH_VW  = 66.67
-DASHBOARD_WIDTH_MAX = 1600
+DASHBOARD_WIDTH_MAX = 1280
 
 SIDE_PANEL_WIDTH      = 400
 SIDE_PANEL_TRANSITION = "0.3s ease"

@@ -36,7 +36,7 @@ body {
 
 .home-root {
     height:          100vh;
-    overflow:        hidden;
+    overflow:        visible;
     background:      var(--bg-base);
     color:           var(--font-primary);
     font-family:     var(--font-family);
@@ -538,14 +538,13 @@ body {
     flex-direction   : row;
     width            : 100vw;
     height           : 100vh;
-    overflow         : hidden;
+    overflow         : visible;
     background-color : var(--bg-base);
 }
 
 .dashboard {
     flex: 1;
     min-width: 0;
-    height: 100vh;
     max-width: var(--dashboard-width);
     margin: 0 auto;
     padding: var(--panel-gap);
@@ -1194,10 +1193,4 @@ body {
 /* Dash loading spinners — match theme */
 ._dash-loading {
     color: var(--font-dim) !important;
-}
-
-
-/* Target resolution: lock to viewport, no scroll */
-@media (min-height: 800px) {
-    .dashboard { height: 100vh; overflow: hidden; }
 }
