@@ -152,7 +152,7 @@ layout = html.Div([
                 # Recovery video — plays first, hides on ended
                 html.Video(
                     html.Source(
-                        src=f"{STATIC_VIDEO_HOST}/artemis-ii-splashdown-recovery-cut.mp4",
+                        src=f"{STATIC_VIDEO_HOST}/artemis-ii-splashdown-recovery-cut-h264.mp4",
                         type="video/mp4",
                     ),
                     id="carousel-video",
